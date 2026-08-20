@@ -23,7 +23,7 @@ expected later (see ADR-001).
 | Working radius | ~15 m from downline |
 | Deployment | Kayak, tethered |
 | Water | Freshwater primary; saltwater capable |
-| Target cost | ~$500 core, growing with options |
+| Cost | ~$2,000 as built (the "$500 build" did not survive contact with procurement — see `docs/bom.md`) |
 
 ## Design posture
 

@@ -24,7 +24,7 @@ flowchart LR
     PX <-->|USB| PI["Pi 5"]
     CAM1["IMX462 L"] -->|CSI ribbon| PI
     CAM2["IMX462 R"] -->|CSI ribbon| PI
-    PI <-->|"Ethernet, RJ45 crimped dry-side<br/>of the tether gland"| TETHER["20 m Cat5e tether"]
+    PI <-->|"Ethernet, RJ45 crimped dry-side<br/>of the tether gland"| TETHER["~15 m Cat6 tether (CCA)"]
     TETHER <--> OPAL["Opal router (topside)<br/>LAN 192.168.2.0/24"]
     OPAL -.->|WiFi 5 GHz| PHONE["Phone: Cockpit<br/>+ 8BitDo via BT 2.4 GHz"]
     BANK["Anker 10k power bank"] -->|USB-C 5 V| OPAL
@@ -32,6 +32,10 @@ flowchart LR
 
 ## The rules (each one bought with someone's misery — see prior-art.md)
 
+0. **Main fuse (MIDI/ANL 80 A) on the pack lead at the star point.** The
+   pack delivers ≥120 A into a dead short inside a tube nobody can open
+   mid-dive; the XT90-S is inrush management, not protection. Optionally
+   15 A blade fuses per ESC drop. (Design review B1.)
 1. **XT90-S is the service disconnect.** The pre-charge resistor lives in the
    male pin — never bury it behind a permanent adapter and disconnect
    elsewhere. Charging uses the XT90M→XT60F adapter, outside the vehicle.
@@ -55,6 +59,9 @@ flowchart LR
    mode (camera vanishes, corrupted frames). Ferrite/foil if it appears.
 9. **Solder, then heat-shrink, every joint** — bullet connectors corrode;
    inside penetrators every conductor gets a stripped solder blob mid-pot.
+10. **Leak probe at the hull low point → Pixhawk AUX pin**, `LEAK1_PIN` set,
+    `FS_LEAK = surface`. Auto-surface-on-leak is the cheapest insurance in
+    the project; mount above the condensate sweat line and bench-trip it.
 
 ## Open decision: power module placement
 

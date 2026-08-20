@@ -15,7 +15,8 @@ Parameter files for CARP, one per configuration stage.
 |---|---|---|
 | `BRD_SAFETYENABLE` | 0 | No physical switch reachable in a sealed housing (ADR-007) |
 | `BARO_EXT_BUS` | *(set to external bus index)* | Defaults to −1 (disabled). Most common cause of "depth sensor not detected" |
-| `FRAME_CONFIG` | SimpleROV-4 | ADR-012 |
+| `FRAME_CONFIG` | *(pending frame decision)* | ADR-012 is Open — six thrusters make BlueROV1 a live alternative to SimpleROV-4/5 |
+| `LEAK1_PIN` / `FS_LEAK` | *(AUX pin)* / surface | Leak probe auto-surface failsafe (design review M8) |
 | `BATT_VOLT_MULT` | *(calibrate)* | Radiolink power modules are known to read low |
 | `MOT_n_DIRECTION` | *(as needed)* | Correct thruster rotation here rather than rewiring inside the housing |
 | `SYSID_MYGCS` | 255 | Required for QGC/Cockpit joystick authority; the #1 "no control" cause |

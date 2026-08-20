@@ -20,10 +20,11 @@ Deeper sites are expected later.
 At 0.5 bar gauge the housing is not crush-limited; failures will be seal
 workmanship, not structural. 4" sched-40 PVC is overbuilt by an order of
 magnitude. Leak testing via a Schrader stem in one endcap: **vacuum test is
-the gate** (~10 inHg with the hand pump, core removed — loads seals the same
-direction depth does), gentle bike-pump pressure + soapy water only to
-*localize* a leak after a failed vacuum test (positive pressure unseats face
-seals, so it's a debug tool, not a pass/fail check).
+the gate** (15 inHg with the hand pump, core removed — loads seals the same
+direction depth does; 15 inHg ≈ 5.2 m of water — matches the site depth,
+where 10 inHg would only prove 3.5 m), gentle bike-pump pressure + soapy
+water only to *localize* a leak after a failed vacuum test (positive
+pressure unseats face seals, so it's a debug tool, not a pass/fail check).
 
 **Consequence:** Flotation can be sealed air voids (~1 g/cm³ lift) rather than
 syntactic foam (~0.4). Budget freed for optics.
@@ -32,7 +33,7 @@ syntactic foam (~0.4). Budget freed for optics.
 lean on "it's only 5 m":
 
 - ADR-002 — surface-on-power-loss as the entire recovery plan
-- ADR-009 — "free-dive to clear a snag" as the tether-fouling answer
+- ADR-009 — snag recovery workable from the surface
 - Tether length (15 m working radius) and the buoy's ~8 m vertical hang
 - Shallow-water multipath handling in acoustic ranging (`navigation.md`)
 
@@ -197,7 +198,14 @@ ArduSub already runs missions). The real costs:
 - **Nothing bounds nav drift.** VO is a random walk, and over featureless mud
   it doesn't drift so much as stop working.
 - **The usual HROV justification doesn't apply.** Tether fouling on wreck
-  structure is real, but at 5 m you can free-dive to clear a snag.
+  structure is real, but at 5 m a fouled tether is recoverable without
+  abandoning the vehicle. **Snag protocol (2026-08-20, replaces an earlier
+  "free-dive to clear it" line):** gentle haul-test from multiple bearings →
+  slack the tether and drive the vehicle to unwind it → if still fouled,
+  buoy the tether end and come back with a second person or a grapple.
+  **Never solo breath-hold dive on a fouled line** — the line that snagged
+  the vehicle is the line that snags the diver. The vehicle costs ~$1,600;
+  it is not worth a solo entanglement dive, ever.
 
 **Adopted alternative:** tether to a surface buoy carrying GNSS, battery, and
 a WiFi/LoRa link, with ~8 m hanging vertically. Untethered *from the kayak*,

@@ -61,8 +61,12 @@ Per unit, on the servo tester, no autopilot involved.
 
 ## Phase 4 — Housing
 
-- [ ] Vacuum test via Schrader stem (core out): ~10 inHg, steady needle for
-      a minute, housing **empty**
+- [ ] Vacuum test via Schrader stem (core out): **15 inHg** (≈5.2 m — the
+      site depth; 10 inHg only proves 3.5 m), steady needle for a minute,
+      housing **empty**
+- [ ] Main fuse installed at the star point and verified (see wiring.md)
+- [ ] Leak probe at the low point wired to Pixhawk AUX; `FS_LEAK = surface`
+      set and bench-tripped
 - [ ] If it fails: 2–3 psi from a bike pump (core in) + soapy water on every
       joint to find the leak, then re-test under vacuum
 - [ ] Leak test again with a paper towel inside and nothing valuable
@@ -79,7 +83,8 @@ Per unit, on the servo tester, no autopilot involved.
 - [ ] Confirm it surfaces on power-off
 - [ ] Depth hold, shallow
 - [ ] All axes on the joystick, confirm signs match expectation
-- [ ] Full dive on one pack, log actual endurance against the 150 W estimate
+- [ ] Full dive on one pack, log actual endurance against the ~110 W
+      no-lights estimate (~39 min to 20% reserve)
 
 ## Deferred until it swims
 

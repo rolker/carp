@@ -33,11 +33,17 @@ bought; `later` = deliberate deferral.
 | Cordless USB-C soldering iron | 1 | Amazon (AutoFittings) | — | 28.99 | ordered | Fine for signal wiring; 10 AWG + XT90 cups need more heat — have a ≥60 W mains iron for the big joints |
 | Cat6 outdoor direct-burial, 100 ft, **CCA** | 1 | Amazon (FYRIKTB) | 25 | 21.99 | ordered | Tether stock: two ~50 ft tethers incl. spare. CCA fatigues under flex — gentle bends, hard strain relief, treat as consumable. Data-only at this length: fine |
 | 14 AWG silicone wire, 2-core, 25 ft | 1 | Amazon (Haerkn) | 10 | 19.98 | ordered | Distribution → ESC runs; 2-core = paired +/− pulls |
-| Hand vacuum pump / brake bleeder kit w/ gauge | 1 | Amazon (Pathfinder Auto) | 35 | 19.89 | ordered | The pre-dive leak-test tool: ~10 inHg via the Schrader stem (core out), watch for a steady needle. Check kit for a Schrader adapter; verify pump holds vacuum dead-headed on arrival |
+| FEICHAO 35 V 1000 µF XT60 cap filters ×4 | 1 | Amazon (FEICHAO) | 15 | 39.96 | ordered | **Arrives Sept 8–16** (China lead time). 4,000 µF total at the star point. Bench Phases 1–3 can run without them — short bench leads = low inductance — but install before sealed integration; Castle CapPack is the local fallback if the housing outpaces the mail |
+| LiPo safe pouches, 185×75×60 mm ×2 | 1 | Amazon (CNDHDOK) | 12 | 9.99 | ordered | One pouch per pack — isolation during storage and charging. Arrives with the batteries |
+| BX100 cell checkers w/ LV buzzer ×2 | 1 | Amazon (SpeedyFPV) | 8 | 9.49 | ordered | Arrives Saturday — Friday's first charge relies on the charger's own per-cell display. Plug-read-unplug; standby drain unbalances packs left connected |
+| BOJACK MIDI 80 A fuses ×3 + holders ×2 | 1 | Amazon (BOJACK) | 15 | 21.98 | ordered | Main fuse at the star point (review B1) + two spare elements and a spare holder — field-box spares covered |
+| IP68 RJ45 panel-mount coupler, F-F ×2 | 1 | Amazon | — | 15.99 | ordered | Topside dry box wall only — splash-rated, **never submerged** (prior-art: IP67/68 couplers are not pressure-rated). Second is the spare |
+| Tomotato transparent waterproof dry box | 1 | Amazon | 20 | 17.99 | ordered | Topside station: Opal + power bank; tether enters via PG9 gland or the panel coupler. Confirm it floats loaded; leash to kayak |
+| Hand vacuum pump / brake bleeder kit w/ gauge | 1 | Amazon (Pathfinder Auto) | 35 | 19.89 | ordered | The pre-dive leak-test tool: **15 inHg** via the Schrader stem (core out), watch for a steady needle. Check kit for a Schrader adapter; verify pump holds vacuum dead-headed on arrival |
 
-**Ordered subtotal: est ~$1,145 (+3 unestimated adds) · paid $1,583.58
-(Amazon $613.03 + $200.00 + $117.36 + $160.96 + $17.98 + $144.93 + $19.89 +
-RobotShop $140.69 + $168.74 incl. shipping).**
+**Ordered subtotal: est ~$1,215 (+4 unestimated adds) · paid $1,698.98
+(Amazon orders through 2026-08-20 + RobotShop $140.69 + $168.74 incl.
+shipping — per-order figures in git history).**
 
 ## Core, pending
 
@@ -63,12 +69,11 @@ Previously mentioned in notes but never costed as line items.
 | MicroSD 16–32 GB for Pixhawk, FAT32 | 1 | | 7 | | pending | Only if the Radiolink box card is junk — FMUv2 likes small plain cards |
 | Spare o-rings, every size | kit | | 15 | | pending | **Before first assembly.** A nicked o-ring on a Sunday ends the day |
 | Silicone grease | 1 | | 12 | | pending | **Molykote 111 or Super Lube only.** Petroleum products attack Buna-N |
-| Cell-voltage checker with alarm | 1 | | 8 | | pending | |
-| LiPo-safe bag or ammo can | 1 | | 12 | | pending | |
-| Bulk capacitors, low-ESR electrolytic | 2–3 | | 8 | | pending | 470–1000 µF / 35 V each (Panasonic FC/FR class or RC "ESC cap module"), shortest leads to the star point. Absorbs reversal spikes and load-step sag — brownout is the classic cheap-ESC field failure. Also why the XT90-S anti-spark matters |
+| **Leak probe** (bare-wire pair or SOS-style) | 1 | | 5 | | pending | Low point of the hull → Pixhawk AUX, `FS_LEAK = surface`. Review M8. Expect condensate false alarms — mount above the sweat line, test the failsafe |
+| Indicating silica desiccant packs | — | | 5 | | pending | Cave Pearl recipe; oversize for a Pi 5 sweating in a cold lake |
 | ApisQueen ESC tuning tool | 1 | | 12–15 | | pending | **Hold — compatibility unconfirmed.** O'Hara card = boat ESC line; Feather USB board = 80–300 A standalone ESCs; unclear which (if either) programs the U2's integrated ESC. Check the manual on arrival or email help@underwaterthruster.com. Only needed if depth hold is jerky and ArduSub deadzone params can't fix it |
 
-**Small parts subtotal (est): ~$180**
+**Small parts subtotal (est): ~$85**
 
 ## Field / mission gear, pending
 
@@ -91,6 +96,7 @@ Previously mentioned in notes but never costed as line items.
 | Kitchen scale + bucket | ? | Thrust measurement, Phase 2 |
 | Topside laptop | ? | QGC + Foxglove |
 | Wired/X-input gamepad for bench SITL | ? | The 8BitDo Ultimate Mobile (ordered) is Android-only — desktop QGC/SITL needs any pad the laptop recognizes |
+| RJ45 crimper + plugs | ? | Required: tether ends get cut to pass through glands, then re-terminated. CCA strands are brittle — crimp gently, strain-relieve behind the plug |
 | Kayak, anchor, rode | ? | The surface platform |
 
 ## Options / later
@@ -121,13 +127,15 @@ Previously mentioned in notes but never costed as line items.
 
 | | Est $ | Paid $ |
 |---|---|---|
-| Ordered | ~1,145 | 1,583.58 |
+| Ordered | ~1,215 | 1,698.98 |
 | Core pending | ~165–285 | |
-| Small parts pending | ~105 | |
+| Small parts pending | ~85 | |
 | Field gear pending | ~55 | |
-| **Committed + planned (6 thrusters, no options)** | **~$1,550–1,700** | |
+| **Paid + pending (6 thrusters, no options)** | **~$1,960–2,090** | |
 
-Confirms `open-questions.md`: this is not a $500 build. Ordered items ran ~24%
-over estimate (Pixhawk 159.82 vs 60 est, batteries 131.98 vs 84; thrusters on
-the nose). If the pending items overrun similarly, expect **$1,600–1,700
-all-in** before options.
+Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
+build (≈4×). The projection is Paid ($1,583.58, a known number) plus pending
+estimates ($370–490); ordered items ran ~25% over their estimates, so pending
+items may too. (Corrected 2026-08-20 per design review M1 — the earlier
+"$1,550–1,700" summary mixed estimates for items whose real prices were
+already known.)
