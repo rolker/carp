@@ -9,6 +9,12 @@ or epoxied.
 - [ ] Frame type selected and confirmed in simulation
 - [ ] Joystick/gamepad mapping worked out
 - [ ] Verify axis signs in sim — sign errors are cheap here and expensive in a pond
+- [ ] **Camera geometry + housing layout on paper — before any pipe is bought**
+      (review 2 MA2). Measure the YOWOO packs on arrival, then lay out dome
+      flange spacing (~70 mm flanges at 75–100 mm centers), tube diameter,
+      and endcap vs wider-front-plate vs pods. Three questions, one drawing
+- [ ] ADR-017 stack confirmed by the CSI/encode bench prototype (dual capture
+      → encode → phone stream → rosbag) before Phase 3 integration
 
 ## Phase 1 — Autopilot acceptance (within the return window)
 
@@ -57,7 +63,14 @@ Per unit, on the servo tester, no autopilot involved.
 - [ ] Pi 5 boots, NVMe mounts, `usb_max_current_enable=1` set
 - [ ] Cameras stream, encode, and record to NVMe
 - [ ] rosbag records with keyframe interval 1–2 s, plays back in Foxglove
-- [ ] Thermal soak — everything running, 30 min, check converter and NVMe temps
+- [ ] Thermal soak — everything running, **45 min** (review 1 minor 10; 30 was
+      a transcription drift), check converter and NVMe temps
+- [ ] Measure the real tether link: iperf3 through the actual CCA Cat6 + Opal.
+      Record the negotiated rate — the ADR-016 offload plan depends on it —
+      and sum the operating load (2× video + MAVLink + ROS topics) against it
+- [ ] Topside qualification: router in the dry box on bank power, phone at
+      operating distance, Cockpit + gamepad running ~30 min under motion —
+      confirm no WiFi dropout (review 2 minor 7)
 
 ## Phase 4 — Housing
 
@@ -70,7 +83,9 @@ Per unit, on the servo tester, no autopilot involved.
 - [ ] If it fails: 2–3 psi from a bike pump (core in) + soapy water on every
       joint to find the leak, then re-test under vacuum
 - [ ] Leak test again with a paper towel inside and nothing valuable
-- [ ] Relief path in endcap confirmed (ADR-013)
+- [ ] Relief/vent path confirmed: Schrader stem, core in for diving; verify
+      the core tool cracks it and **always vent before opening the lid**
+      (ADR-013)
 - [ ] Thermal paths: NVMe, converters, and ESCs padded to the hull wall
 - [ ] Internal baro logged as a leak detector — rising internal pressure means
       water displacing air
@@ -85,6 +100,11 @@ Per unit, on the servo tester, no autopilot involved.
 - [ ] All axes on the joystick, confirm signs match expectation
 - [ ] Full dive on one pack, log actual endurance against the ~110 W
       no-lights estimate (~39 min to 20% reserve)
+- [ ] **Snag drill** (review 2 / ADR-009): with the real rigging, gentle
+      haul-test from multiple bearings; practice slack-and-drive; confirm the
+      buoy-and-return kit is aboard. A protocol never rehearsed isn't one
+- [ ] Run the whole day from `field-checklist.md` — shake it down while the
+      stakes are low
 
 ## Deferred until it swims
 

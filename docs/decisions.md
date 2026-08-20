@@ -319,7 +319,15 @@ niche product — the market is 3S, 6S for drones, and 13S+ for ebikes. 60+ A at
 
 **Accepted costs:** balance charger required, storage at 3.8 V/cell between
 field days, no BMS. Pouch cells swell when they fail — inside a sealed tube
-that's pressure with nowhere to go. **Put a relief path in the endcap.**
+that's pressure with nowhere to go. **The relief path is the Schrader stem in
+the endcap** (BOM small parts; same fitting as the vacuum/pressure test port).
+Core in while diving — it seals against water and holds internal pressure, so
+this is a *manual* vent, not an automatic pop-off: **always crack the core
+(core tool) to equalize before opening the lid**, and treat a hiss as a
+warning, not a nuisance. Mid-dive swelling is mitigated upstream — per-cell
+check before every charge, pack inspection before every dive — not by the
+vent. (Review 2 MA1: the part and procedure are now named, closing the
+"relief path: confirmed" checkbox loop.)
 
 **Rejected:** 12 V LiFePO4 "fishfinder" packs. The BMS is the blocker — typical
 20 A rating caps output at ~256 W, less than two U2s at full throttle, and it
@@ -407,3 +415,44 @@ air.
 **Sized for a day, not a season.** Can't swap drives in a sealed housing, but
 gigabit tether offloads at ~100 MB/s — 100 GB moves in under 20 minutes over
 lunch.
+
+**Caveat (reviews 1 M7 / 2 minor 3):** the field tether is CCA Cat6 and the
+doctrine is 100BASE-TX; at 100 Mbps that same 100 GB is ~2.2 h. Measure what
+the real tether + Opal actually negotiate (iperf3, Phase 3) before this
+offload story hardens. Fallback: offload dockside over a short known-good
+gigabit cable, or overnight.
+
+---
+
+## ADR-017 — Pi software stack: vanilla Raspberry Pi OS, not BlueOS
+
+**Leaning.** Decide before any Phase 3 software integration (both reviews
+flagged this as untracked; it gates nothing mechanical but everything on the
+Pi).
+
+**Options considered:**
+
+- **A — BlueOS** (Blue Robotics' companion image): polished web UI, extension
+  ecosystem, autopilot management. But it warns against RadioLink boards
+  (prior-art), its camera manager can't enumerate libcamera CSI cameras
+  ([BlueOS #991](https://github.com/bluerobotics/BlueOS/issues/991)) — so the
+  dual-IMX462 pipeline gets hand-built *anyway* — and ROS 2 would live beside
+  it in a container it knows nothing about.
+- **B — vanilla Raspberry Pi OS 64-bit + hand-assembled services:**
+  mavlink-router (Pixhawk USB → tether UDP + local apps), the hand-built
+  CSI → encode → RTP/WebRTC pipeline, ROS 2 (native or Docker), Cockpit
+  self-hosted. Every piece is a standalone open project; nothing fights the
+  Pivariety camera driver or the RadioLink board.
+- **C — hybrid:** BlueOS as base plus ROS 2 container. Maximum moving parts,
+  both ecosystems' failure modes.
+
+**Leaning B** because the two things BlueOS is best at (camera plumbing,
+board support) are exactly where this build deviates from BlueROV hardware,
+and ROS 2 as a first-class citizen is a project goal (ADR-010). Cost: we own
+service wiring (systemd units) that BlueOS would have given for free.
+
+**Decision gate:** the CSI/encode bench prototype (review 1 sequencing item)
+runs on stack B. If dual-camera capture → encode → phone stream → rosbag
+works in a weekend, B is confirmed. **Revisit trigger:** if MAVLink routing
+or telemetry plumbing burns more than a weekend of fiddling, try BlueOS (A)
+on a spare SD card before writing more glue.

@@ -18,6 +18,17 @@ wider than the tube, a larger tube, or separate camera pods on the frame with
 penetrators back to the main housing. Lay it all out on paper before buying
 pipe. Measure the actual YOWOO pack dimensions when they arrive first.
 
+**Pi software stack — see ADR-017 (Leaning: vanilla Pi OS, not BlueOS).**
+Both design reviews flagged this as untracked. The CSI/encode bench prototype
+is the decision gate; it must land before Phase 3 software integration.
+
+**Rigging geometry — needs a drawing, not a debate.**
+Boat → downline clip → ROV means effective horizontal radius ≈ tether length
+minus depth (~15 m − 5 m ≈ 10 m at the first site), and navigation.md
+("clip to downline") vs bom.md ("to the boat") is still unreconciled. One
+sketch resolves the working radius, the attachment point, and the tether
+length to actually buy (reviews 1 minor 3 / 2 minor 1 & 6).
+
 **Is this still a $500 build?**
 It is not. Worth deciding explicitly whether the target is "cheapest thing that
 works" or "capable inspection platform," because they diverge from here.

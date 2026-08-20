@@ -39,6 +39,11 @@ flowchart LR
 1. **XT90-S is the service disconnect.** The pre-charge resistor lives in the
    male pin — never bury it behind a permanent adapter and disconnect
    elsewhere. Charging uses the XT90M→XT60F adapter, outside the vehicle.
+   **The anti-spark element is a consumable** (~30–50 matings before the
+   resistor degrades and it becomes a plain XT90; failure is silent — review 2
+   MA3). Inspect the male pin for pitting every ~10 dives, carry the spare
+   male from the field box, and remember it's the only inrush protection
+   ahead of an 80 A fuse and a 6 Ah pack.
 2. **Star-point grounding.** Pack negative to one heavy point; Pi and Pixhawk
    grounds taken from that point *directly*, never daisy-chained off an ESC
    return. 56 A through a shared return shifts ground under load → phantom

@@ -54,8 +54,9 @@ shipping — per-order figures in git history).**
 | 4" PVC, caps, o-rings | — | | 60 | | pending | |
 | Hollow polypro rope + closed-cell foam floats for tether | 1 | | 10 | | pending | Cable ordered (Cat6 burial). Rope is the strength member (SV Seeker method); foam bits zip-tied every 1–2 m near the ROV. Seal cable cut ends |
 | HDPE frame stock, ballast | — | | 30 | | pending | |
+| External I2C compass module | 1 | | 15–30 | | pending | Review 1 M3 / review 2 carry-forward: internal compass sits in ESC field; mount external, away from power wiring, MagFit calibrate in Phase 3/5 |
 
-**Core pending subtotal (est): ~$180–300** depending on NVMe capacity
+**Core pending subtotal (est): ~$205–310** depending on NVMe capacity
 
 ## Small parts and consumables, pending
 
@@ -71,9 +72,11 @@ Previously mentioned in notes but never costed as line items.
 | Silicone grease | 1 | | 12 | | pending | **Molykote 111 or Super Lube only.** Petroleum products attack Buna-N |
 | **Leak probe** (bare-wire pair or SOS-style) | 1 | | 5 | | pending | Low point of the hull → Pixhawk AUX, `FS_LEAK = surface`. Review M8. Expect condensate false alarms — mount above the sweat line, test the failsafe |
 | Indicating silica desiccant packs | — | | 5 | | pending | Cave Pearl recipe; oversize for a Pi 5 sweating in a cold lake |
+| Spare 2" acrylic dome | 1 | | 11 | | pending | Review 2 minor 5: single-seller part, "handle gently" — a cracked dome mid-season ends the mission |
+| Spare XT90-S male connector | 1 | | 8 | | pending | Review 2 MA3: anti-spark resistor is a consumable (~30–50 matings); lives in the field box |
 | ApisQueen ESC tuning tool | 1 | | 12–15 | | pending | **Hold — compatibility unconfirmed.** O'Hara card = boat ESC line; Feather USB board = 80–300 A standalone ESCs; unclear which (if either) programs the U2's integrated ESC. Check the manual on arrival or email help@underwaterthruster.com. Only needed if depth hold is jerky and ArduSub deadzone params can't fix it |
 
-**Small parts subtotal (est): ~$85**
+**Small parts subtotal (est): ~$105**
 
 ## Field / mission gear, pending
 
@@ -149,15 +152,16 @@ Printed parts are brackets and mounts only — **never the pressure boundary**
 | | Est $ | Paid $ |
 |---|---|---|
 | Ordered | ~1,215 | 1,698.98 |
-| Core pending | ~165–285 | |
-| Small parts pending | ~85 | |
+| Core pending | ~205–310 | |
+| Small parts pending | ~105 | |
 | Field gear pending | ~55 | |
-| **Paid + pending (6 thrusters, no options)** | **~$1,960–2,090** | |
+| **Paid + pending (6 thrusters, no options)** | **~$2,065–2,170** | |
 | Shop tooling (excluded from above) | | 371.37 out of pocket |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
-build (≈4×). The projection is Paid ($1,583.58, a known number) plus pending
-estimates ($370–490); ordered items ran ~25% over their estimates, so pending
+build (≈4×). The projection is Paid ($1,698.98, a known number) plus pending
+estimates ($365–470); ordered items ran ~25% over their estimates, so pending
 items may too. (Corrected 2026-08-20 per design review M1 — the earlier
 "$1,550–1,700" summary mixed estimates for items whose real prices were
-already known.)
+already known. Pending re-totaled after review 2 added the compass, spare
+dome, and spare XT90-S.)

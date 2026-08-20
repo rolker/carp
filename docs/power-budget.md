@@ -77,6 +77,13 @@ Split the rails. Thruster-induced noise on the ESC side must not reach the Pi.
 deleted by ADR-004, Bar30 on the Pixhawk, servo tester is bench-only and can
 run from a USB charger or an ESC BEC.)
 
+**Accepted risk — Pololu margin (review 2 minor 2):** a 25 W Pi-side peak is
+91% of the D36V50F5's 27.5 W rating, in a sealed tube. Accepted because the
+25 W figure is itself a worst-case transient (Pi 5 peak + NVMe write burst +
+both cameras), the converter has thermal-path-to-hull treatment like the
+NVMe, and the Phase 3 thermal soak will catch it if reality disagrees. If the
+soak shows the Pololu derating, the fix is a 6–8 A part, not a redesign.
+
 **If the ESCs have BECs, don't parallel them.** The U2 150 W variant ships
 with a 5 V/1 A BEC in the ESC; six BECs tied together on the servo rail will
 fight each other. Connect at most one BEC's 5 V wire to the rail (or none —
