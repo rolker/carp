@@ -438,21 +438,37 @@ Pi).
   ([BlueOS #991](https://github.com/bluerobotics/BlueOS/issues/991)) — so the
   dual-IMX462 pipeline gets hand-built *anyway* — and ROS 2 would live beside
   it in a container it knows nothing about.
-- **B — vanilla Raspberry Pi OS 64-bit + hand-assembled services:**
-  mavlink-router (Pixhawk USB → tether UDP + local apps), the hand-built
-  CSI → encode → RTP/WebRTC pipeline, ROS 2 (native or Docker), Cockpit
-  self-hosted. Every piece is a standalone open project; nothing fights the
-  Pivariety camera driver or the RadioLink board.
+- **B — vanilla OS + hand-assembled services:** mavlink-router (Pixhawk USB
+  → tether UDP + local apps), the hand-built CSI → encode → RTP/WebRTC
+  pipeline, ROS 2, Cockpit self-hosted. Every piece is a standalone open
+  project; nothing fights the Pivariety camera driver or the RadioLink
+  board. Splits on the base image:
+  - **B1 — Ubuntu 24.04 for Pi:** the Tier-1 ROS 2 platform — Jazzy from
+    apt, no containers, no source builds. But Arducam's Pivariety stack
+    (kernel driver + dtoverlay + libcamera fork + tuning files) is packaged
+    **for Raspberry Pi OS only**; on Ubuntu's different Pi kernel that chain
+    is a rebuild-it-yourself project with a history of forum grief.
+  - **B2 — Raspberry Pi OS 64-bit:** cameras turnkey per Arducam's own docs;
+    ROS 2 has no official Debian-arm64 binaries, so it lives in a Docker
+    container (or a source build). Containerized ROS 2 is well-trodden;
+    CSI/GPU access stays on the host side of the boundary (cameras → encoder
+    feeds ROS via local UDP/shared memory, so the container never needs
+    /dev/video access).
 - **C — hybrid:** BlueOS as base plus ROS 2 container. Maximum moving parts,
   both ecosystems' failure modes.
 
-**Leaning B** because the two things BlueOS is best at (camera plumbing,
-board support) are exactly where this build deviates from BlueROV hardware,
-and ROS 2 as a first-class citizen is a project goal (ADR-010). Cost: we own
-service wiring (systemd units) that BlueOS would have given for free.
+**Leaning B** (not BlueOS) because the two things BlueOS is best at (camera
+plumbing, board support) are exactly where this build deviates from BlueROV
+hardware, and ROS 2 as a first-class citizen is a project goal (ADR-010).
+Cost: we own service wiring (systemd units) that BlueOS would have given for
+free. **B1 vs B2 is genuinely open** — preference is B1 (Ubuntu) if the
+cameras cooperate, because native ROS 2 removes a whole layer.
 
 **Decision gate:** the CSI/encode bench prototype (review 1 sequencing item)
-runs on stack B. If dual-camera capture → encode → phone stream → rosbag
-works in a weekend, B is confirmed. **Revisit trigger:** if MAVLink routing
-or telemetry plumbing burns more than a weekend of fiddling, try BlueOS (A)
-on a spare SD card before writing more glue.
+decides. Order of attack: flash **Ubuntu 24.04 first** and timebox the
+Pivariety driver bring-up to one evening — if both cameras enumerate and
+stream, B1 wins and everything else is easy. If the driver fights, flash
+RPi OS (B2), confirm the cameras per Arducam's happy path, and accept
+Docker'd ROS 2. **Revisit trigger:** if MAVLink routing or telemetry
+plumbing burns more than a weekend of fiddling on either base, try BlueOS
+(A) on a spare SD card before writing more glue.

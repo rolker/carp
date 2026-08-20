@@ -18,9 +18,12 @@ wider than the tube, a larger tube, or separate camera pods on the frame with
 penetrators back to the main housing. Lay it all out on paper before buying
 pipe. Measure the actual YOWOO pack dimensions when they arrive first.
 
-**Pi software stack — see ADR-017 (Leaning: vanilla Pi OS, not BlueOS).**
-Both design reviews flagged this as untracked. The CSI/encode bench prototype
-is the decision gate; it must land before Phase 3 software integration.
+**Pi software stack — see ADR-017 (Leaning: vanilla OS, not BlueOS).**
+Both design reviews flagged this as untracked. The live sub-question is the
+base image: Ubuntu 24.04 (native apt ROS 2, but the Arducam Pivariety camera
+stack is packaged for RPi OS only) vs Raspberry Pi OS (cameras turnkey,
+ROS 2 in Docker). The CSI/encode bench prototype decides — Ubuntu first,
+timeboxed; it must land before Phase 3 software integration.
 
 **Rigging geometry — needs a drawing, not a debate.**
 Boat → downline clip → ROV means effective horizontal radius ≈ tether length
