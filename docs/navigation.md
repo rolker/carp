@@ -58,7 +58,9 @@ sensitive, and colour is nearly gone in turbid green water anyway.
   exactly like platform motion. Needs RANSAC against a dominant-plane model
   with hard rejection of anything inconsistent.
 
-**Lighting conflict:** off-axis lights kill backscatter on the forward camera,
+**Lighting conflict** (only if lights are fitted — v1 runs ambient-only, see
+ADR-004; in direct sun, mask the vehicle's own shadow out of the flow field):
+off-axis lights kill backscatter on the forward camera,
 but a moving off-axis source casts shadows that sweep across the bottom as the
 vehicle translates — apparent motion that isn't ours. The down camera wants
 flat, near-coaxial, diffuse light. Separate light. At 1 m altitude the

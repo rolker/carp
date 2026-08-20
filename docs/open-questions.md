@@ -2,15 +2,21 @@
 
 ## Blocking the build
 
-**Thruster count: 4 or 6?**
-Four keeps the budget near $500 and uses the stock SimpleROV-4 matrix with a
-free upgrade path to 5. Six (BlueROV1) gives full 6-DoF including pitch, but
-costs $360–420 in thrusters alone, needs ~56 A of wiring, and **doesn't improve
-surge**. Current leaning: start at 4.
+**~~Thruster count: 4 or 6?~~ Resolved by purchase — six ordered 2026-08-19.**
+The successor question is the frame: **SimpleROV-4/5 or BlueROV1?**
+SimpleROV-5 uses five of the six (one spare) and keeps the simplest possible
+bring-up. BlueROV1 uses all six for full 6-DoF — including pitch for camera
+aiming with a stock matrix, no ArduPilot fork. Wiring must now budget ~56 A
+peak either way, and the propulsion/hotel battery split (ADR-014) is live.
 
-**Housing diameter.**
-4" sched-40 is the default, but two stacked LiPos plus Pi 5 plus NVMe plus
-Pixhawk plus converters is tight. Worth laying out on paper before buying pipe.
+**Housing diameter and camera mounting — one layout problem.**
+4" sched-40 is a default, not a decision; no pipe bought. Two stacked LiPos
+plus Pi 5 plus NVMe plus Pixhawk plus converters is tight, and the stereo
+camera pair adds a new input: two 2" domes with ~70 mm flanges at ~75–100 mm
+centers, which no 4" endcap can carry. Candidate resolutions: front plate
+wider than the tube, a larger tube, or separate camera pods on the frame with
+penetrators back to the main housing. Lay it all out on paper before buying
+pipe. Measure the actual YOWOO pack dimensions when they arrive first.
 
 **Is this still a $500 build?**
 It is not. Worth deciding explicitly whether the target is "cheapest thing that
@@ -19,11 +25,12 @@ works" or "capable inspection platform," because they diverge from here.
 ## Deferred, revisit after first water
 
 **Pitch control for camera aiming.**
-Requires an ArduPilot fork (ADR-012). Value is real — no tilt servo, no dynamic
-seal, no extra penetrator. Revisit if fixed-camera framing proves limiting.
+No longer requires an ArduPilot fork — with six thrusters on hand, the stock
+BlueROV1 frame provides pitch (see the frame question above). Value is real:
+no tilt servo, no dynamic seal, no extra penetrator.
 
 **Hotel/propulsion battery split.**
-Worth it at 6 thrusters. At 4, one pack may be simpler. See ADR-014.
+Live now that six thrusters are ordered. See ADR-014.
 
 **48 V hotel power down a spare tether pair.**
 Would give near-unlimited endurance for the load that actually drains the pack.
@@ -43,6 +50,8 @@ link. Big usability win — paddle away and leave it working.
 - **Actual thrust** per U2 in both directions, on a scale. Specs are optimistic.
 - **Actual hover power draw.** The entire endurance model rests on a 10–15%
   duty estimate that hasn't been verified.
+- **Ambient light at the site.** Camera in a jar at 5 m, midday and overcast.
+  Validates the no-lights posture (ADR-004) before it's built around.
 - **Whether the bottom has texture.** Optical flow lives or dies on this, and
   it's site-specific. Test at Massabesic before building around it.
 - **Where sidescan contact error actually lives** — layback and GPS-to-transducer

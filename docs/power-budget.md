@@ -11,15 +11,16 @@ hovering in still water at 5 m runs 10–15% of rated.
 | Thrusters (6) | 60–120 W | 900 W |
 | Pi 5 + cameras encoding | ~15 W | 25 W |
 | Pixhawk + sensors | ~3 W | 5 W |
-| Lights (2 COB) | 20–40 W | 60 W |
-| **Total** | **~150 W** | |
+| Lights | 0 (ambient-first, ADR-004) | — |
+| **Total** | **~110 W** (was ~150 W with lights) | |
 
-At 16 V: ~9 A average, 37 A peak (4 thrusters) or 56 A peak (6).
+At 16 V: ~7 A average, 37 A peak (4 thrusters) or 56 A peak (6).
 
 **Hotel load dominates at depth.** At 5 m the thrusters do very little work —
-hovering, not transiting. Lights plus a Pi 5 encoding video is ~50 W, which
-eats a 74 Wh pack in 90 minutes without ever thrusting. **Dimming the lights
-buys more endurance than a second battery.**
+hovering, not transiting. With no lights (ADR-004) hotel is ~18 W — the Pi
+and sensors — instead of ~50 W, which is worth ~30–40% more runtime per pack.
+If lights ever return, remember: **dimming the lights buys more endurance
+than a second battery.**
 
 ## Battery sizing
 

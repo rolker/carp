@@ -52,6 +52,7 @@ docs/
   bringup-checklist.md  Bench acceptance tests before anything is sealed
   navigation.md         Downline method, scaling lasers, acoustic ranging
   open-questions.md     Unresolved decisions
+  prior-art.md          Survey of other cheap ROV builds, distilled lessons
 params/
   ArduSub parameter files
 ```

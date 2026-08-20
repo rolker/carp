@@ -54,17 +54,39 @@ regime. Also preserves future photogrammetry options.
 
 ---
 
-## ADR-004 — Lights on offset arms, not hull-mounted
+## ADR-004 — Ambient light first; no lights on v1
 
-**Leaning.** At 3 m visibility, backscatter from suspended particulate is the
-limiting factor, not lumens. More light next to the lens makes the image worse.
+**Leaning.** Reversed 2026-08-20 from "lights on offset arms."
 
-**Implementation:** arms 30–40 cm off-axis, toed in so beams cross the camera
-cone ~1 m out. Near field stays dark.
+The v1 site is 5 m deep, worked in daylight. At Kd ≈ 0.7–1.0 (consistent with
+3 m visibility), 5 m keeps ~1–3% of surface light — hundreds to thousands of
+lux on the bottom. A fast lens and a sensitive sensor can use that; adding our
+own light next to the camera re-lights the particulate column that ambient
+leaves dark.
 
-**Exception:** the down-looking nav camera wants flat, near-coaxial, diffuse
-light — moving off-axis sources cast shadows that sweep across the bottom and
-read as platform motion to the optical flow. Separate light, not shared.
+**Wins:** the backscatter problem vanishes (ambient arrives from above,
+already diffuse); hotel load drops 20–40 W — the power budget's dominant
+term — extending endurance per pack ~30–40%; two or three penetrators and the
+light arms disappear from the build.
+
+**Costs:** the shadowed side of structure is invisible — the one strong
+argument for carrying a single small diffuse light, off by default. Ambient
+dies exponentially with depth, so deeper sites (ADR-001) will need lights,
+full stop. In direct sun the vehicle's own shadow moves with the down
+camera's frame; features on its edge report zero motion and must be masked
+out of optical flow.
+
+**Hardware consequence:** camera selection prioritises sensitivity and true
+manual gain (large/BSI pixels, fast glass) over convenience.
+
+**Superseded reasoning, kept for the day lights return:** backscatter, not
+lumens, is the limiting factor — arms 30–40 cm off-axis, toed in so beams
+cross the camera cone ~1 m out; the down-looking nav camera is the exception
+and wants flat, near-coaxial, diffuse light, since moving off-axis shadows
+read as platform motion to optical flow.
+
+**Verify before first water:** camera in a jar at the site, midday and
+overcast. This is a measurement, not a debate.
 
 ---
 
@@ -140,6 +162,21 @@ near the end of its life.
 **Expected quirk:** power module voltage reads low on some units. Calibrate
 `BATT_VOLT_MULT` against a meter rather than trusting defaults.
 
+**Field intel (2026-08-20, see `prior-art.md`):** BlueOS explicitly warns
+against RadioLink boards (proprietary bootloader), and community experience
+says the clone FC — not the cheap thrusters — is what fails first in budget
+builds (compass grief, EKF weirdness). Mitigations: flash `Pixhawk1-1M`
+Sub/stable via QGC custom firmware, **keep the working .apj pinned locally**,
+mount the compass away from ESC wiring, and connect Pixhawk→Pi over USB
+(BlueOS only auto-detects over USB, not UART). Note AP_DDS and Lua are
+compiled out of 1 MB builds — ROS 2 lives on the Pi over MAVLink.
+
+**Cost note, on record:** actual price paid was $159.82 + shipping, not the
+~$60 street price assumed when this was argued. Against the Navigator's $285
+the cost gap (ground 1) was much thinner in practice; the architecture
+argument (ground 2 — hard-real-time FC separate from the DSP-loaded Pi) is
+what carries this decision.
+
 ---
 
 ## ADR-009 — Stay tethered; reject HROV/AUV hybrid
@@ -196,7 +233,7 @@ not the goal — if the conventions ever fight the build, the build wins.
 
 ## ADR-011 — Thruster selection: ApisQueen U2
 
-**Leaning** — not yet ordered. ApisQueen U2, 1.7 kgf, 150 W, 12–16 V (3–4S), 500 KV, rated
+**Committed.** Six units ordered 2026-08-19. ApisQueen U2, 1.7 kgf, 150 W, 12–16 V (3–4S), 500 KV, rated
 freshwater **and** seawater.
 
 **Correction on record:** the widely-quoted "3.4 kg" figure is the **U2 Set**
@@ -233,7 +270,10 @@ that would otherwise be a weekend.
 
 ## ADR-012 — Start SimpleROV-4, upgrade path to 5
 
-**Leaning.** Thruster count (4 vs 6) is still open — see `open-questions.md`.
+**Open — changed circumstances.** Written when 4 thrusters was the plan; six
+have since been ordered, making BlueROV1 (all six, full 6-DoF including the
+pitch-for-camera-aiming this ADR rules out, stock matrix, no fork) a live
+alternative to starting at SimpleROV-4. See `open-questions.md`.
 
 `SUB_FRAME_SIMPLEROV_4` and `_5` share one matrix in `AP_Motors6DOF.cpp`
 defining **five** motors. Building 4 thrusters uses outputs 1–4 and leaves 5
@@ -257,7 +297,8 @@ thrusters.
 
 ## ADR-013 — Battery chemistry: 4S LiPo for thrusters
 
-**Leaning** — not yet ordered. 2× 4S 6000 mAh LiPo with XT90-S anti-spark.
+**Committed.** Ordered 2026-08-19 (YOWOO 100C). 2× 4S 6000 mAh LiPo with
+XT90-S anti-spark.
 
 **Reversed from an earlier Li-ion preference.** Li-ion is better on density
 (~250 vs ~150–180 Wh/kg), protection, and storage tolerance, and C-rate was
@@ -281,8 +322,9 @@ actually limits kayak operations, not endurance per dive.
 
 ## ADR-014 — Two-battery split: propulsion vs hotel
 
-**Open** — conditional on going to 6 thrusters, itself an open question. At 4
-thrusters a single pack may be simpler.
+**Open — now live.** Six thrusters have been ordered, so this split is on the
+table. The two 4S packs on hand could serve as propulsion + hotel, or
+propulsion + swap spare with a LiFePO4 hotel pack later.
 
 Split by **propulsion / hotel**, not by thruster count. A 4/2 thruster split
 leaves a partially-controllable vehicle on pack failure — worse than a clean
@@ -303,7 +345,11 @@ while parked on the bottom.
 
 ## ADR-015 — Video: IP cameras + one direct global-shutter camera
 
-**Leaning.**
+**Open — under revision 2026-08-20.** Ambient-only operation (ADR-004) puts a
+premium on sensor sensitivity and true manual gain, which is exactly where
+cheap IP cameras are worst (tiny sensors, undefeatable noise reduction).
+Forward-camera selection is in progress; the down/nav camera and optical flow
+are deferred past v1. The analysis below predates that shift.
 
 **Pi 5 has no hardware H.264 encoder.** VideoCore VII dropped it; encoding is
 software x264 on the CPU. Two 1080p30 streams would consume most of the cores
