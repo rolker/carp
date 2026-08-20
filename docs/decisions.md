@@ -11,15 +11,31 @@ Format: decision, rationale, consequences, status.
 
 ---
 
-## ADR-001 — Design depth 5 m
+## ADR-001 — Design depth 5 m (v1, first site)
 
-**Leaning.** Pressure is 0.5 bar gauge. Housing is not crush-limited; failures
-will be seal workmanship, not structural. 4" sched-40 PVC is overbuilt by an
-order of magnitude and can be leak-tested with a bike pump and a Schrader valve
-in one endcap.
+**Leaning.** 5 m is the depth of the particular section of Massabesic slated
+for the first investigations — a v1 scope choice, not the vehicle's ceiling.
+Deeper sites are expected later.
+
+At 0.5 bar gauge the housing is not crush-limited; failures will be seal
+workmanship, not structural. 4" sched-40 PVC is overbuilt by an order of
+magnitude and can be leak-tested with a bike pump and a Schrader valve in one
+endcap.
 
 **Consequence:** Flotation can be sealed air voids (~1 g/cm³ lift) rather than
 syntactic foam (~0.4). Budget freed for optics.
+
+**Shallow assumptions to re-check before a deeper site** — several records
+lean on "it's only 5 m":
+
+- ADR-002 — surface-on-power-loss as the entire recovery plan
+- ADR-009 — "free-dive to clear a snag" as the tether-fouling answer
+- Tether length (15 m working radius) and the buoy's ~8 m vertical hang
+- Shallow-water multipath handling in acoustic ranging (`navigation.md`)
+
+The Bar30 (ADR-006) already covers 300 m and the housing has margin to several
+tens of metres, so depth growth is mostly a seals, tether, and recovery-plan
+question — not a rebuild.
 
 ---
 

@@ -5,15 +5,20 @@ sonar contacts in shallow water, deployed from a kayak.
 
 ## Mission
 
-Sidescan surveys produce contacts faster than anyone can dive them. CARP is a
-cheap camera platform for closing that loop: drop on a contact, find it, image
-it, and log the result against the sonar record.
+CARP is a long-daydreamed ROV build with a concrete first job. Sidescan and
+bathymetry surveys produce contacts faster than anyone can dive them; CARP is
+a cheap camera platform for closing that loop: drop on a contact, find it,
+image it, and log the result against the sonar record.
+
+That job drives the v1 design but isn't the only goal — the envelope below
+describes the first site, not the vehicle's ambitions. Deeper sites are
+expected later (see ADR-001).
 
 **Operating envelope**
 
 | Parameter | Value |
 |---|---|
-| Design depth | 5 m |
+| Design depth (v1, first site) | 5 m |
 | Expected visibility | ~3 m |
 | Working radius | ~15 m from downline |
 | Deployment | Kayak, tethered |
