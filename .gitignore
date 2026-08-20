@@ -1,0 +1,32 @@
+# ROS 2
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Logs and data
+*.bin
+*.tlog
+*.BIN
+bags/
+*.db3
+*.mcap
+
+# Media
+*.mp4
+*.h264
+*.h265
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
