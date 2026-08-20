@@ -123,6 +123,27 @@ Previously mentioned in notes but never costed as line items.
 | Echosounder for altitude hold | Blows budget; lasers + optical flow substitute |
 | XT60 on the main power path | 60 A rated vs ~61 A peak. Thermal bottleneck in a sealed tube |
 
+## Shop tooling (household tools — excluded from build totals)
+
+Bought because CARP needs printed brackets/mounts, but it's a general shop
+tool serving other projects too, so it doesn't count against the vehicle cost.
+
+| Item | Qty | Source | Paid $ | Status | Notes |
+|---|---|---|---|---|---|
+| Elegoo Centauri Carbon 2 Combo | 1 | Amazon (ELEGOO Official US) | 378.61 | Arrives Sat 2026-08-22 | Enclosed CoreXY, 256 mm³, 350 °C hardened nozzle, HEPA+carbon filter; Combo = CANVAS multi-color unit included |
+| ELEGOO PLA+ 1.75 mm, pink & purple 2 kg | 1 | Amazon (ELEGOO Official US) | 28.99 | Arrives 2026-08-21 | Toys / learning / doll wheelchair |
+| ELEGOO PETG 1.75 mm, yellow & orange 2 kg | 1 | Amazon (ELEGOO Official US) | 26.58 | Arrives 2026-08-21 | Wet-environment parts; high-vis colors are a feature underwater |
+| ELEGOO PLA+ 1.75 mm, white 1 kg | 1 | Amazon (ELEGOO Official US) | 13.24 | Arrives 2026-08-21 | General purpose |
+
+**Shop tooling subtotal: $447.42 · out of pocket $371.37** (rewards points −$76.05)
+
+Still pending for the print shop: **ASA 1 kg** (~$20 — exterior ROV brackets,
+UV-stable; needs the enclosure + ventilation), desiccant/dry bags for
+filament storage (shared line with the housing desiccant).
+
+Printed parts are brackets and mounts only — **never the pressure boundary**
+(FDM layer bonds are not watertight; housing stays PVC/acrylic/epoxy).
+
 ## Running totals
 
 | | Est $ | Paid $ |
@@ -132,6 +153,7 @@ Previously mentioned in notes but never costed as line items.
 | Small parts pending | ~85 | |
 | Field gear pending | ~55 | |
 | **Paid + pending (6 thrusters, no options)** | **~$1,960–2,090** | |
+| Shop tooling (excluded from above) | | 371.37 out of pocket |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
 build (≈4×). The projection is Paid ($1,583.58, a known number) plus pending
