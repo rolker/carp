@@ -33,10 +33,11 @@ bought; `later` = deliberate deferral.
 | Cordless USB-C soldering iron | 1 | Amazon (AutoFittings) | — | 28.99 | ordered | Fine for signal wiring; 10 AWG + XT90 cups need more heat — have a ≥60 W mains iron for the big joints |
 | Cat6 outdoor direct-burial, 100 ft, **CCA** | 1 | Amazon (FYRIKTB) | 25 | 21.99 | ordered | Tether stock: two ~50 ft tethers incl. spare. CCA fatigues under flex — gentle bends, hard strain relief, treat as consumable. Data-only at this length: fine |
 | 14 AWG silicone wire, 2-core, 25 ft | 1 | Amazon (Haerkn) | 10 | 19.98 | ordered | Distribution → ESC runs; 2-core = paired +/− pulls |
+| Hand vacuum pump / brake bleeder kit w/ gauge | 1 | Amazon (Pathfinder Auto) | 35 | 19.89 | ordered | The pre-dive leak-test tool: ~10 inHg via the Schrader stem (core out), watch for a steady needle. Check kit for a Schrader adapter; verify pump holds vacuum dead-headed on arrival |
 
-**Ordered subtotal: est ~$1,110 (+3 unestimated adds) · paid $1,563.69
-(Amazon $613.03 + $200.00 + $117.36 + $160.96 + $17.98 + $144.93 + RobotShop
-$140.69 + $168.74 incl. shipping).**
+**Ordered subtotal: est ~$1,145 (+3 unestimated adds) · paid $1,583.58
+(Amazon $613.03 + $200.00 + $117.36 + $160.96 + $17.98 + $144.93 + $19.89 +
+RobotShop $140.69 + $168.74 incl. shipping).**
 
 ## Core, pending
 
@@ -57,15 +58,13 @@ Previously mentioned in notes but never costed as line items.
 | Item | Qty | Source | Est $ | Paid $ | Status | Notes |
 |---|---|---|---|---|---|---|
 | FC pigtails — **verify DF13 vs JST-GH on arrival** | set | | 0–15 | | pending | Classic Pixhawk 1/FMUv2 = DF13, not JST-GH. Radiolink usually includes a cable set and the Bar30 ships with its own I2C lead — inventory Friday, order only the gap |
-| Schrader valve + fitting | 1 | | 10 | | pending | Leak-test port in endcap (ADR-001) |
+| Schrader valve stem + core tool | 1 | | 8 | | pending | **NOT yet ordered.** One fitting, three jobs: pressure test (bike pump, core in), vacuum test (bleeder pump, core out — check the kit for a Schrader adapter), LiPo relief/equalization. Auto-parts store |
 | Thermal pads / gap filler | — | | 12 | | pending | NVMe, converters, ESCs to hull wall |
 | MicroSD 16–32 GB for Pixhawk, FAT32 | 1 | | 7 | | pending | Only if the Radiolink box card is junk — FMUv2 likes small plain cards |
 | Spare o-rings, every size | kit | | 15 | | pending | **Before first assembly.** A nicked o-ring on a Sunday ends the day |
 | Silicone grease | 1 | | 12 | | pending | **Molykote 111 or Super Lube only.** Petroleum products attack Buna-N |
 | Cell-voltage checker with alarm | 1 | | 8 | | pending | |
 | LiPo-safe bag or ammo can | 1 | | 12 | | pending | |
-| Mityvac-style hand vacuum pump | 1 | | 35 | | pending | Auto-parts brake bleeder. Pull ~10 inHg via the vent nipple before every wet day — the universal pre-dive ritual (prior-art.md) |
-| Vent plug / brass barb for vacuum nipple | 1 | | 8 | | pending | Triple duty: vacuum test port, LiPo relief path (ADR-013), equalize-before-opening |
 | Bulk capacitors, low-ESR electrolytic | 2–3 | | 8 | | pending | 470–1000 µF / 35 V each (Panasonic FC/FR class or RC "ESC cap module"), shortest leads to the star point. Absorbs reversal spikes and load-step sag — brownout is the classic cheap-ESC field failure. Also why the XT90-S anti-spark matters |
 | ApisQueen ESC tuning tool | 1 | | 12–15 | | pending | **Hold — compatibility unconfirmed.** O'Hara card = boat ESC line; Feather USB board = 80–300 A standalone ESCs; unclear which (if either) programs the U2's integrated ESC. Check the manual on arrival or email help@underwaterthruster.com. Only needed if depth hold is jerky and ArduSub deadzone params can't fix it |
 
@@ -122,9 +121,9 @@ Previously mentioned in notes but never costed as line items.
 
 | | Est $ | Paid $ |
 |---|---|---|
-| Ordered | ~1,110 | 1,563.69 |
+| Ordered | ~1,145 | 1,583.58 |
 | Core pending | ~165–285 | |
-| Small parts pending | ~140 | |
+| Small parts pending | ~105 | |
 | Field gear pending | ~55 | |
 | **Committed + planned (6 thrusters, no options)** | **~$1,550–1,700** | |
 

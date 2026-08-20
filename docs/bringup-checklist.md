@@ -61,7 +61,10 @@ Per unit, on the servo tester, no autopilot involved.
 
 ## Phase 4 — Housing
 
-- [ ] Leak test with bike pump and Schrader valve in one endcap, **empty**
+- [ ] Vacuum test via Schrader stem (core out): ~10 inHg, steady needle for
+      a minute, housing **empty**
+- [ ] If it fails: 2–3 psi from a bike pump (core in) + soapy water on every
+      joint to find the leak, then re-test under vacuum
 - [ ] Leak test again with a paper towel inside and nothing valuable
 - [ ] Relief path in endcap confirmed (ADR-013)
 - [ ] Thermal paths: NVMe, converters, and ESCs padded to the hull wall

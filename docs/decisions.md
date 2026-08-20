@@ -19,8 +19,11 @@ Deeper sites are expected later.
 
 At 0.5 bar gauge the housing is not crush-limited; failures will be seal
 workmanship, not structural. 4" sched-40 PVC is overbuilt by an order of
-magnitude and can be leak-tested with a bike pump and a Schrader valve in one
-endcap.
+magnitude. Leak testing via a Schrader stem in one endcap: **vacuum test is
+the gate** (~10 inHg with the hand pump, core removed — loads seals the same
+direction depth does), gentle bike-pump pressure + soapy water only to
+*localize* a leak after a failed vacuum test (positive pressure unseats face
+seals, so it's a debug tool, not a pass/fail check).
 
 **Consequence:** Flotation can be sealed air voids (~1 g/cm³ lift) rather than
 syntactic foam (~0.4). Budget freed for optics.
