@@ -48,6 +48,7 @@ docs/
   decisions.md          Architecture decision records
   bom.md                Bill of materials, ordered vs pending
   power-budget.md       Load analysis, battery sizing, wiring gauge
+  wiring.md             Power tree, signal map, grounding rules
   frame-and-mixing.md   ArduSub motor matrices, verified from source
   bringup-checklist.md  Bench acceptance tests before anything is sealed
   navigation.md         Downline method, scaling lasers, acoustic ranging

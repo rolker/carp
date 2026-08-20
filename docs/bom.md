@@ -21,9 +21,22 @@ bought; `later` = deliberate deferral.
 | Raspberry Pi 5 8 GB | 1 | Amazon (MemoryWhiz, 3rd party) | 110 | 200.00 | ordered | $175 at PiShop — ~$25 premium for fast arrival. Third-party seller: **verify genuine on arrival** (board markings, boots official OS). 8 GB doubles the 4 GB minimum — welcome DSP headroom |
 | Arducam IMX462 color 141° (stereo pair) | 2 | Amazon (UCTRONICS) | 96 | 95.98 | ordered | 47.99 ea. Parallel mount, ~75–100 mm baseline, one rigid plate, software sync. **On arrival: verify Pivariety driver works on Pi 5 inside the return window** |
 | SupremeTech 2" acrylic dome, 3/8" flange | 2 | Amazon (Supreme Tech) | 21 | 21.38 | ordered | 10.69 ea, pre-drilled flanges. No spares ordered — handle gently; check apex optical uniformity on arrival |
+| 8BitDo Ultimate Mobile controller | 1 | Amazon (8BitDo) | — | 49.99 | ordered | Hall sticks. Telescopic phone-grip, Bluetooth/Android only — the field controller for Cockpit. **No wired USB / PC mode**: bench SITL needs a separate pad or keyboard |
+| Gebildet PG7 ×30 + PG9 ×20 cable glands | 1 | Amazon (Gebildet) | 10 | 9.99 | ordered | Penetrators: gland + epoxy back-fill, solder-blob every conductor mid-pot (prior-art.md) |
+| Anker 10,000 mAh PowerIQ USB-C power bank | 1 | Amazon (AnkerDirect) | — | 45.99 | ordered | Topside: runs the Opal ~10 h. Bench-qualify: router on it one hour, no blinks |
+| GL.iNet GL-SFT1200 Opal router | 1 | Amazon (GL Tech) | 40 | 39.99 | ordered | Topside AP. Configure LAN 192.168.2.0/24; 5 GHz AP so the BT gamepad keeps 2.4 GHz |
+| Loctite Marine Epoxy 0.85 oz syringe | 2 | Amazon | 15 | 15.00 | ordered | Arriving Sunday. ~50 ml total — enough for ~8–12 gland back-fills; buy more before doing all penetrators in one session |
+| Amass XT60 pairs w/ 14 AWG 100 mm pigtails | 2 pk | Amazon (Hiteuoms) | 10 | 17.98 | ordered | "6PCS" per pack — **count on arrival**: if that means 3 pairs/pack, the 6 pairs total exactly covers 6 ESC drops with zero spares. Female on the source side |
+| SanDisk 256 GB Ultra microSDXC + adapter | 1 | Amazon (First Choice Online) | 12 | 56.00 | ordered | NAND-crisis pricing. Pi boot/rescue + interim bench recording. Third-party seller — **verify genuine** (h2testw/f3) |
+| Marine-grade adhesive heat-shrink kit, 4:1 | 1 | Amazon (LONGBIN) | 8 | 8.99 | ordered | Adhesive-lined = the right kind for wet-adjacent joints |
+| 10 AWG silicone wire, 5 ft red + 5 ft black | 1 | Amazon (Kenhihi) | 15 | 8.98 | ordered | Pack → star point runs |
+| Cordless USB-C soldering iron | 1 | Amazon (AutoFittings) | — | 28.99 | ordered | Fine for signal wiring; 10 AWG + XT90 cups need more heat — have a ≥60 W mains iron for the big joints |
+| Cat6 outdoor direct-burial, 100 ft, **CCA** | 1 | Amazon (FYRIKTB) | 25 | 21.99 | ordered | Tether stock: two ~50 ft tethers incl. spare. CCA fatigues under flex — gentle bends, hard strain relief, treat as consumable. Data-only at this length: fine |
+| 14 AWG silicone wire, 2-core, 25 ft | 1 | Amazon (Haerkn) | 10 | 19.98 | ordered | Distribution → ESC runs; 2-core = paired +/− pulls |
 
-**Ordered subtotal: est ~$970 · paid $1,239.82 (Amazon $613.03 + $200.00 +
-$117.36 + RobotShop $140.69 + $168.74 incl. shipping).**
+**Ordered subtotal: est ~$1,110 (+3 unestimated adds) · paid $1,563.69
+(Amazon $613.03 + $200.00 + $117.36 + $160.96 + $17.98 + $144.93 + RobotShop
+$140.69 + $168.74 incl. shipping).**
 
 ## Core, pending
 
@@ -31,13 +44,11 @@ $117.36 + RobotShop $140.69 + $168.74 incl. shipping).**
 |---|---|---|---|---|---|---|
 | M.2 HAT+ | 1 | | 20 | | pending | |
 | NVMe 512 GB–1 TB | 1 | | 70–160 | | pending | Thermal path to hull wall required. NAND-crisis pricing: ~$105/TB best case as of Aug 2026, relief not expected before 2027. 512 GB (~$70) still holds a week of dive days — capacity was never the constraint (ADR-016). Not needed until thermal soak / sealed integration; bench bring-up runs on microSD |
-| GL.iNet GL-SFT1200 "Opal" router | 1 | | 40 | | pending | Topside AP on the kayak, USB-C powered from a power bank. Gigabit ports matter for lunch-break rosbag offload (ADR-016). Configure LAN as 192.168.2.0/24 — ArduSub/QGC convention |
 | 4" PVC, caps, o-rings | — | | 60 | | pending | |
-| Penetrators + potting epoxy | — | | 30 | | pending | Count them: tether, thrusters ×4–6, lights ×2–3, Bar30, lasers |
-| 20 m gel-filled direct-burial Cat5e + hollow polypro rope + foam floats | 1 | | 25 | | pending | Burial cable resists water wicking; rope is the strength member (SV Seeker method); foam bits zip-tied every 1–2 m near the ROV. Seal cut ends. Treat as a consumable — buy enough for a spare |
+| Hollow polypro rope + closed-cell foam floats for tether | 1 | | 10 | | pending | Cable ordered (Cat6 burial). Rope is the strength member (SV Seeker method); foam bits zip-tied every 1–2 m near the ROV. Seal cable cut ends |
 | HDPE frame stock, ballast | — | | 30 | | pending | |
 
-**Core pending subtotal (est): ~$250–370** depending on NVMe capacity
+**Core pending subtotal (est): ~$180–300** depending on NVMe capacity
 
 ## Small parts and consumables, pending
 
@@ -45,24 +56,20 @@ Previously mentioned in notes but never costed as line items.
 
 | Item | Qty | Source | Est $ | Paid $ | Status | Notes |
 |---|---|---|---|---|---|---|
-| 10 AWG silicone wire | few m | | 15 | | pending | Pack → distribution |
-| 14 AWG silicone wire | few m | | 10 | | pending | Distribution → ESCs |
-| XT60 connector pairs | 8 | | 10 | | pending | Distribution to individual ESCs, ~10 A each |
-| JST-GH pigtails, pre-crimped | set | | 15 | | pending | Hand-crimping GH is miserable |
-| Small UBEC, sensor rail | 1 | | 10 | | pending | Derate to 2–3 A (see power-budget.md) |
+| FC pigtails — **verify DF13 vs JST-GH on arrival** | set | | 0–15 | | pending | Classic Pixhawk 1/FMUv2 = DF13, not JST-GH. Radiolink usually includes a cable set and the Bar30 ships with its own I2C lead — inventory Friday, order only the gap |
 | Schrader valve + fitting | 1 | | 10 | | pending | Leak-test port in endcap (ADR-001) |
 | Thermal pads / gap filler | — | | 12 | | pending | NVMe, converters, ESCs to hull wall |
-| MicroSD cards | 2 | | 12 | | pending | Pi 5 first boot / flashing; Pixhawk spare |
+| MicroSD 16–32 GB for Pixhawk, FAT32 | 1 | | 7 | | pending | Only if the Radiolink box card is junk — FMUv2 likes small plain cards |
 | Spare o-rings, every size | kit | | 15 | | pending | **Before first assembly.** A nicked o-ring on a Sunday ends the day |
 | Silicone grease | 1 | | 12 | | pending | **Molykote 111 or Super Lube only.** Petroleum products attack Buna-N |
 | Cell-voltage checker with alarm | 1 | | 8 | | pending | |
 | LiPo-safe bag or ammo can | 1 | | 12 | | pending | |
 | Mityvac-style hand vacuum pump | 1 | | 35 | | pending | Auto-parts brake bleeder. Pull ~10 inHg via the vent nipple before every wet day — the universal pre-dive ritual (prior-art.md) |
 | Vent plug / brass barb for vacuum nipple | 1 | | 8 | | pending | Triple duty: vacuum test port, LiPo relief path (ADR-013), equalize-before-opening |
-| Bulk capacitor for power distribution | 1–2 | | 8 | | pending | 6 thrusters slamming reverse sags the bus — brownout is the classic cheap-ESC field failure |
-| ApisQueen USB ESC tuning board | 1 | | 12 | | pending | Adjusts start/stop sensitivity if depth hold gets jerky |
+| Bulk capacitors, low-ESR electrolytic | 2–3 | | 8 | | pending | 470–1000 µF / 35 V each (Panasonic FC/FR class or RC "ESC cap module"), shortest leads to the star point. Absorbs reversal spikes and load-step sag — brownout is the classic cheap-ESC field failure. Also why the XT90-S anti-spark matters |
+| ApisQueen ESC tuning tool | 1 | | 12–15 | | pending | **Hold — compatibility unconfirmed.** O'Hara card = boat ESC line; Feather USB board = 80–300 A standalone ESCs; unclear which (if either) programs the U2's integrated ESC. Check the manual on arrival or email help@underwaterthruster.com. Only needed if depth hold is jerky and ArduSub deadzone params can't fix it |
 
-**Small parts subtotal (est): ~$200**
+**Small parts subtotal (est): ~$180**
 
 ## Field / mission gear, pending
 
@@ -84,8 +91,7 @@ Previously mentioned in notes but never costed as line items.
 | Bike pump | ? | Leak testing |
 | Kitchen scale + bucket | ? | Thrust measurement, Phase 2 |
 | Topside laptop | ? | QGC + Foxglove |
-| USB power bank | ? | Powers the Opal (~3 W → 10k mAh ≈ 10 h). Must not auto-shutoff at ~0.5 A load — check for trickle/always-on mode and bench-test an hour. Use A-to-C cable for guaranteed plain 5 V |
-| Bluetooth gamepad | ? | Pairs to phone/tablet for QGC — virtual on-screen sticks are a poor way to fly an ROV |
+| Wired/X-input gamepad for bench SITL | ? | The 8BitDo Ultimate Mobile (ordered) is Android-only — desktop QGC/SITL needs any pad the laptop recognizes |
 | Kayak, anchor, rode | ? | The surface platform |
 
 ## Options / later
@@ -116,9 +122,9 @@ Previously mentioned in notes but never costed as line items.
 
 | | Est $ | Paid $ |
 |---|---|---|
-| Ordered | ~970 | 1,239.82 |
-| Core pending | ~250–370 | |
-| Small parts pending | ~200 | |
+| Ordered | ~1,110 | 1,563.69 |
+| Core pending | ~165–285 | |
+| Small parts pending | ~140 | |
 | Field gear pending | ~55 | |
 | **Committed + planned (6 thrusters, no options)** | **~$1,550–1,700** | |
 

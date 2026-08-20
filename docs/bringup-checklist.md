@@ -31,7 +31,11 @@ Per unit, on the servo tester, no autopilot involved.
 - [ ] **Set the tester pot to centre before applying power.** It boots into
       manual mode following knob position, *not* 1500 µs
 - [ ] **Clamp the thruster down.** Bidirectional units jump on connect
-- [ ] Feed the tester 5 V separately — ApisQueen ESCs have no BEC
+- [ ] Check which U2 variant arrived and whether its ESC has a BEC (the
+      150 W variant ships one, 5 V/1 A). If yes it can feed the tester; if
+      not, any USB charger or bench supply works
+- [ ] If ESCs have BECs: plan the servo-rail wiring so at most one BEC's 5 V
+      line lands on the rail — six paralleled BECs fight
 - [ ] Confirm rotation direction, sort CW/CCW pairs before mounting
 - [ ] Find true neutral and map deadband width (tester resolves 2 µs)
 - [ ] Verify bidirectional behaviour across 1000–2000 µs

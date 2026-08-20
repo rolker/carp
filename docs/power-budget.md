@@ -71,8 +71,17 @@ Split the rails. Thruster-induced noise on the ESC side must not reach the Pi.
 | Rail | Supply | Load |
 |---|---|---|
 | Pi 5 | Pololu D36V50F5 (5.5 A) | Pi, NVMe, cameras |
-| Sensors / bench | Small UBEC (derate to 2–3 A) | Servo tester, sensors, light logic |
-| Pixhawk | **Its own power module** | Never backfeed 5 V through a servo rail |
+| Pixhawk | **Its own power module** | Bar30 powers from the Pixhawk I2C port |
+
+(A separate sensor/bench UBEC was planned but its loads evaporated — lights
+deleted by ADR-004, Bar30 on the Pixhawk, servo tester is bench-only and can
+run from a USB charger or an ESC BEC.)
+
+**If the ESCs have BECs, don't parallel them.** The U2 150 W variant ships
+with a 5 V/1 A BEC in the ESC; six BECs tied together on the servo rail will
+fight each other. Connect at most one BEC's 5 V wire to the rail (or none —
+the Pixhawk doesn't need servo-rail power), signal and ground only on the
+rest.
 
 **Pi 5 GPIO power gotcha:** powering through the GPIO header bypasses USB-PD
 negotiation, so the Pi assumes a weak supply and caps USB current to 600 mA.
