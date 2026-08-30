@@ -15,6 +15,10 @@ or epoxied.
       and endcap vs wider-front-plate vs pods. Three questions, one drawing
 - [ ] ADR-017 stack confirmed by the CSI/encode bench prototype (dual capture
       → encode → phone stream → rosbag) before Phase 3 integration
+- [x] **Print toolchain validated** (2026-08-30) — Onshape → slice → Centauri
+      Carbon 2, first part a bench holder for the Pi 5 in PLA+. Bracket and
+      mount design is unblocked; carry designs forward but reprint in PETG
+      (inside the hull) or ASA (outside) per the material rule in `bom.md`
 
 ## Phase 1 — Autopilot acceptance (within the return window)
 

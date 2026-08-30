@@ -133,10 +133,10 @@ tool serving other projects too, so it doesn't count against the vehicle cost.
 
 | Item | Qty | Source | Paid $ | Status | Notes |
 |---|---|---|---|---|---|
-| Elegoo Centauri Carbon 2 Combo | 1 | Amazon (ELEGOO Official US) | 378.61 | Arrives Sat 2026-08-22 | Enclosed CoreXY, 256 mm³, 350 °C hardened nozzle, HEPA+carbon filter; Combo = CANVAS multi-color unit included |
-| ELEGOO PLA+ 1.75 mm, pink & purple 2 kg | 1 | Amazon (ELEGOO Official US) | 28.99 | Arrives 2026-08-21 | Toys / learning / doll wheelchair |
-| ELEGOO PETG 1.75 mm, yellow & orange 2 kg | 1 | Amazon (ELEGOO Official US) | 26.58 | Arrives 2026-08-21 | Wet-environment parts; high-vis colors are a feature underwater |
-| ELEGOO PLA+ 1.75 mm, white 1 kg | 1 | Amazon (ELEGOO Official US) | 13.24 | Arrives 2026-08-21 | General purpose |
+| Elegoo Centauri Carbon 2 Combo | 1 | Amazon (ELEGOO Official US) | 378.61 | received · **validated 2026-08-30** | Enclosed CoreXY, 256 mm³, 350 °C hardened nozzle, HEPA+carbon filter; Combo = CANVAS multi-color unit included. First part: a bench holder for the Pi 5, Onshape → slice → print, no trouble on the machine side |
+| ELEGOO PLA+ 1.75 mm, pink & purple 2 kg | 1 | Amazon (ELEGOO Official US) | 28.99 | received | 2 spools. Toys / learning / doll wheelchair |
+| ELEGOO PETG 1.75 mm, yellow & orange 2 kg | 1 | Amazon (ELEGOO Official US) | 26.58 | received | 2 spools. Wet-environment parts; high-vis colors are a feature underwater |
+| ELEGOO PLA+ 1.75 mm, white 1 kg | 1 | Amazon (ELEGOO Official US) | 13.24 | received | 1 spool. General purpose |
 
 **Shop tooling subtotal: $447.42 · out of pocket $371.37** (rewards points −$76.05)
 
@@ -144,8 +144,29 @@ Still pending for the print shop: **ASA 1 kg** (~$20 — exterior ROV brackets,
 UV-stable; needs the enclosure + ventilation), desiccant/dry bags for
 filament storage (shared line with the housing desiccant).
 
+All 5 spools received (2 PLA+ colored, 2 PETG, 1 PLA+ white) — the filament
+order is complete. Only ASA remains unbought, and it is not needed until
+exterior brackets.
+
+**CAD is Onshape.** The toolchain is proven end to end as of 2026-08-30;
+the only friction was re-learning the tool, not the machine. Design parts
+with driving variables (tube ID, flange diameter, stereo baseline) so the
+housing layout can be swept rather than argued — see `open-questions.md`.
+
 Printed parts are brackets and mounts only — **never the pressure boundary**
 (FDM layer bonds are not watertight; housing stays PVC/acrylic/epoxy).
+
+**Material rule for printed parts:**
+
+- **PLA+ — bench and mock-up only.** Fit checks, holders, jigs, anything that
+  lives on a table at room temperature. It softens around 55–60 °C, and the
+  sealed hull is deliberately a warm place (Pi 5 and NVMe both thermal-padded
+  to the hull wall) before the sun gets to a dark tube on a kayak deck.
+- **PETG — inside the hull.** Anything structural that ships in the vehicle.
+- **ASA — outside the hull.** UV-stable; still pending purchase.
+
+A part proven in PLA+ on the bench is a finished *design*, not a finished
+part: reprint it in PETG or ASA before it goes in the build.
 
 ## Running totals
 

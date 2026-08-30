@@ -61,7 +61,10 @@ params/
 
 ## Status
 
-Pre-build. Electronics ordered, mechanical design open.
+Pre-build. Electronics ordered and largely delivered — inventory and Phase 1/2
+acceptance testing still to do, and several checks are return-window-gated.
+Mechanical design open. Print shop online as of 2026-08-30 (Onshape →
+Centauri Carbon 2, validated on a Pi 5 bench holder).
 
 ## License
 
