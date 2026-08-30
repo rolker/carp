@@ -19,7 +19,7 @@ bought; `later` = deliberate deferral.
 | XT90 male → XT60 female adapters (OliRC) | 3 | Amazon | 8 | 8.99 | ordered | Charging only (6 A, nowhere near limit) |
 | ApisQueen U2 + ESC, 3.75 lbf | 6 | Amazon (ApisQueen) | 390 | 389.88 | ordered | 64.98 ea, two line items of 3. **Verify handedness on arrival** — counter-rotating pairs needed and the two listings carried identical titles |
 | Raspberry Pi 5 8 GB | 1 | Amazon (MemoryWhiz, 3rd party) | 110 | 200.00 | ordered | $175 at PiShop — ~$25 premium for fast arrival. Third-party seller: **verify genuine on arrival** (board markings, boots official OS). 8 GB doubles the 4 GB minimum — welcome DSP headroom |
-| Arducam IMX462 color 141° (stereo pair) | 2 | Amazon (UCTRONICS) | 96 | 95.98 | ordered | 47.99 ea. Parallel mount, ~75–100 mm baseline, one rigid plate, software sync. **On arrival: verify Pivariety driver works on Pi 5 inside the return window** |
+| Arducam IMX462 color 141° (stereo pair) | 2 | Amazon (UCTRONICS) | 96 | 95.98 | ordered | 47.99 ea. Parallel mount, one rigid plate, software sync. **Baseline is 75 mm** — pinned by the 6" bore, not chosen (`housing-layout.md`). **On arrival: verify Pivariety driver works on Pi 5 inside the return window** |
 | SupremeTech 2" acrylic dome, 3/8" flange | 2 | Amazon (Supreme Tech) | 21 | 21.38 | ordered | 10.69 ea, pre-drilled flanges. No spares ordered — handle gently; check apex optical uniformity on arrival |
 | 8BitDo Ultimate Mobile controller | 1 | Amazon (8BitDo) | — | 49.99 | ordered | Hall sticks. Telescopic phone-grip, Bluetooth/Android only — the field controller for Cockpit. **No wired USB / PC mode**: bench SITL needs a separate pad or keyboard |
 | Gebildet PG7 ×30 + PG9 ×20 cable glands | 1 | Amazon (Gebildet) | 10 | 9.99 | ordered | Penetrators: gland + epoxy back-fill, solder-blob every conductor mid-pot (prior-art.md) |
@@ -51,7 +51,7 @@ shipping — per-order figures in git history).**
 |---|---|---|---|---|---|---|
 | M.2 HAT+ | 1 | | 20 | | pending | |
 | NVMe 512 GB–1 TB | 1 | | 70–160 | | pending | Thermal path to hull wall required. NAND-crisis pricing: ~$105/TB best case as of Aug 2026, relief not expected before 2027. 512 GB (~$70) still holds a week of dive days — capacity was never the constraint (ADR-016). Not needed until thermal soak / sealed integration; bench bring-up runs on microSD |
-| 4" PVC, caps, o-rings | — | | 60 | | pending | |
+| PVC pipe, caps, o-rings | — | | 60–120 | | pending | **Diameter not settled — do not buy.** `housing-layout.md` leans 6" sched-40 over 4"; gated on the caliper measurements. 6" pipe and caps run ~$40–60 over 4" |
 | Hollow polypro rope + closed-cell foam floats for tether | 1 | | 10 | | pending | Cable ordered (Cat6 burial). Rope is the strength member (SV Seeker method); foam bits zip-tied every 1–2 m near the ROV. Seal cable cut ends |
 | HDPE frame stock, ballast | — | | 30 | | pending | |
 | External I2C compass module | 1 | | 15–30 | | pending | Review 1 M3 / review 2 carry-forward: internal compass sits in ESC field; mount external, away from power wiring, MagFit calibrate in Phase 3/5 |
@@ -137,8 +137,10 @@ tool serving other projects too, so it doesn't count against the vehicle cost.
 | ELEGOO PLA+ 1.75 mm, pink & purple 2 kg | 1 | Amazon (ELEGOO Official US) | 28.99 | received | 2 spools. Toys / learning / doll wheelchair |
 | ELEGOO PETG 1.75 mm, yellow & orange 2 kg | 1 | Amazon (ELEGOO Official US) | 26.58 | received | 2 spools. Wet-environment parts; high-vis colors are a feature underwater |
 | ELEGOO PLA+ 1.75 mm, white 1 kg | 1 | Amazon (ELEGOO Official US) | 13.24 | received | 1 spool. General purpose |
+| Spurtar vernier caliper, 150 mm, steel | 1 | Amazon (Wittyware) | 16.97 | Arrives 2026-08-31 | The one to trust for dimensions that drive the CAD — flange OD, thruster OD, ESC brick |
+| Ultrassist plastic vernier calipers, 150 mm ×2 | 1 | Amazon (Ultrassist) | 6.99 | Arrives 2026-08-31 | Rough work and, being **non-conductive**, the right tool for measuring around live LiPo terminals |
 
-**Shop tooling subtotal: $447.42 · out of pocket $371.37** (rewards points −$76.05)
+**Shop tooling subtotal: $471.38 · out of pocket $395.33** (rewards points −$76.05)
 
 Still pending for the print shop: **ASA 1 kg** (~$20 — exterior ROV brackets,
 UV-stable; needs the enclosure + ventilation), desiccant/dry bags for
@@ -147,6 +149,11 @@ filament storage (shared line with the housing desiccant).
 All 5 spools received (2 PLA+ colored, 2 PETG, 1 PLA+ white) — the filament
 order is complete. Only ASA remains unbought, and it is not needed until
 exterior brackets.
+
+**Caliper range is 150 mm, and two dimensions that matter exceed it:** the
+YOWOO pack at 155 long and the 6" bore at 154.1. Use a steel rule for those
+two. Everything else on the `housing-layout.md` measurement list — thruster
+OD and length, ESC brick, dome flange OD — falls inside 150.
 
 **CAD is Onshape.** The toolchain is proven end to end as of 2026-08-30;
 the only friction was re-learning the tool, not the machine. Design parts
