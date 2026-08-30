@@ -286,6 +286,12 @@ have since been ordered, making BlueROV1 (all six, full 6-DoF including the
 pitch-for-camera-aiming this ADR rules out, stock matrix, no fork) a live
 alternative to starting at SimpleROV-4. See `open-questions.md`.
 
+BlueROV1 has since been laid out and dimensioned against a 6" housing in
+`housing-layout.md`. Note 5 there is the argument this ADR now has to answer:
+pitch inertia scales with length squared, so adopting BlueROV1 for camera
+aiming and then building it on a long 4" tube produces the hull that makes
+aiming sluggish. The frame and the housing are one decision, not two.
+
 `SUB_FRAME_SIMPLEROV_4` and `_5` share one matrix in `AP_Motors6DOF.cpp`
 defining **five** motors. Building 4 thrusters uses outputs 1–4 and leaves 5
 unpopulated. Adding a lateral thruster later is pure bolt-on — no parameter

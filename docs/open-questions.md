@@ -9,14 +9,20 @@ bring-up. BlueROV1 uses all six for full 6-DoF — including pitch for camera
 aiming with a stock matrix, no ArduPilot fork. Wiring must now budget ~56 A
 peak either way, and the propulsion/hotel battery split (ADR-014) is live.
 
-**Housing diameter and camera mounting — one layout problem.**
-4" sched-40 is a default, not a decision; no pipe bought. Two stacked LiPos
-plus Pi 5 plus NVMe plus Pixhawk plus converters is tight, and the stereo
-camera pair adds a new input: two 2" domes with ~70 mm flanges at ~75–100 mm
-centers, which no 4" endcap can carry. Candidate resolutions: front plate
-wider than the tube, a larger tube, or separate camera pods on the frame with
-penetrators back to the main housing. Lay it all out on paper before buying
-pipe. Measure the actual YOWOO pack dimensions when they arrive first.
+**Housing diameter and camera mounting — see `housing-layout.md`
+(Leaning: 6" single housing, option B).** Four options drawn and dimensioned;
+6" resolves tube diameter, camera mounting, and whether pitch is real in one
+decision. Two findings from the drawing: the LiPos sit side by side in a
+154 mm bore rather than stacked, and the six ESCs ring the tube wall instead
+of eating axial length. Still no pipe bought — the proposal is gated on five
+measurements listed in that file, four of which are in unopened boxes.
+
+**Sub-question now closed: the stereo baseline is 75 mm.** Two ~Ø70 flanges
+span 145 mm against a 154.1 mm bore, leaving 4.5 mm each side. At 85 mm
+centers they do not fit the bore at all; at 100 mm they exceed even the tube
+OD. The "~75–100 mm" carried in this file and the bring-up checklist was
+never a range. 75 mm sits inside the 60–120 mm band `prior-art.md`
+recommends for 0.5–2 m work, so the constraint costs nothing optically.
 
 **Pi software stack — see ADR-017 (Leaning: vanilla OS, not BlueOS).**
 Both design reviews flagged this as untracked. The live sub-question is the

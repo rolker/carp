@@ -10,9 +10,9 @@ or epoxied.
 - [ ] Joystick/gamepad mapping worked out
 - [ ] Verify axis signs in sim — sign errors are cheap here and expensive in a pond
 - [ ] **Camera geometry + housing layout on paper — before any pipe is bought**
-      (review 2 MA2). Measure the YOWOO packs on arrival, then lay out dome
-      flange spacing (~70 mm flanges at 75–100 mm centers), tube diameter,
-      and endcap vs wider-front-plate vs pods. Three questions, one drawing
+      (review 2 MA2). Drawn: see `housing-layout.md` — 6" single housing,
+      75 mm stereo baseline (pinned by the bore, not chosen). Confirm the
+      five assumed dimensions in that file before any pipe is cut
 - [ ] ADR-017 stack confirmed by the CSI/encode bench prototype (dual capture
       → encode → phone stream → rosbag) before Phase 3 integration
 - [x] **Print toolchain validated** (2026-08-30) — Onshape → slice → Centauri

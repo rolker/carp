@@ -50,6 +50,7 @@ docs/
   power-budget.md       Load analysis, battery sizing, wiring gauge
   wiring.md             Power tree, signal map, grounding rules
   frame-and-mixing.md   ArduSub motor matrices, verified from source
+  housing-layout.md     Tube diameter, dome fit, frame geometry, CAD variables
   bringup-checklist.md  Bench acceptance tests before anything is sealed
   field-checklist.md    Dive-day card: night-before, launch, in-water, after
   navigation.md         Downline method, scaling lasers, acoustic ranging
