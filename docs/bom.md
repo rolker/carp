@@ -138,7 +138,7 @@ tool serving other projects too, so it doesn't count against the vehicle cost.
 | ELEGOO PETG 1.75 mm, yellow & orange 2 kg | 1 | Amazon (ELEGOO Official US) | 26.58 | received | 2 spools. Wet-environment parts; high-vis colors are a feature underwater |
 | ELEGOO PLA+ 1.75 mm, white 1 kg | 1 | Amazon (ELEGOO Official US) | 13.24 | received | 1 spool. General purpose |
 | Spurtar vernier caliper, 150 mm, steel | 1 | Amazon (Wittyware) | 16.97 | Arrives 2026-08-31 | The one to trust for dimensions that drive the CAD — flange OD, thruster OD, ESC brick |
-| Ultrassist plastic vernier calipers, 150 mm ×2 | 1 | Amazon (Ultrassist) | 6.99 | Arrives 2026-08-31 | Rough work and, being **non-conductive**, the right tool for measuring around live LiPo terminals |
+| Ultrassist plastic vernier calipers, 150 mm ×2 | 1 | Amazon (Ultrassist) | 6.99 | Arrives 2026-08-31 | One for Isabelle to learn on. The other kept for the shop: plastic is **non-conductive**, which is the right property for measuring around live LiPo terminals |
 
 **Shop tooling subtotal: $471.38 · out of pocket $395.33** (rewards points −$76.05)
 
