@@ -62,8 +62,9 @@ params/
 
 ## Status
 
-Pre-build. Electronics ordered and largely delivered — inventory and Phase 1/2
-acceptance testing still to do, and several checks are return-window-gated.
+Pre-build. Everything ordered has arrived (inventoried 2026-09-26) — Phase 1/2
+acceptance testing still to do. The topside dry box came too small and needs
+replacing.
 Mechanical design open. Print shop online as of 2026-08-30 (Onshape →
 Centauri Carbon 2, validated on a Pi 5 bench holder).
 

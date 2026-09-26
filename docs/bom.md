@@ -9,37 +9,37 @@ bought; `later` = deliberate deferral.
 
 | Item | Qty | Source | Est $ | Paid $ | Status | Notes |
 |---|---|---|---|---|---|---|
-| Radiolink Pixhawk Advanced | 1 | RobotShop | 60 | 159.82 | shipped | FMUv2 / STM32F427. **Not** the Radiolink Pixhawk 4 — that one is ArduPilot-incompatible (proprietary binaries, wrong connectors). Shipped separately, +8.92 shipping |
-| Pololu D36V50F5 | 1 | RobotShop | 25 | 39.95 | shipped | 5 V @ 5.5 A. Honest ratings, real thermal path |
-| Digital RC servo tester | 1 | RobotShop | 20 | 10.74 | shipped | Manual mode holds settable pulse width, 2 µs resolution, PPM passthrough display |
-| Bar30 pressure sensor (Blue Robotics R2) | 1 | RobotShop | 85 | 90.00 | shipped | MS5837-30BA, potted in penetrator. See ADR-006 |
-| 4S 6000 mAh LiPo (YOWOO, 100C, XT90-S) | 2 | Amazon | 84 | 131.98 | ordered | 65.99 ea. Anti-spark XT90-S as specified in ADR-013 |
-| Dual LiPo balance charger/discharger, 10 A | 1 | Amazon | 60 | 67.19 | ordered | |
-| XT90-S pairs w/ 150 mm 10 AWG pigtails (Amass) | 3 pr | Amazon | 12 | 14.99 | ordered | Pigtails help but bulk 10 AWG still needed |
-| XT90 male → XT60 female adapters (OliRC) | 3 | Amazon | 8 | 8.99 | ordered | Charging only (6 A, nowhere near limit) |
-| ApisQueen U2 + ESC, 3.75 lbf | 6 | Amazon (ApisQueen) | 390 | 389.88 | ordered | 64.98 ea, two line items of 3. **Verify handedness on arrival** — counter-rotating pairs needed and the two listings carried identical titles |
-| Raspberry Pi 5 8 GB | 1 | Amazon (MemoryWhiz, 3rd party) | 110 | 200.00 | ordered | $175 at PiShop — ~$25 premium for fast arrival. Third-party seller: **verify genuine on arrival** (board markings, boots official OS). 8 GB doubles the 4 GB minimum — welcome DSP headroom |
-| Arducam IMX462 color 141° (stereo pair) | 2 | Amazon (UCTRONICS) | 96 | 95.98 | ordered | 47.99 ea. Parallel mount, one rigid plate, software sync. **Baseline is 75 mm** — pinned by the 6" bore, not chosen (`housing-layout.md`). **On arrival: verify Pivariety driver works on Pi 5 inside the return window** |
-| SupremeTech 2" acrylic dome, 3/8" flange | 2 | Amazon (Supreme Tech) | 21 | 21.38 | ordered | 10.69 ea, pre-drilled flanges. No spares ordered — handle gently; check apex optical uniformity on arrival |
-| 8BitDo Ultimate Mobile controller | 1 | Amazon (8BitDo) | — | 49.99 | ordered | Hall sticks. Telescopic phone-grip, Bluetooth/Android only — the field controller for Cockpit. **No wired USB / PC mode**: bench SITL needs a separate pad or keyboard |
-| Gebildet PG7 ×30 + PG9 ×20 cable glands | 1 | Amazon (Gebildet) | 10 | 9.99 | ordered | Penetrators: gland + epoxy back-fill, solder-blob every conductor mid-pot (prior-art.md) |
-| Anker 10,000 mAh PowerIQ USB-C power bank | 1 | Amazon (AnkerDirect) | — | 45.99 | ordered | Topside: runs the Opal ~10 h. Bench-qualify: router on it one hour, no blinks |
-| GL.iNet GL-SFT1200 Opal router | 1 | Amazon (GL Tech) | 40 | 39.99 | ordered | Topside AP. Configure LAN 192.168.2.0/24; 5 GHz AP so the BT gamepad keeps 2.4 GHz |
-| Loctite Marine Epoxy 0.85 oz syringe | 2 | Amazon | 15 | 15.00 | ordered | Arriving Sunday. ~50 ml total — enough for ~8–12 gland back-fills; buy more before doing all penetrators in one session |
-| Amass XT60 pairs w/ 14 AWG 100 mm pigtails | 2 pk | Amazon (Hiteuoms) | 10 | 17.98 | ordered | "6PCS" per pack — **count on arrival**: if that means 3 pairs/pack, the 6 pairs total exactly covers 6 ESC drops with zero spares. Female on the source side |
-| SanDisk 256 GB Ultra microSDXC + adapter | 1 | Amazon (First Choice Online) | 12 | 56.00 | ordered | NAND-crisis pricing. Pi boot/rescue + interim bench recording. Third-party seller — **verify genuine** (h2testw/f3) |
-| Marine-grade adhesive heat-shrink kit, 4:1 | 1 | Amazon (LONGBIN) | 8 | 8.99 | ordered | Adhesive-lined = the right kind for wet-adjacent joints |
-| 10 AWG silicone wire, 5 ft red + 5 ft black | 1 | Amazon (Kenhihi) | 15 | 8.98 | ordered | Pack → star point runs |
-| Cordless USB-C soldering iron | 1 | Amazon (AutoFittings) | — | 28.99 | ordered | Fine for signal wiring; 10 AWG + XT90 cups need more heat — have a ≥60 W mains iron for the big joints |
-| Cat6 outdoor direct-burial, 100 ft, **CCA** | 1 | Amazon (FYRIKTB) | 25 | 21.99 | ordered | Tether stock: two ~50 ft tethers incl. spare. CCA fatigues under flex — gentle bends, hard strain relief, treat as consumable. Data-only at this length: fine |
-| 14 AWG silicone wire, 2-core, 25 ft | 1 | Amazon (Haerkn) | 10 | 19.98 | ordered | Distribution → ESC runs; 2-core = paired +/− pulls |
-| FEICHAO 35 V 1000 µF XT60 cap filters ×4 | 1 | Amazon (FEICHAO) | 15 | 39.96 | ordered | **Arrives Sept 8–16** (China lead time). 4,000 µF total at the star point. Bench Phases 1–3 can run without them — short bench leads = low inductance — but install before sealed integration; Castle CapPack is the local fallback if the housing outpaces the mail |
-| LiPo safe pouches, 185×75×60 mm ×2 | 1 | Amazon (CNDHDOK) | 12 | 9.99 | ordered | One pouch per pack — isolation during storage and charging. Arrives with the batteries |
-| BX100 cell checkers w/ LV buzzer ×2 | 1 | Amazon (SpeedyFPV) | 8 | 9.49 | ordered | Arrives Saturday — Friday's first charge relies on the charger's own per-cell display. Plug-read-unplug; standby drain unbalances packs left connected |
-| BOJACK MIDI 80 A fuses ×3 + holders ×2 | 1 | Amazon (BOJACK) | 15 | 21.98 | ordered | Main fuse at the star point (review B1) + two spare elements and a spare holder — field-box spares covered |
-| IP68 RJ45 panel-mount coupler, F-F ×2 | 1 | Amazon | — | 15.99 | ordered | Topside dry box wall only — splash-rated, **never submerged** (prior-art: IP67/68 couplers are not pressure-rated). Second is the spare |
-| Tomotato transparent waterproof dry box | 1 | Amazon | 20 | 17.99 | ordered | Topside station: Opal + power bank; tether enters via PG9 gland or the panel coupler. Confirm it floats loaded; leash to kayak |
-| Hand vacuum pump / brake bleeder kit w/ gauge | 1 | Amazon (Pathfinder Auto) | 35 | 19.89 | ordered | The pre-dive leak-test tool: **15 inHg** via the Schrader stem (core out), watch for a steady needle. Check kit for a Schrader adapter; verify pump holds vacuum dead-headed on arrival |
+| Radiolink Pixhawk Advanced | 1 | RobotShop | 60 | 159.82 | received | FMUv2 / STM32F427. **Not** the Radiolink Pixhawk 4 — that one is ArduPilot-incompatible (proprietary binaries, wrong connectors). Shipped separately, +8.92 shipping |
+| Pololu D36V50F5 | 1 | RobotShop | 25 | 39.95 | received | 5 V @ 5.5 A. Honest ratings, real thermal path |
+| Digital RC servo tester | 1 | RobotShop | 20 | 10.74 | received | Manual mode holds settable pulse width, 2 µs resolution, PPM passthrough display |
+| Bar30 pressure sensor (Blue Robotics R2) | 1 | RobotShop | 85 | 90.00 | received | MS5837-30BA, potted in penetrator. See ADR-006 |
+| 4S 6000 mAh LiPo (YOWOO, 100C, XT90-S) | 2 | Amazon | 84 | 131.98 | received | 65.99 ea. Anti-spark XT90-S as specified in ADR-013 |
+| Dual LiPo balance charger/discharger, 10 A | 1 | Amazon | 60 | 67.19 | received | |
+| XT90-S pairs w/ 150 mm 10 AWG pigtails (Amass) | 3 pr | Amazon | 12 | 14.99 | received | Pigtails help but bulk 10 AWG still needed |
+| XT90 male → XT60 female adapters (OliRC) | 3 | Amazon | 8 | 8.99 | received | Charging only (6 A, nowhere near limit) |
+| ApisQueen U2 + ESC, 3.75 lbf | 6 | Amazon (ApisQueen) | 390 | 389.88 | received | 64.98 ea, two line items of 3. **Verify handedness on arrival** — counter-rotating pairs needed and the two listings carried identical titles |
+| Raspberry Pi 5 8 GB | 1 | Amazon (MemoryWhiz, 3rd party) | 110 | 200.00 | received | $175 at PiShop — ~$25 premium for fast arrival. Third-party seller: **verify genuine on arrival** (board markings, boots official OS). 8 GB doubles the 4 GB minimum — welcome DSP headroom |
+| Arducam IMX462 color 141° (stereo pair) | 2 | Amazon (UCTRONICS) | 96 | 95.98 | received | 47.99 ea. Parallel mount, one rigid plate, software sync. **Baseline is 75 mm** — pinned by the 6" bore, not chosen (`housing-layout.md`). **On arrival: verify Pivariety driver works on Pi 5 inside the return window** |
+| SupremeTech 2" acrylic dome, 3/8" flange | 2 | Amazon (Supreme Tech) | 21 | 21.38 | received | 10.69 ea, pre-drilled flanges. No spares ordered — handle gently; check apex optical uniformity on arrival |
+| 8BitDo Ultimate Mobile controller | 1 | Amazon (8BitDo) | — | 49.99 | received | Hall sticks. Telescopic phone-grip, Bluetooth/Android only — the field controller for Cockpit. **No wired USB / PC mode**: bench SITL needs a separate pad or keyboard |
+| Gebildet PG7 ×30 + PG9 ×20 cable glands | 1 | Amazon (Gebildet) | 10 | 9.99 | received | Package marked E271 — PG7/PG9 count not yet checked. Penetrators: gland + epoxy back-fill, solder-blob every conductor mid-pot (prior-art.md) |
+| Anker 10,000 mAh PowerIQ USB-C power bank | 2 | Amazon (AnkerDirect) | — | 45.99 | received | Two arrived (2-pack at $45.99). Topside: runs the Opal ~10 h. Bench-qualify: router on it one hour, no blinks |
+| GL.iNet GL-SFT1200 Opal router | 1 | Amazon (GL Tech) | 40 | 39.99 | received | Topside AP. Configure LAN 192.168.2.0/24; 5 GHz AP so the BT gamepad keeps 2.4 GHz |
+| Loctite Marine Epoxy 0.85 oz syringe | 2 | Amazon | 15 | 15.00 | received | Arriving Sunday. ~50 ml total — enough for ~8–12 gland back-fills; buy more before doing all penetrators in one session |
+| Amass XT60 pairs w/ 14 AWG 100 mm pigtails | 2 pk | Amazon (Hiteuoms) | 10 | 17.98 | received | Two packs of 6 arrived — **still to confirm whether 6 = pieces or pairs**: if that means 3 pairs/pack, the 6 pairs total exactly covers 6 ESC drops with zero spares. Female on the source side |
+| SanDisk 256 GB Ultra microSDXC + adapter | 1 | Amazon (First Choice Online) | 12 | 56.00 | received | NAND-crisis pricing. Pi boot/rescue + interim bench recording. Third-party seller — **verify genuine** (h2testw/f3) |
+| Marine-grade adhesive heat-shrink kit, 4:1 | 1 | Amazon (LONGBIN) | 8 | 8.99 | received | Adhesive-lined = the right kind for wet-adjacent joints |
+| 10 AWG silicone wire, 5 ft red + 5 ft black | 1 | Amazon (Kenhihi) | 15 | 8.98 | received | Pack → star point runs |
+| Cordless USB-C soldering iron | 1 | Amazon (AutoFittings) | — | 28.99 | received | Fine for signal wiring; 10 AWG + XT90 cups need more heat — have a ≥60 W mains iron for the big joints |
+| Cat6 outdoor direct-burial, 100 ft, **CCA** | 1 | Amazon (FYRIKTB) | 25 | 21.99 | received | Tether stock: two ~50 ft tethers incl. spare. CCA fatigues under flex — gentle bends, hard strain relief, treat as consumable. Data-only at this length: fine |
+| 14 AWG silicone wire, 2-core, 25 ft | 1 | Amazon (Haerkn) | 10 | 19.98 | received | Distribution → ESC runs; 2-core = paired +/− pulls |
+| FEICHAO 35 V 1000 µF XT60 cap filters ×4 | 1 | Amazon (FEICHAO) | 15 | 39.96 | received | **Arrives Sept 8–16** (China lead time). 4,000 µF total at the star point. Bench Phases 1–3 can run without them — short bench leads = low inductance — but install before sealed integration; Castle CapPack is the local fallback if the housing outpaces the mail |
+| LiPo safe pouches, 185×75×60 mm ×2 | 1 | Amazon (CNDHDOK) | 12 | 9.99 | received | One pouch per pack — isolation during storage and charging. Arrives with the batteries |
+| BX100 cell checkers w/ LV buzzer ×2 | 1 | Amazon (SpeedyFPV) | 8 | 9.49 | received | Arrives Saturday — Friday's first charge relies on the charger's own per-cell display. Plug-read-unplug; standby drain unbalances packs left connected |
+| BOJACK MIDI 80 A fuses ×3 + holders ×2 | 1 | Amazon (BOJACK) | 15 | 21.98 | received | **4 fuses arrived** (listing said ×3), 2 holders. Main fuse at the star point (review B1) + two spare elements and a spare holder — field-box spares covered |
+| IP68 RJ45 panel-mount coupler, F-F ×2 | 1 | Amazon | — | 15.99 | received | Topside dry box wall only — splash-rated, **never submerged** (prior-art: IP67/68 couplers are not pressure-rated). Second is the spare |
+| Tomotato transparent waterproof dry box | 1 | Amazon | 20 | 17.99 | received | **Too small** for the Opal + power bank — needs a bigger box (return or repurpose this one). Topside station: Opal + power bank; tether enters via PG9 gland or the panel coupler. Confirm it floats loaded; leash to kayak |
+| Hand vacuum pump / brake bleeder kit w/ gauge | 1 | Amazon (Pathfinder Auto) | 35 | 19.89 | received | The pre-dive leak-test tool: **15 inHg** via the Schrader stem (core out), watch for a steady needle. Check kit for a Schrader adapter; verify pump holds vacuum dead-headed on arrival |
 
 **Ordered subtotal: est ~$1,215 (+4 unestimated adds) · paid $1,698.98
 (Amazon orders through 2026-08-20 + RobotShop $140.69 + $168.74 incl.
@@ -137,8 +137,8 @@ tool serving other projects too, so it doesn't count against the vehicle cost.
 | ELEGOO PLA+ 1.75 mm, pink & purple 2 kg | 1 | Amazon (ELEGOO Official US) | 28.99 | received | 2 spools. Toys / learning / doll wheelchair |
 | ELEGOO PETG 1.75 mm, yellow & orange 2 kg | 1 | Amazon (ELEGOO Official US) | 26.58 | received | 2 spools. Wet-environment parts; high-vis colors are a feature underwater |
 | ELEGOO PLA+ 1.75 mm, white 1 kg | 1 | Amazon (ELEGOO Official US) | 13.24 | received | 1 spool. General purpose |
-| Spurtar vernier caliper, 150 mm, steel | 1 | Amazon (Wittyware) | 16.97 | Arrives 2026-08-31 | The one to trust for dimensions that drive the CAD — flange OD, thruster OD, ESC brick |
-| Ultrassist plastic vernier calipers, 150 mm ×2 | 1 | Amazon (Ultrassist) | 6.99 | Arrives 2026-08-31 | One for Isabelle to learn on. The other kept for the shop: plastic is **non-conductive**, which is the right property for measuring around live LiPo terminals |
+| Spurtar vernier caliper, 150 mm, steel | 1 | Amazon (Wittyware) | 16.97 | received | The one to trust for dimensions that drive the CAD — flange OD, thruster OD, ESC brick |
+| Ultrassist plastic vernier calipers, 150 mm ×2 | 1 | Amazon (Ultrassist) | 6.99 | received | One for Isabelle to learn on. The other kept for the shop: plastic is **non-conductive**, which is the right property for measuring around live LiPo terminals |
 
 **Shop tooling subtotal: $471.38 · out of pocket $395.33** (rewards points −$76.05)
 
