@@ -99,7 +99,7 @@ Previously mentioned in notes but never costed as line items.
 | Joystick / gamepad | ? | Needed for Phase 0 SITL |
 | Bike pump | ? | Leak testing |
 | Kitchen scale + bucket | ? | Thrust measurement, Phase 2 |
-| Topside laptop | ? | QGC + Foxglove |
+| Topside laptop | ? | QGC + ROS 2 rqt tools |
 | Wired/X-input gamepad for bench SITL | ? | The 8BitDo Ultimate Mobile (ordered) is Android-only — desktop QGC/SITL needs any pad the laptop recognizes |
 | RJ45 crimper + plugs | ? | Required: tether ends get cut to pass through glands, then re-terminated. CCA strands are brittle — crimp gently, strain-relieve behind the plug |
 | Kayak, anchor, rode | ? | The surface platform |

@@ -13,8 +13,10 @@ or epoxied.
       (review 2 MA2). Drawn: see `housing-layout.md` — 6" single housing,
       74 mm stereo baseline (set by the bore and the 71.9 flange, not chosen). Confirm the
       five assumed dimensions in that file before any pipe is cut
-- [ ] ADR-017 stack confirmed by the CSI/encode bench prototype (dual capture
-      → encode → rosbag on the Pi) before Phase 3 integration. The phone
+- [x] ADR-017 stack confirmed by the CSI/encode bench prototype (dual capture
+      → encode → rosbag on the Pi) before Phase 3 integration. **Done
+      2026-09-26 at 720p10 on Ubuntu (B1)**; 1080p30 does not fit (ADR-015).
+      Stereo sync still open (ADR-017). The phone
       stream is left out on purpose: it is a tether/topside question, covered
       by the iperf3 and topside-qualification items in Phase 3
 - [x] **Print toolchain validated** (2026-08-30) — Onshape → slice → Centauri
@@ -68,7 +70,9 @@ Per unit, on the servo tester, no autopilot involved.
       actually commanding
 - [ ] Pi 5 boots, NVMe mounts, `usb_max_current_enable=1` set
 - [ ] Cameras stream, encode, and record to NVMe
-- [ ] rosbag records with keyframe interval 1–2 s, plays back in Foxglove
+- [ ] rosbag records with keyframe interval 1–2 s, decodes and scrubs on
+      playback (`image_transport republish ffmpeg raw`, or the operator-station
+      rqt tools)
 - [ ] Thermal soak — everything running, **45 min** (review 1 minor 10; 30 was
       a transcription drift), check converter and NVMe temps
 - [ ] Measure the real tether link: iperf3 through the actual CCA Cat6 + Opal.

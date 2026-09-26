@@ -380,6 +380,21 @@ are deferred past v1. The analysis below predates that shift.
 software x264 on the CPU. Two 1080p30 streams would consume most of the cores
 before optical flow or DSP.
 
+**Measured 2026-09-26** (bench Pi 5, **no cooler**, two B0444s through our
+libcamera → `camera_ros` → `image_transport` republisher → libx264
+`ultrafast`/`zerolatency` → `FFMPEGPacket` → MCAP, one component container):
+
+| Setting (per camera) | Encoded | CPU | SoC temp |
+|---|---|---|---|
+| 1920×1080, cameras at 30 fps | **~10 fps**, ⅔ of frames dropped | saturated (0–2% idle) | 75 → **85 °C, throttling** |
+| 1280×720 at 10 fps | **10.00 fps**, every frame | ~20% (80% idle) | flat 64–66 °C |
+
+So the prediction above holds and is worse than stated: 1080p30 stereo does
+not fit on the CPU at all, and without a cooler it overheats trying. 720p10
+is the working default (`ros/carp_camera` launch file); anything bigger needs
+measuring, and a cooler, first. At 720p10 over a near-static bench scene the
+streams ran ~155 kbit/s each against a 1.5 Mbit/s cap.
+
 **IP cameras solve this** — the camera SoC encodes, the Pi writes bytes it
 never compressed. One Ethernet penetrator, internal switch, arbitrary views.
 
@@ -392,14 +407,15 @@ fabricates texture feature trackers will latch onto.
 exposure, MIPI/USB. Rolling shutter plus vehicle roll produces flow skew that
 biases systematically, not just noisily.
 
-**Recording format:** `foxglove_msgs/CompressedVideo` or
-`ffmpeg_image_transport` `FFMPEGPacket`. **Never raw `Image`** — 1080p30
+**Recording format:** `ffmpeg_image_transport` `FFMPEGPacket` (chosen
+2026-09-26 to match `unh_marine_perception`, so the same decode and rqt
+tooling works on CARP bags). **Never raw `Image`** — 1080p30
 uncompressed is ~180 MB/s and fills 1 TB in 90 minutes.
 
 **Keyframe interval 1–2 s.** rosbag2 stores opaque bytes with no notion of
 frame dependency; seeking lands mid-GOP and decodes garbage until the next
-keyframe. Costs ~15% bitrate, makes bags scrubbable. rviz won't render these —
-plan on Foxglove.
+keyframe. Costs ~15% bitrate, makes bags scrubbable. rviz won't render these;
+view through `ffmpeg_image_transport` decode (republish or rqt tools).
 
 **H.265 caveat:** marine snow is temporally random high-frequency detail.
 Motion prediction can't model it, so it burns bitrate on residuals every frame
@@ -531,3 +547,19 @@ timing), an IMX462 entry in the sensor property table, and the upstream
 Still open for the gate: dual encode → rosbag on the Pi, measured on a
 stable supply with cooling (the build alone hit undervoltage on a 4.9 V
 supply and the 77 °C soft limit without a fan).
+
+**Evidence, 2026-09-26 (gate met at 720p10).** The bench prototype runs end
+to end on Ubuntu: both cameras → `camera_ros` (from source, against our
+libcamera) → H.264 via `ffmpeg_image_transport` → MCAP rosbag on the Pi,
+10.00 fps per camera with every frame kept, keyframes every 1.5 s, and both
+streams decode cleanly offline. Setup is `scripts/setup-ros-workspace.sh`
+(rosdep, skipping the `libcamera` key) and `scripts/build-ros-workspace.sh`.
+**B1 holds**; the costs listed above stand. Resolution/frame-rate limits are
+in ADR-015. **Stereo sync is the open problem:** the cameras free-run, and
+this run's pairs sat a constant 49 ms apart (half a frame at 10 fps; the
+phase is random per start). Arducam documents external trigger only for its
+global-shutter Pivariety models, not the IMX462, and the driver exposes no
+trigger control on ours. Raspberry Pi's libcamera has software sync
+(`rpi.sync`: one camera serves timing, the other adjusts its frame length to
+match), which our driver's VBLANK control should support; it needs
+`"rpi.sync": {}` in the tuning file and `SyncMode` set per camera. Untested.
