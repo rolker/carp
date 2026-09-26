@@ -18,8 +18,8 @@ bought; `later` = deliberate deferral.
 | XT90-S pairs w/ 150 mm 10 AWG pigtails (Amass) | 3 pr | Amazon | 12 | 14.99 | received | Pigtails help but bulk 10 AWG still needed |
 | XT90 male → XT60 female adapters (OliRC) | 3 | Amazon | 8 | 8.99 | received | Charging only (6 A, nowhere near limit) |
 | ApisQueen U2 + ESC, 3.75 lbf | 6 | Amazon (ApisQueen) | 390 | 389.88 | received | 64.98 ea, two line items of 3. **Verify handedness on arrival** — counter-rotating pairs needed and the two listings carried identical titles |
-| Raspberry Pi 5 8 GB | 1 | Amazon (MemoryWhiz, 3rd party) | 110 | 200.00 | received | $175 at PiShop — ~$25 premium for fast arrival. Third-party seller: **verify genuine on arrival** (board markings, boots official OS). 8 GB doubles the 4 GB minimum — welcome DSP headroom |
-| Arducam IMX462 color 141° (stereo pair) | 2 | Amazon (UCTRONICS) | 96 | 95.98 | received | 47.99 ea. Parallel mount, one rigid plate, software sync. **Baseline is 74 mm** — set by the 6" bore and the measured 71.9 dome flange, not chosen (`housing-layout.md`). **On arrival: verify Pivariety driver works on Pi 5 inside the return window** |
+| Raspberry Pi 5 8 GB | 1 | Amazon (MemoryWhiz, 3rd party) | 110 | 200.00 | received | $175 at PiShop — ~$25 premium for fast arrival. Third-party seller: **verified genuine 2026-09-26** — revision `d04171` (8 GB, Sony UK, Pi 5 Rev 1.1), 7.8 GiB reported, boots Ubuntu 24.04 (kernel 6.8.0-1064-raspi). 8 GB doubles the 4 GB minimum — welcome DSP headroom |
+| Arducam IMX462 color 141° (stereo pair) | 2 | Amazon (UCTRONICS) | 96 | 95.98 | received | 47.99 ea. Parallel mount, one rigid plate, software sync. Camera connector is **22-pin 0.5 mm**; ships with 22↔22 Type B cables — plugs into the Pi 5 directly. **Baseline is 74 mm** — set by the 6" bore and the measured 71.9 dome flange, not chosen (`housing-layout.md`). **On arrival: verify Pivariety driver works on Pi 5 inside the return window** |
 | SupremeTech 2" acrylic dome, 3/8" flange | 2 | Amazon (Supreme Tech) | 21 | 21.38 | received | 10.69 ea, pre-drilled flanges. No spares ordered — handle gently; check apex optical uniformity on arrival |
 | 8BitDo Ultimate Mobile controller | 1 | Amazon (8BitDo) | — | 49.99 | received | Hall sticks. Telescopic phone-grip, Bluetooth/Android only — the field controller for Cockpit. **No wired USB / PC mode**: bench SITL needs a separate pad or keyboard |
 | Gebildet PG7 ×30 + PG9 ×20 cable glands | 1 | Amazon (Gebildet) | 10 | 9.99 | received | Package marked E271 — PG7/PG9 count not yet checked. Penetrators: gland + epoxy back-fill, solder-blob every conductor mid-pot (prior-art.md) |
@@ -75,9 +75,10 @@ Previously mentioned in notes but never costed as line items.
 | Spare 2" acrylic dome | 1 | | 11 | | pending | Review 2 minor 5: single-seller part, "handle gently" — a cracked dome mid-season ends the mission |
 | Spare XT90-S male connector | 1 | | 8 | | pending | Review 2 MA3: anti-spark resistor is a consumable (~30–50 matings); lives in the field box |
 | Spare XT60 pigtail pairs | 2–3 pr | | 8 | | pending | The two packs came as 3 pairs each — 6 pairs for 6 ESC drops, none spare. A melted or mis-soldered one otherwise stops a thruster |
+| Pi 5 camera cables, 22↔22-pin, 0.5 mm, **Type B**, vehicle length | 2+2 | | 12 | | pending | **Not blocking the bench test** — the Arducams have 22-pin connectors and shipped with 22↔22 Type B cables (~150 mm) that plug straight into the Pi 5. Needed for the vehicle only: 2× 200 mm (electronics-forward) and 2× 300 mm (Pi behind the battery bay, current bay stack); ~150 mm reaches neither. Match Type B — wrong type makes no contact; never flip one to make it fit. Shortest that reaches; route away from ESC leads |
 | ApisQueen ESC tuning tool | 1 | | 12–15 | | pending | **Hold — compatibility unconfirmed.** O'Hara card = boat ESC line; Feather USB board = 80–300 A standalone ESCs; unclear which (if either) programs the U2's integrated ESC. Check the manual on arrival or email help@underwaterthruster.com. Only needed if depth hold is jerky and ArduSub deadzone params can't fix it |
 
-**Small parts subtotal (est): ~$113**
+**Small parts subtotal (est): ~$125**
 
 ## Field / mission gear, pending
 
@@ -182,14 +183,14 @@ part: reprint it in PETG or ASA before it goes in the build.
 |---|---|---|
 | Ordered | ~1,215 | 1,698.98 |
 | Core pending | ~205–310 | |
-| Small parts pending | ~113 | |
+| Small parts pending | ~125 | |
 | Field gear pending | ~55 | |
-| **Paid + pending (6 thrusters, no options)** | **~$2,073–2,178** | |
+| **Paid + pending (6 thrusters, no options)** | **~$2,085–2,190** | |
 | Shop tooling (excluded from above) | | 371.37 out of pocket |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
 build (≈4×). The projection is Paid ($1,698.98, a known number) plus pending
-estimates ($373–478); ordered items ran ~25% over their estimates, so pending
+estimates ($385–490); ordered items ran ~25% over their estimates, so pending
 items may too. (Corrected 2026-08-20 per design review M1 — the earlier
 "$1,550–1,700" summary mixed estimates for items whose real prices were
 already known. Pending re-totaled after review 2 added the compass, spare
