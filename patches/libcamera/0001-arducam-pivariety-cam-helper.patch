@@ -1,0 +1,106 @@
+diff --git a/src/ipa/rpi/cam_helper/cam_helper_arducam_pivariety.cpp b/src/ipa/rpi/cam_helper/cam_helper_arducam_pivariety.cpp
+new file mode 100644
+index 0000000..85512a5
+--- /dev/null
++++ b/src/ipa/rpi/cam_helper/cam_helper_arducam_pivariety.cpp
+@@ -0,0 +1,66 @@
++/* SPDX-License-Identifier: BSD-2-Clause */
++/*
++ * camera helper for Arducam Pivariety boards
++ *
++ * The Pivariety kernel driver exposes the sensor through an on-board MCU and
++ * reports every sensor as "arducam-pivariety". Gain is passed to the MCU as a
++ * linear code in hundredths (100 = 1x), matching Arducam's own helper. Timing
++ * follows the IMX290 family (the IMX462 is the sensor on the B0444).
++ */
++
++#include <algorithm>
++#include <cmath>
++
++#include "cam_helper.h"
++
++using namespace RPiController;
++
++class CamHelperArducamPivariety : public CamHelper
++{
++public:
++	CamHelperArducamPivariety();
++	uint32_t gainCode(double gain) const override;
++	double gain(uint32_t gainCode) const override;
++	unsigned int hideFramesStartup() const override;
++	unsigned int hideFramesModeSwitch() const override;
++
++private:
++	/*
++	 * Smallest difference between the frame length and integration time,
++	 * in units of lines.
++	 */
++	static constexpr int frameIntegrationDiff = 2;
++	static constexpr double gainScale = 100.0;
++};
++
++CamHelperArducamPivariety::CamHelperArducamPivariety()
++	: CamHelper({}, frameIntegrationDiff)
++{
++}
++
++uint32_t CamHelperArducamPivariety::gainCode(double gain) const
++{
++	return static_cast<uint32_t>(std::max(0.0, gain * gainScale));
++}
++
++double CamHelperArducamPivariety::gain(uint32_t gainCode) const
++{
++	return gainCode / gainScale;
++}
++
++unsigned int CamHelperArducamPivariety::hideFramesStartup() const
++{
++	return 1;
++}
++
++unsigned int CamHelperArducamPivariety::hideFramesModeSwitch() const
++{
++	return 1;
++}
++
++static CamHelper *create()
++{
++	return new CamHelperArducamPivariety();
++}
++
++static RegisterCamHelper reg("arducam-pivariety", &create);
+diff --git a/src/ipa/rpi/cam_helper/meson.build b/src/ipa/rpi/cam_helper/meson.build
+index e434288..da274d0 100644
+--- a/src/ipa/rpi/cam_helper/meson.build
++++ b/src/ipa/rpi/cam_helper/meson.build
+@@ -2,6 +2,7 @@
+ 
+ rpi_ipa_cam_helper_sources = files([
+     'cam_helper.cpp',
++    'cam_helper_arducam_pivariety.cpp',
+     'cam_helper_ov5647.cpp',
+     'cam_helper_imx219.cpp',
+     'cam_helper_imx283.cpp',
+diff --git a/src/libcamera/sensor/camera_sensor_properties.cpp b/src/libcamera/sensor/camera_sensor_properties.cpp
+index 9025688..a59edf4 100644
+--- a/src/libcamera/sensor/camera_sensor_properties.cpp
++++ b/src/libcamera/sensor/camera_sensor_properties.cpp
+@@ -106,6 +106,17 @@ const CameraSensorProperties *CameraSensorProperties::get(const std::string &sen
+ 			},
+ 			.sensorDelays = { },
+ 		} },
++		{ "arducam-pivariety", {
++			/* Assumes an IMX462 behind the MCU (Arducam B0444). */
++			.unitCellSize = { 2900, 2900 },
++			.testPatternModes = {},
++			.sensorDelays = {
++				.exposureDelay = 2,
++				.gainDelay = 2,
++				.vblankDelay = 2,
++				.hblankDelay = 2
++			},
++		} },
+ 		{ "gc05a2", {
+ 			.unitCellSize = { 1120, 1120 },
+ 			.testPatternModes = {
