@@ -478,3 +478,12 @@ RPi OS (B2), confirm the cameras per Arducam's happy path, and accept
 Docker'd ROS 2. **Revisit trigger:** if MAVLink routing or telemetry
 plumbing burns more than a weekend of fiddling on either base, try BlueOS
 (A) on a spare SD card before writing more glue.
+
+**Evidence, 2026-09-26.** The cameras are SKU **B0444 — Pivariety**, not
+Arducam's native IMX462 (B0423, which is a plain `dtoverlay=imx462` on the
+stock Pi kernel). Pivariety needs Arducam's own libcamera build via
+`install_pivariety_pkgs.sh`; Arducam's docs list Raspberry Pi OS only
+(Bullseye/Bookworm/Trixie), and the Ubuntu reports on their forum are
+source builds with mixed results. Ubuntu 24.04's own libcamera (0.2) also
+predates Pi 5 support. This is the "driver fights" branch arriving before
+the timebox starts — it weighs toward B2.
