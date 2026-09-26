@@ -11,7 +11,7 @@ or epoxied.
 - [ ] Verify axis signs in sim — sign errors are cheap here and expensive in a pond
 - [ ] **Camera geometry + housing layout on paper — before any pipe is bought**
       (review 2 MA2). Drawn: see `housing-layout.md` — 6" single housing,
-      75 mm stereo baseline (pinned by the bore, not chosen). Confirm the
+      74 mm stereo baseline (set by the bore and the 71.9 flange, not chosen). Confirm the
       five assumed dimensions in that file before any pipe is cut
 - [ ] ADR-017 stack confirmed by the CSI/encode bench prototype (dual capture
       → encode → phone stream → rosbag) before Phase 3 integration

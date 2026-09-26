@@ -38,7 +38,7 @@ flanges:
 | 85 | 155.0 | −0.5 — does not fit | 15 |
 | 100 | 170.0 | −8.0 — exceeds even the OD | 30 |
 
-**The stereo baseline is not a free choice. The bore pins it at 75 mm.** The
+**The stereo baseline is not a free choice. The bore pins it at 75 mm** (74 once the flange was measured — see below). The
 "~75–100 mm centres" carried in `open-questions.md` and the bring-up checklist
 is really just 75. Anything wider forces an overhanging plate (option C) or 8"
 pipe.
@@ -49,6 +49,35 @@ This costs nothing optically: 75 mm sits inside the 60–120 mm band
 At 75 mm the flanges land **inside the bore**, not merely inside the tube OD.
 So the front plate is a plain disc sealing in the pipe — option C's
 oversized-flange fabrication risk never appears.
+
+### Measured flange: 71.9 — baseline moves to 74 mm
+
+The table above assumed a ~Ø70 flange. Measured (2026-09-26) it is **71.9**:
+
+| Centres | Flange span | Bore clearance | Gap between flanges |
+|---|---|---|---|
+| 73 | 144.9 | +4.6 | 1.1 |
+| **74** | **145.9** | **+4.1** | **2.1** |
+| 75 | 146.9 | +3.6 | 3.1 |
+| 77 | 148.9 | +2.6 | 5.1 |
+
+`boreClear >= 4` needs centres ≤ 74.2; the original `flangeGap >= 5` needed
+centres ≥ 76.9. No baseline satisfied both — until the bolt pattern was
+measured.
+
+**The bolt pattern retires the ≥ 5 gap rule.** Six holes, opposing pairs
+spanning 66.5 outside / 62.5 inside: **Ø64.5 bolt circle, ~Ø2.0 holes** (M2
+class — confirm with a screw). The bolts sit 3.7 mm in from the flange edge,
+so they never reach the gap between flanges. Worst case, a hole on each flange
+pointing straight at the other, the facing bolt centres are `stereoBase −
+64.5` apart — 9.5 mm at 74, room for M2 heads and nuts. Clocked with holes at
+±30° off the line between centres (free to do), that grows to ~18 mm. The gap
+only needs to keep the flanges from touching, with print/placement tolerance:
+**≥ 2**.
+
+**Baseline: 74 mm.** It meets both rules (4.1 bore clearance, 2.1 gap) and
+sits in the 60–120 band optically. 73 buys more bore clearance but leaves
+~1 mm between flanges, too tight to place by hand.
 
 ## Frame — BlueROV1
 
@@ -71,8 +100,10 @@ fabricated part carrying two thrusters.
 
 ## Notes
 
-1. **Clock the flange bolt patterns.** 5 mm between flanges means fasteners on
-   the facing sides interfere. Rotate each flange so no bolt lands inboard.
+1. **Clock the flange bolt patterns.** Not strictly needed — the Ø64.5 bolt
+   circle sits inside the flange, so facing bolts clear even when aligned —
+   but rotating each flange so holes sit ±30° off the centre line doubles the
+   spacing for free.
 2. **All six thruster penetrators on the rear cap.** 18 phase conductors and
    two dome flanges cannot share one endcap. Front plate is domes only.
 3. **Output 6 goes on the CG datum — hull-axis height, aft of the rear cap.**
@@ -117,9 +148,10 @@ Build the sketch on these, not on typed-in numbers. Assumed values are flagged
 | `tubeWall` | 7.11 | 6" sched-40 |
 | `tubeID` | 154.1 | `tubeOD - 2*tubeWall` |
 | `tubeLen` | 400 | derived, see bay stack |
-| `flangeOD` | 70 | **ASSUMED — measure** |
+| `flangeOD` | 71.9 | **Measured 2026-09-26** (calipers) — over the 70 assumed, see below |
 | `domeGlassOD` | 50 | SupremeTech 2" |
-| `stereoBase` | 75 | pinned by bore, see above |
+| `stereoBase` | 74 | set by bore + measured flange, see "Measured flange" |
+| `boltCircle` | 64.5 | **Measured 2026-09-26** — 6 holes, ~Ø2.0 |
 | `thrusterOD` | 70 | **ASSUMED — measure** |
 | `thrusterLen` | 130 | **ASSUMED — measure** |
 | `escL/W/H` | 75/30/15 | **ASSUMED — measure** |
@@ -137,9 +169,9 @@ out6Z        = cgZ                                      -> -30
 out6X        = -(tubeLen/2 + thrusterOD/2 + 5)          -> -240
 out5X        = out6X - thrusterOD - 10                  -> -320
 vertSep      = 150 - out5X                              -> 470
-domeHalfSpan = stereoBase/2 + flangeOD/2                -> 72.5
-boreClear    = tubeID/2 - domeHalfSpan                  -> 4.5
-flangeGap    = stereoBase - flangeOD                    -> 5
+domeHalfSpan = stereoBase/2 + flangeOD/2                -> 72.95
+boreClear    = tubeID/2 - domeHalfSpan                  -> 4.1
+flangeGap    = stereoBase - flangeOD                    -> 2.1
 ```
 
 **Two inequalities are the design rules.** Make them sketch constraints so the
@@ -147,7 +179,7 @@ model breaks loudly rather than quietly:
 
 ```
 boreClear >= 4        (front plate seals inside the pipe)
-flangeGap >  0        (flanges do not overlap; >= 5 to clock bolts)
+flangeGap >= 2        (flanges do not touch, with tolerance; bolts are inside the flange)
 out6Z     == cgZ      (strafe roll couple stays at zero)
 ```
 
@@ -172,8 +204,9 @@ Four of these five are sitting in boxes waiting on the inventory pass.
 
 - [ ] **ApisQueen U2 body OD and length** — sets frame width and vertical clearance
 - [ ] **One U2 ESC brick, L×W×H** — the swing factor in tube length, ×6
-- [ ] **Dome flange OD** — if it is over 70, note 1 stops holding and the
-      75 mm baseline needs re-examining
+- [x] **Dome flange OD** — **71.9**, measured 2026-09-26. Over 70, so note 1
+      stops holding and the baseline moves to 74 mm — see "Measured flange"
+      above
 - [ ] **YOWOO pack**, confirm against 155 × 50 × 37 in `power-budget.md`
 - [ ] **Thruster mass, each** — for the buoyancy budget
 - [ ] **Actual CG height**, from the float test — `out6Z` follows it

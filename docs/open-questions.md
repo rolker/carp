@@ -17,7 +17,7 @@ decision. Two findings from the drawing: the LiPos sit side by side in a
 of eating axial length. Still no pipe bought — the proposal is gated on five
 measurements listed in that file, four of which are in unopened boxes.
 
-**Sub-question now closed: the stereo baseline is 75 mm.** Two ~Ø70 flanges
+**Sub-question closed at 74 mm (2026-09-26).** The flange measured 71.9, not ~70, which broke 75; the bolt pattern (Ø64.5 circle, inside the flange) retired the old ≥ 5 mm gap rule, and 74 meets the rest (`housing-layout.md`, "Measured flange"). Original reasoning, assuming ~Ø70: **the stereo baseline is 75 mm.** Two ~Ø70 flanges
 span 145 mm against a 154.1 mm bore, leaving 4.5 mm each side. At 85 mm
 centers they do not fit the bore at all; at 100 mm they exceed even the tube
 OD. The "~75–100 mm" carried in this file and the bring-up checklist was
