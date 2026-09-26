@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>carp_camera</name>
+  <version>0.1.0</version>
+  <description>
+    CARP stereo camera pipeline: two Arducam Pivariety IMX462s through
+    camera_ros (built against our patched libcamera), H.264 via
+    ffmpeg_image_transport, recorded with rosbag2.
+  </description>
+  <maintainer email="roland@rolker.net">Roland Arsenault</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- camera_ros is built from source in the workspace; its libcamera
+       rosdep key must be skipped (scripts/setup-ros-workspace.sh) -->
+  <exec_depend>camera_ros</exec_depend>
+  <exec_depend>rclcpp_components</exec_depend>
+  <exec_depend>image_transport</exec_depend>
+  <exec_depend>ffmpeg_image_transport</exec_depend>
+  <exec_depend>ffmpeg_image_transport_msgs</exec_depend>
+  <exec_depend>rosbag2_storage_mcap</exec_depend>
+  <exec_depend>ros2launch</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
