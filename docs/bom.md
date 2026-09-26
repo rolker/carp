@@ -26,7 +26,7 @@ bought; `later` = deliberate deferral.
 | Anker 10,000 mAh PowerIQ USB-C power bank | 2 | Amazon (AnkerDirect) | — | 45.99 | received | Two arrived (2-pack at $45.99). Topside: runs the Opal ~10 h. Bench-qualify: router on it one hour, no blinks |
 | GL.iNet GL-SFT1200 Opal router | 1 | Amazon (GL Tech) | 40 | 39.99 | received | Topside AP. Configure LAN 192.168.2.0/24; 5 GHz AP so the BT gamepad keeps 2.4 GHz |
 | Loctite Marine Epoxy 0.85 oz syringe | 2 | Amazon | 15 | 15.00 | received | Arriving Sunday. ~50 ml total — enough for ~8–12 gland back-fills; buy more before doing all penetrators in one session |
-| Amass XT60 pairs w/ 14 AWG 100 mm pigtails | 2 pk | Amazon (Hiteuoms) | 10 | 17.98 | received | Two packs of 6 arrived — **still to confirm whether 6 = pieces or pairs**: if that means 3 pairs/pack, the 6 pairs total exactly covers 6 ESC drops with zero spares. Female on the source side |
+| Amass XT60 pairs w/ 14 AWG 100 mm pigtails | 2 pk | Amazon (Hiteuoms) | 10 | 17.98 | received | **3 pairs per pack** ("6PCS" = pieces) — 6 pairs total, exactly one per ESC drop, **zero spares**. See spare XT60 row below. Female on the source side |
 | SanDisk 256 GB Ultra microSDXC + adapter | 1 | Amazon (First Choice Online) | 12 | 56.00 | received | NAND-crisis pricing. Pi boot/rescue + interim bench recording. Third-party seller — **verify genuine** (h2testw/f3) |
 | Marine-grade adhesive heat-shrink kit, 4:1 | 1 | Amazon (LONGBIN) | 8 | 8.99 | received | Adhesive-lined = the right kind for wet-adjacent joints |
 | 10 AWG silicone wire, 5 ft red + 5 ft black | 1 | Amazon (Kenhihi) | 15 | 8.98 | received | Pack → star point runs |
@@ -74,9 +74,10 @@ Previously mentioned in notes but never costed as line items.
 | Indicating silica desiccant packs | — | | 5 | | pending | Cave Pearl recipe; oversize for a Pi 5 sweating in a cold lake |
 | Spare 2" acrylic dome | 1 | | 11 | | pending | Review 2 minor 5: single-seller part, "handle gently" — a cracked dome mid-season ends the mission |
 | Spare XT90-S male connector | 1 | | 8 | | pending | Review 2 MA3: anti-spark resistor is a consumable (~30–50 matings); lives in the field box |
+| Spare XT60 pigtail pairs | 2–3 pr | | 8 | | pending | The two packs came as 3 pairs each — 6 pairs for 6 ESC drops, none spare. A melted or mis-soldered one otherwise stops a thruster |
 | ApisQueen ESC tuning tool | 1 | | 12–15 | | pending | **Hold — compatibility unconfirmed.** O'Hara card = boat ESC line; Feather USB board = 80–300 A standalone ESCs; unclear which (if either) programs the U2's integrated ESC. Check the manual on arrival or email help@underwaterthruster.com. Only needed if depth hold is jerky and ArduSub deadzone params can't fix it |
 
-**Small parts subtotal (est): ~$105**
+**Small parts subtotal (est): ~$113**
 
 ## Field / mission gear, pending
 
@@ -181,14 +182,14 @@ part: reprint it in PETG or ASA before it goes in the build.
 |---|---|---|
 | Ordered | ~1,215 | 1,698.98 |
 | Core pending | ~205–310 | |
-| Small parts pending | ~105 | |
+| Small parts pending | ~113 | |
 | Field gear pending | ~55 | |
-| **Paid + pending (6 thrusters, no options)** | **~$2,065–2,170** | |
+| **Paid + pending (6 thrusters, no options)** | **~$2,073–2,178** | |
 | Shop tooling (excluded from above) | | 371.37 out of pocket |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
 build (≈4×). The projection is Paid ($1,698.98, a known number) plus pending
-estimates ($365–470); ordered items ran ~25% over their estimates, so pending
+estimates ($373–478); ordered items ran ~25% over their estimates, so pending
 items may too. (Corrected 2026-08-20 per design review M1 — the earlier
 "$1,550–1,700" summary mixed estimates for items whose real prices were
 already known. Pending re-totaled after review 2 added the compass, spare
