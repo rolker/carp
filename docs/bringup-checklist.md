@@ -14,7 +14,9 @@ or epoxied.
       74 mm stereo baseline (set by the bore and the 71.9 flange, not chosen). Confirm the
       five assumed dimensions in that file before any pipe is cut
 - [ ] ADR-017 stack confirmed by the CSI/encode bench prototype (dual capture
-      → encode → phone stream → rosbag) before Phase 3 integration
+      → encode → rosbag on the Pi) before Phase 3 integration. The phone
+      stream is left out on purpose: it is a tether/topside question, covered
+      by the iperf3 and topside-qualification items in Phase 3
 - [x] **Print toolchain validated** (2026-08-30) — Onshape → slice → Centauri
       Carbon 2, first part a bench holder for the Pi 5 in PLA+. Bracket and
       mount design is unblocked; carry designs forward but reprint in PETG
