@@ -504,3 +504,30 @@ first failures were a cable seated contacts-away at one end (each end of a
 Type B cable must match its own connector), and `/dev/mediaN` / `/dev/videoN`
 numbering moves between boots, so find cameras by I2C bus (10 = CAM0,
 11 = CAM1).
+
+**Evidence, 2026-09-26 (libcamera on Ubuntu).** The "debayer + exposure
+control on Ubuntu" question is answered: yes, with a small patch of our own.
+Arducam's Pivariety userspace turned out to be Raspberry Pi's libcamera plus
+a closed cam helper shipped only as RPi OS binaries, so there is no source to
+port. Instead, `patches/libcamera/` teaches Raspberry Pi's open libcamera
+(pinned at `6c1dd9d`) the `arducam-pivariety` sensor: a ~60-line cam helper
+(linear gain code in hundredths, read from Arducam's binary; IMX290-family
+timing), an IMX462 entry in the sensor property table, and the upstream
+`imx462.json` tuning installed under the Pivariety name.
+`scripts/build-libcamera.sh` builds it and rpicam-apps into
+`~/opt/libcamera`; `rpicam-hello` lists both cameras (1080p60) and
+`rpicam-still` gives colour, auto-exposed, white-balanced frames from each.
+**B1 now has a full camera path**, and the cost that comes with it:
+- the patch is ours to carry, re-applied on each libcamera bump (small and
+  self-contained, so low risk; it breaks only if the cam helper API moves);
+- the ROS camera node (`camera_ros`) must be built against this libcamera,
+  not taken from apt with ROS's own copy;
+- `imx462.json` was tuned for another vendor's module (Innomaker), so colour
+  is approximate until we calibrate; the board shows no IR-cut control;
+- control delays are IMX462 defaults, not Arducam's board-stored values —
+  check for exposure flicker under AE before trusting them;
+- rpicam-apps' libav encoder needs ffmpeg 7 (Ubuntu 24.04 has 6.1), so
+  encoding goes through the ROS video transport or GStreamer instead.
+Still open for the gate: dual encode → rosbag on the Pi, measured on a
+stable supply with cooling (the build alone hit undervoltage on a 4.9 V
+supply and the 77 °C soft limit without a fan).
