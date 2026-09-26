@@ -487,3 +487,20 @@ stock Pi kernel). Pivariety needs Arducam's own libcamera build via
 source builds with mixed results. Ubuntu 24.04's own libcamera (0.2) also
 predates Pi 5 support. This is the "driver fights" branch arriving before
 the timebox starts — it weighs toward B2.
+
+**Evidence, 2026-09-26 (bench, later).** The kernel half works on Ubuntu
+24.04 with nothing from Arducam installed: the stock `6.8.0-raspi` kernel
+ships `arducam-pivariety.ko`, and `dtoverlay=arducam-pivariety,cam0` /
+`,cam1` (with `camera_auto_detect=0`, `scripts/enable-pivariety-cameras.sh`)
+binds both B0444s (firmware 0x10003). Both stream raw 1920×1080 RGGB10 at
+the same time through plain V4L2 (`scripts/capture-raw-pair.sh`), with
+recognisable images and no throttling on a 4.9 V supply. What is still
+missing on Ubuntu is everything above the kernel: no Pivariety-aware
+libcamera, so no ISP debayer, AWB or AE — the frames are raw Bayer. B1 is
+back in play; the open question narrows to "debayer + exposure control on
+Ubuntu" (Arducam's libcamera fork from source, the Pi ISP another way, or
+GStreamer/CPU debayer at the frame rates we need). Bring-up notes: the
+first failures were a cable seated contacts-away at one end (each end of a
+Type B cable must match its own connector), and `/dev/mediaN` / `/dev/videoN`
+numbering moves between boots, so find cameras by I2C bus (10 = CAM0,
+11 = CAM1).
