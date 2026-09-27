@@ -26,7 +26,11 @@ Parameter files for CARP, one per configuration stage.
 **Firmware target:** `Pixhawk1-1M` from Sub/stable (genuine FMUv2 is 1 MB;
 plain `Pixhawk1` assumes 2 MB and fails to flash). Pin the working `.apj`.
 **Flashed and working (2026-09-26): ArduSub 4.7.1, git `dbe79216`**, loaded
-as a custom firmware file from QGC 5.1.4 on Windows.
+as a custom firmware file from QGC 5.1.4 on Windows. **This board has
+2 MB of flash** — the 1M build logs `2M flash - use Pixhawk1 firmware` on
+every boot — so it now runs the **full `Pixhawk1` build**, same 4.7.1 /
+`dbe79216`, reflashed 2026-09-26 (ADR-008). Pin *that* `.apj`:
+`firmware.ardupilot.org/Sub/stable/Pixhawk1/ardusub.apj`.
 Custom control code note: MAVLink MANUAL_CONTROL z-axis neutral is **500**
 (0–1000 scale), unlike x/y/r at ±1000 — z=0 means full descent on arm.
 

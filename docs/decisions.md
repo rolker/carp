@@ -181,6 +181,20 @@ the cost gap (ground 1) was much thinner in practice; the architecture
 argument (ground 2 — hard-real-time FC separate from the DSP-loaded Pi) is
 what carries this decision.
 
+**Bench evidence (2026-09-26): this board has 2 MB of flash.** Running the
+`Pixhawk1-1M` build, ArduSub 4.7.1 logs `2M flash - use Pixhawk1 firmware`
+on every boot (board ID `002A0032 35335103 33303831`). The 1 MB ceiling above
+does not apply to this unit. **Reflashed to the full `Pixhawk1` build the
+same evening** — it boots clean, no warning, calibration and parameters
+carried over. It adds 91 parameters: Lua scripting (`SCR_ENABLE`),
+mount/gimbal (`MNT1_*`), IMU temperature calibration, a third harmonic
+notch, more filters, proximity. It does **not** include AP_DDS (no `DDS_*`
+parameters), so ROS 2 over MAVLink on the Pi stays the plan. QGC's
+`Unsupported FTP: 16` persists on the full build, so that is a QGC/ArduSub
+FTP mismatch, not a 1 MB cut. Still one IMU on the full build (MPU6000,
+`INS_ACC2_ID = 0`): this board has no second IMU, or it is dead — no backup
+IMU either way.
+
 ---
 
 ## ADR-009 — Stay tethered; reject HROV/AUV hybrid
