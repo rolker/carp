@@ -40,10 +40,15 @@ bought; `later` = deliberate deferral.
 | IP68 RJ45 panel-mount coupler, F-F ×2 | 1 | Amazon | — | 15.99 | received | Topside dry box wall only — splash-rated, **never submerged** (prior-art: IP67/68 couplers are not pressure-rated). Second is the spare |
 | Tomotato transparent waterproof dry box | 1 | Amazon | 20 | 17.99 | received | **Too small** for the Opal + power bank — needs a bigger box (return or repurpose this one). Topside station: Opal + power bank; tether enters via PG9 gland or the panel coupler. Confirm it floats loaded; leash to kayak |
 | Hand vacuum pump / brake bleeder kit w/ gauge | 1 | Amazon (Pathfinder Auto) | 35 | 19.89 | received | The pre-dive leak-test tool: **15 inHg** via the Schrader stem (core out), watch for a steady needle. Check kit for a Schrader adapter; verify pump holds vacuum dead-headed on arrival |
+| JST-GH ↔ DF13 adapter board, 4-pin | 1 | Blue Robotics | 10 | 13.44 | ordered | 2026-09-26. Incl. $1.44 tariff surcharge. Board plus 100 mm DF13↔DF13 and GH↔GH cables — Bar30 → Pixhawk I2C with the pinout guaranteed. Unblocks the Phase 1 depth check |
+| SOS Leak Sensor | 1 | Blue Robotics | 5 | 35.00 | ordered | 2026-09-26, same order ($6.50 shipping). Replaces the bare-wire probe: four sponge-tipped probes (2×6", 2×12") + 4 spare tips — needs liquid, not condensate. 3-pin 0.1" out straight to a Pixhawk AUX pin, ArduSub-native, `FS_LEAK = surface`. **Needs 3.3–5 V on the servo rail** — one ESC BEC (U2 BEC still unconfirmed) or a separate 5 V feed |
+| uxcell FFC 22-pin 0.5 mm **Type B**, 500 mm, 5 pcs | 1 | Amazon (uxcell) | 7 | 6.47 | ordered | 2026-09-26, arriving Tue 2026-09-29. Bench, mock-up and fixture cables plus spares — generous enough to connect cameras without fighting for slack. Plain unshielded FFC: the vehicle gets the shortest length that reaches once the sled/bay order is drawn (pending row below) |
 
-**Ordered subtotal: est ~$1,215 (+4 unestimated adds) · paid $1,698.98
+**Ordered subtotal: est ~$1,237 (+4 unestimated adds) · paid $1,760.39
 (Amazon orders through 2026-08-20 + RobotShop $140.69 + $168.74 incl.
-shipping — per-order figures in git history).**
+shipping + Blue Robotics $54.94 incl. shipping + uxcell cables $6.47,
+2026-09-26 — per-order
+figures in git history).**
 
 ## Core, pending
 
@@ -64,21 +69,20 @@ Previously mentioned in notes but never costed as line items.
 
 | Item | Qty | Source | Est $ | Paid $ | Status | Notes |
 |---|---|---|---|---|---|---|
-| FC pigtails — **DF13 ↔ JST-GH mismatch confirmed** | set | | 0–15 | | pending | **2026-09-26: the Bar30's JST-GH plug does not fit the Pixhawk's I2C port** (DF13) — this blocks the Phase 1 depth check. Need a 4-pin DF13 ↔ JST-GH I2C adapter, or a DF13 pigtail to splice. **Match wires by function (VCC/SCL/SDA/GND), not position** — check both pinouts before powering. Classic Pixhawk 1/FMUv2 = DF13, not JST-GH. Radiolink usually includes a cable set and the Bar30 ships with its own I2C lead — inventory Friday, order only the gap |
+| DF13 pigtails, 4-pin | set | | 0–10 | | pending | The Bar30 mismatch (JST-GH lead vs DF13 I2C port, confirmed 2026-09-26) is solved by the Blue Robotics adapter in Ordered. Buy DF13 pigtails only if another Pixhawk port needs one — check the Radiolink box first |
 | Schrader valve stem + core tool | 1 | | 8 | | pending | **NOT yet ordered.** One fitting, three jobs: pressure test (bike pump, core in), vacuum test (bleeder pump, core out — check the kit for a Schrader adapter), LiPo relief/equalization. Auto-parts store |
 | Thermal pads / gap filler | — | | 12 | | pending | NVMe, converters, ESCs to hull wall |
 | MicroSD 16–32 GB for Pixhawk, FAT32 | 1 | | 7 | | pending | Only if the Radiolink box card is junk — FMUv2 likes small plain cards |
 | Spare o-rings, every size | kit | | 15 | | pending | **Before first assembly.** A nicked o-ring on a Sunday ends the day |
 | Silicone grease | 1 | | 12 | | pending | **Molykote 111 or Super Lube only.** Petroleum products attack Buna-N |
-| **Leak probe** (bare-wire pair or SOS-style) | 1 | | 5 | | pending | Low point of the hull → Pixhawk AUX, `FS_LEAK = surface`. Review M8. Expect condensate false alarms — mount above the sweat line, test the failsafe |
 | Indicating silica desiccant packs | — | | 5 | | pending | Cave Pearl recipe; oversize for a Pi 5 sweating in a cold lake |
 | Spare 2" acrylic dome | 1 | | 11 | | pending | Review 2 minor 5: single-seller part, "handle gently" — a cracked dome mid-season ends the mission |
 | Spare XT90-S male connector | 1 | | 8 | | pending | Review 2 MA3: anti-spark resistor is a consumable (~30–50 matings); lives in the field box |
 | Spare XT60 pigtail pairs | 2–3 pr | | 8 | | pending | The two packs came as 3 pairs each — 6 pairs for 6 ESC drops, none spare. A melted or mis-soldered one otherwise stops a thruster |
-| Pi 5 camera cables, 22↔22-pin, 0.5 mm, **Type B**, vehicle length | 2+2 | | 12 | | pending | **Not blocking the bench test** — the Arducams have 22-pin connectors and shipped with 22↔22 Type B cables (~150 mm) that plug straight into the Pi 5. Needed for the vehicle only: 2× 200 mm (electronics-forward) and 2× 300 mm (Pi behind the battery bay, current bay stack); ~150 mm reaches neither. Match Type B — wrong type makes no contact; never flip one to make it fit. Shortest that reaches; route away from ESC leads |
+| Pi 5 camera cables, 22↔22-pin, 0.5 mm, **Type B**, vehicle length | 2+2 | | 12 | | pending | **Not blocking the bench test** — the Arducams have 22-pin connectors and shipped with 22↔22 Type B cables (~150 mm) that plug straight into the Pi 5. Needed for the vehicle only, **length from the CAD cable path once the sled and bay order are drawn** — likely ~300 mm if the cameras connect on a slide-out sled; the 500 mm uxcell set (Ordered) covers bench work meanwhile. Match Type B — wrong type makes no contact; never flip one to make it fit. Shortest that reaches; route away from ESC leads |
 | ApisQueen ESC tuning tool | 1 | | 12–15 | | pending | **Hold — compatibility unconfirmed.** O'Hara card = boat ESC line; Feather USB board = 80–300 A standalone ESCs; unclear which (if either) programs the U2's integrated ESC. Check the manual on arrival or email help@underwaterthruster.com. Only needed if depth hold is jerky and ArduSub deadzone params can't fix it |
 
-**Small parts subtotal (est): ~$125**
+**Small parts subtotal (est): ~$115**
 
 ## Field / mission gear, pending
 
@@ -181,16 +185,16 @@ part: reprint it in PETG or ASA before it goes in the build.
 
 | | Est $ | Paid $ |
 |---|---|---|
-| Ordered | ~1,215 | 1,698.98 |
+| Ordered | ~1,237 | 1,760.39 |
 | Core pending | ~205–310 | |
-| Small parts pending | ~125 | |
+| Small parts pending | ~115 | |
 | Field gear pending | ~55 | |
-| **Paid + pending (6 thrusters, no options)** | **~$2,085–2,190** | |
-| Shop tooling (excluded from above) | | 371.37 out of pocket |
+| **Paid + pending (6 thrusters, no options)** | **~$2,135–2,240** | |
+| Shop tooling (excluded from above) | | 395.33 out of pocket (471.38 list) |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
-build (≈4×). The projection is Paid ($1,698.98, a known number) plus pending
-estimates ($385–490); ordered items ran ~25% over their estimates, so pending
+build (≈4×). The projection is Paid ($1,760.39, a known number) plus pending
+estimates ($375–480); ordered items ran ~25% over their estimates, so pending
 items may too. (Corrected 2026-08-20 per design review M1 — the earlier
 "$1,550–1,700" summary mixed estimates for items whose real prices were
 already known. Pending re-totaled after review 2 added the compass, spare
