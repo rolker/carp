@@ -11,9 +11,13 @@ Topics, per camera N in {0, 1} (N = CAM/DISP port on the Pi 5):
     /cameras/camN/camera_info
 
 Needs: source ~/opt/libcamera/env.sh && source ~/ros2_ws/install/setup.bash
-Defaults are 1280x720 at 10 fps: the most two software x264 encodes sustain
-on an uncooled Pi 5 with headroom (~20% CPU, 65 C; 1080p30 saturated the CPU
-at ~10 fps per camera and throttled at 85 C). See ADR-015.
+Defaults are 1920x1080 (sensor native) at 10 fps: ~38% CPU and ~69 C on an
+uncooled bench Pi 5, every frame kept. 1080p30 saturated the CPU at ~10 fps
+per camera and throttled at 85 C. See ADR-015.
+
+sync:=true (default) uses Raspberry Pi's software camera sync (rpi.sync in
+the tuning file): cam0 serves frame timing over UDP multicast and cam1
+adjusts its frame length to line up. Both must run the same fixed fps.
 
 Usage: ros2 launch carp_camera cameras.launch.py [record:=true] [fps:=10] ...
 """
@@ -34,6 +38,9 @@ CAMERAS = {
     'cam0': '/base/axi/pcie@120000/rp1/i2c@88000/arducam_pivariety@c',
     'cam1': '/base/axi/pcie@120000/rp1/i2c@80000/arducam_pivariety@c',
 }
+# libcamera controls::rpi::SyncMode values
+SYNC_OFF, SYNC_SERVER, SYNC_CLIENT = 0, 1, 2
+SYNC_ROLE = {'cam0': SYNC_SERVER, 'cam1': SYNC_CLIENT}
 NAMESPACE = 'cameras'
 
 
@@ -42,6 +49,7 @@ def pipeline(context):
     fps = float(arg('fps'))
     frame_us = int(round(1e6 / fps))
     gop = max(1, int(round(fps * float(arg('keyframe_s')))))
+    sync = arg('sync').lower() in ('true', '1', 'yes')
 
     nodes = []
     for name, camera_id in CAMERAS.items():
@@ -59,6 +67,7 @@ def pipeline(context):
                 'format': 'RGB888',
                 'frame_id': f'{name}_optical_frame',
                 'FrameDurationLimits': [frame_us, frame_us],
+                'SyncMode': SYNC_ROLE[name] if sync else SYNC_OFF,
             }],
             extra_arguments=[{'use_intra_process_comms': True}],
         ))
@@ -109,14 +118,16 @@ def pipeline(context):
 def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('fps', default_value='10'),
-        DeclareLaunchArgument('width', default_value='1280'),
-        DeclareLaunchArgument('height', default_value='720'),
-        DeclareLaunchArgument('bit_rate', default_value='1500000',
+        DeclareLaunchArgument('width', default_value='1920'),
+        DeclareLaunchArgument('height', default_value='1080'),
+        DeclareLaunchArgument('bit_rate', default_value='3000000',
                               description='per camera, bits/s'),
         DeclareLaunchArgument('keyframe_s', default_value='1.5',
                               description='keyframe interval (ADR-015: 1-2 s)'),
         DeclareLaunchArgument('preset', default_value='ultrafast',
                               description='x264 preset'),
+        DeclareLaunchArgument('sync', default_value='true',
+                              description='software stereo sync (rpi.sync)'),
         DeclareLaunchArgument('record', default_value='false'),
         DeclareLaunchArgument('bag_dir', default_value='~/bags'),
         OpaqueFunction(function=pipeline),

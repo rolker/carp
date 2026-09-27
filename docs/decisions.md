@@ -388,12 +388,23 @@ libcamera → `camera_ros` → `image_transport` republisher → libx264
 |---|---|---|---|
 | 1920×1080, cameras at 30 fps | **~10 fps**, ⅔ of frames dropped | saturated (0–2% idle) | 75 → **85 °C, throttling** |
 | 1280×720 at 10 fps | **10.00 fps**, every frame | ~20% (80% idle) | flat 64–66 °C |
+| 1280×720 at 20 fps | 20.00 fps, every frame | ~45% | ~72 °C, level |
+| **1920×1080 at 10 fps** (default) | 10.00 fps, every frame | ~38–48% (two runs) | 69–71 °C, level |
+| 1920×1080 at 12 fps | 12.00 fps, every frame | ~52% | 72 → 78 °C, **still rising** at 60 s |
 
 So the prediction above holds and is worse than stated: 1080p30 stereo does
-not fit on the CPU at all, and without a cooler it overheats trying. 720p10
-is the working default (`ros/carp_camera` launch file); anything bigger needs
-measuring, and a cooler, first. At 720p10 over a near-static bench scene the
-streams ran ~155 kbit/s each against a 1.5 Mbit/s cap.
+not fit on the CPU at all, and without a cooler it overheats trying.
+**Default is 1920×1080 at 10 fps** (`ros/carp_camera` launch file): sensor
+native, so no ISP scaling, and resolution buys more than frame rate here —
+stereo depth precision scales with pixels across (~1.5× finer than 720p at
+the 74 mm baseline), while at ROV speeds 10 fps already overlaps
+consecutive frames by >90% at 0.5–2 m. Frame rate matters for piloting
+feel, which argues for a separate low-res live view rather than a faster
+recording. 12 fps is the edge uncooled; everything was measured on an open
+bench, so the sealed housing needs its own thermal soak. Bench-scene
+bitrates were ~155 kbit/s (720p10) and ~330 kbit/s (1080p10) per camera,
+well under the caps. Shutdown sometimes hangs (container SIGKILLed after
+15 s at 720p20 and 1080p12; bags intact) — not yet investigated.
 
 **IP cameras solve this** — the camera SoC encodes, the Pi writes bytes it
 never compressed. One Ethernet penetrator, internal switch, arbitrary views.
@@ -563,3 +574,16 @@ trigger control on ours. Raspberry Pi's libcamera has software sync
 (`rpi.sync`: one camera serves timing, the other adjusts its frame length to
 match), which our driver's VBLANK control should support; it needs
 `"rpi.sync": {}` in the tuning file and `SyncMode` set per camera. Untested.
+
+**Evidence, 2026-09-26 (software stereo sync works).** With `rpi.sync`
+enabled in our tuning file (`build-libcamera.sh` adds it) and `SyncMode`
+server on cam0 / client on cam1 (launch default `sync:=true`), cam1 locked
+~3.4 s after start and then held its sensor timestamps a median **23 µs**
+from cam0's (p99 50 µs, max 137 µs over 790 pairs at 1080p10; max 0.2 ms at
+1080p12), against 2–49 ms free-running. That is well under a line-scan's
+worth of rolling-shutter skew, so no hardware trigger is needed for stereo
+at ROV speeds. Frames from the first few seconds, before lock, are not
+paired; `camera_ros` does not surface libcamera's `SyncReady`, so drop
+them downstream by timestamp offset. Sync traffic is UDP multicast
+239.255.255.250:10000 on the default route (Wi-Fi on the bench) — confirm
+it still flows with only the tether up.

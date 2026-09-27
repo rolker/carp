@@ -15,8 +15,8 @@ or epoxied.
       five assumed dimensions in that file before any pipe is cut
 - [x] ADR-017 stack confirmed by the CSI/encode bench prototype (dual capture
       → encode → rosbag on the Pi) before Phase 3 integration. **Done
-      2026-09-26 at 720p10 on Ubuntu (B1)**; 1080p30 does not fit (ADR-015).
-      Stereo sync still open (ADR-017). The phone
+      2026-09-26 on Ubuntu (B1)**: 1080p10 with software stereo sync
+      (~23 µs); 1080p30 does not fit (ADR-015). The phone
       stream is left out on purpose: it is a tether/topside question, covered
       by the iperf3 and topside-qualification items in Phase 3
 - [x] **Print toolchain validated** (2026-08-30) — Onshape → slice → Centauri

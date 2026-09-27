@@ -64,8 +64,16 @@ setup "$lc" --prefix="$PREFIX" --libdir=lib --buildtype=release \
 ninja -C "$lc/build" install
 
 # Tuning is looked up by sensor model; ours reports "arducam-pivariety".
+# Start from imx462.json and enable rpi.sync (software stereo sync: one
+# camera serves timing, the other adjusts its frame length to match).
 tuning=$PREFIX/share/libcamera/ipa/rpi/pisp
-cp "$tuning/imx462.json" "$tuning/arducam-pivariety.json"
+python3 - "$tuning/imx462.json" "$tuning/arducam-pivariety.json" <<'EOF'
+import json, sys
+t = json.load(open(sys.argv[1]))
+if not any('rpi.sync' in a for a in t['algorithms']):
+    t['algorithms'].append({'rpi.sync': {}})
+json.dump(t, open(sys.argv[2], 'w'), indent=4)
+EOF
 
 # --- environment -------------------------------------------------------------
 cat > "$PREFIX/env.sh" <<EOF
