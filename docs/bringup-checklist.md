@@ -28,15 +28,20 @@ or epoxied.
 
 Run the day it arrives. A bad board goes back inside the window.
 
-- [ ] Flash ArduSub, confirm boot, QGC connects
+- [x] Flash ArduSub, confirm boot, QGC connects (2026-09-26 — `Pixhawk1-1M` ArduSub **4.7.1** (git `dbe79216`) via QGC 5.1.4 custom firmware from Windows; boots to MANUAL, attitude and compass heading respond. Onboard sensors reported: IST8310 compass (I2C0), MS5611 baro (SPI1))
 - [ ] IMU noise on a still bench — obvious spikes or drift means return it
+      *(2026-09-26: accel calibrated — offsets X 0.01 / Y −0.30 / Z 1.26 m/s²,
+      scales within 0.5% of 1. Only **one IMU** detected: MPU6000 on SPI,
+      `INS_ACC2_ID = 0`. A genuine Pixhawk1 carries a second (LSM303D +
+      L3GD20) — missing on this Radiolink board, or not in the 1 MB build?
+      ArduSub runs fine on one; noise check still to do.)*
 - [ ] Power module holds 5 V under a couple of amps
 - [ ] Calibrate `BATT_VOLT_MULT` against a meter (Radiolink units are known to read low)
 - [ ] MS5837 on I2C, set `BARO_EXT_BUS`, confirm depth reads
 - [ ] Confirm reported baro device type — 0x12 for 30BA, 0x18 for 02BA. Misidentification fails *silently* with plausible wrong depth
 - [ ] SD card write and read
 - [ ] Exercise all PWM outputs against servo or scope
-- [ ] Set `BRD_SAFETYENABLE = 0` (ADR-007)
+- [x] `BRD_SAFETY_DEFLT = 0` (ADR-007; named `BRD_SAFETYENABLE` before ArduSub 4.7) — already the 4.7.1 default, confirmed in `params/carp-bench-2026-09-26.params`
 
 ## Phase 2 — Thruster acceptance
 
