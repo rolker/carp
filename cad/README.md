@@ -6,8 +6,30 @@ into a printable stereo camera carrier. Trim it as the steps get done.
 
 - `vendor/` — manufacturer STEP files (git-ignored) and where to get them
 - `reference/` — vendor drawings (Pi 5 mechanical)
+- `prints/` — STLs of parts actually printed, so a print traces back to a design
+  (`pi_bracket.stl`: the 2026-08-30 Pi 5 bench holder, Onshape practice part,
+  in daily bench use. Its two pins beside the corner pins, at (3.5, 9.5) and
+  (61.5, 46.5), sit in the Pi 5's **Active Cooler mounting holes** — cut them
+  off or reprint without them before fitting the cooler, and keep the space
+  under those holes clear for the cooler's push-pin tips)
+- `onshape-notes.md` — Onshape plans, API limits, AI/MCP options and 2026
+  changes, for agents (researched 2026-09-27)
 
 **Onshape document:** _(link here once created)_
+
+## Next bench print: Pi holder + stereo bar in one piece
+
+The Pi holder has to be reprinted without the cooler-hole pins anyway, so
+the next iteration combines it with a stereo camera bar (both cameras at
+`stereoBase` on standoffs, stock 150 mm cables to the Pi) as one bench
+print — the stage-1 air test rig.
+
+- **Use an Assembly to check fit, a Part Studio to make the print.** An
+  assembly exported to STL is several overlapping solids again. For one
+  printed piece, bring the holder into the camera bar's Part Studio with a
+  *Derived* feature (or rebuild it there) and join them with *Boolean →
+  Union*, so the export is a single solid.
+- Drop the two cooler-hole pins; keep the four corner pins.
 
 ## First target: camera carrier + stand-in plate
 
