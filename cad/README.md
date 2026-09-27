@@ -43,8 +43,13 @@ i.e. on the lid's outer face (plus any gasket under the flange). The 2 mm
 flange cannot clip the 141° cone: the edge ray (70.5°) leaves the glass
 ~8.8 above the centre, well clear of the flange top at ~1.6.
 
-- [ ] **Sensor row direction:** photograph a horizontal edge with the
+- [x] **Sensor row direction:** photograph a horizontal edge with the
       connector down. Do the pixel rows run along the 25 mm side? Result:
+      **yes** — rows run parallel to the connector edge (a 25 mm edge; the
+      24.4 direction runs connector → far edge). Inferred, not photographed:
+      cables-up boards gave upright 1920-wide landscape frames with no
+      rotation or flips anywhere in the chain (orientation checks below).
+      Connector-down is the same axes rotated 180°.
 
 ### Image orientation — which way up is upright?
 
@@ -80,7 +85,13 @@ for d in /dev/v4l-subdev*; do echo $d; v4l2-ctl -d $d --list-ctrls | grep -i fli
 | Rotation 180, flips on | 2 — libcamera corrects for a connector-down board |
 | Bag frame upside down | 3 — the preview was flipped after the fact |
 
-- [ ] Rotation property: — Flip bits: — Bag frame upright?: —
+- [x] Rotation property: **0** (both; `orientation` 2 = external) — Flip
+      bits while streaming: **H 0, V 0** (both; camera_ros `orientation` 0)
+      — Bag frame upright?: **yes** (2026-09-26 frames decoded with plain
+      ffmpeg, and raw-Bayer previews written in sensor row order, both
+      upright with the boards cables-up). **Result 1: cables-up is the
+      sensor's natural upright.** A "TOP ↑" sheet shot would confirm
+      directly.
 
 **For the carrier:** any orientation works as long as both boards are
 mounted the same way and both cameras run identical settings — that keeps

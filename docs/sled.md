@@ -251,8 +251,9 @@ vehicle hardware rather than a stand-in.
       hole is stepped (Ø16–18 through, Ø52 counterbore from inside)
 - [x] **B0444 board, holes, lens height, connector** — measured 2026-09-27,
       `cad/README.md` §1
-- [ ] **B0444 sensor row direction** relative to the connector edge (image a
-      horizontal edge)
+- [x] **B0444 sensor row direction** relative to the connector edge — rows
+      run parallel to it (along the 25 mm side); cables-up is upright.
+      Inferred from bench frames, `cad/README.md` §1
 - [ ] **Lens entrance pupil**, roughly — rotate a camera about a vertical
       axis and find the point with no parallax; or leave it to the stage-2
       wet tune
