@@ -64,7 +64,7 @@ Previously mentioned in notes but never costed as line items.
 
 | Item | Qty | Source | Est $ | Paid $ | Status | Notes |
 |---|---|---|---|---|---|---|
-| FC pigtails — **verify DF13 vs JST-GH on arrival** | set | | 0–15 | | pending | Classic Pixhawk 1/FMUv2 = DF13, not JST-GH. Radiolink usually includes a cable set and the Bar30 ships with its own I2C lead — inventory Friday, order only the gap |
+| FC pigtails — **DF13 ↔ JST-GH mismatch confirmed** | set | | 0–15 | | pending | **2026-09-26: the Bar30's JST-GH plug does not fit the Pixhawk's I2C port** (DF13) — this blocks the Phase 1 depth check. Need a 4-pin DF13 ↔ JST-GH I2C adapter, or a DF13 pigtail to splice. **Match wires by function (VCC/SCL/SDA/GND), not position** — check both pinouts before powering. Classic Pixhawk 1/FMUv2 = DF13, not JST-GH. Radiolink usually includes a cable set and the Bar30 ships with its own I2C lead — inventory Friday, order only the gap |
 | Schrader valve stem + core tool | 1 | | 8 | | pending | **NOT yet ordered.** One fitting, three jobs: pressure test (bike pump, core in), vacuum test (bleeder pump, core out — check the kit for a Schrader adapter), LiPo relief/equalization. Auto-parts store |
 | Thermal pads / gap filler | — | | 12 | | pending | NVMe, converters, ESCs to hull wall |
 | MicroSD 16–32 GB for Pixhawk, FAT32 | 1 | | 7 | | pending | Only if the Radiolink box card is junk — FMUv2 likes small plain cards |
