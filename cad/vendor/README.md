@@ -1,0 +1,23 @@
+# Vendor CAD
+
+Manufacturer models used as references in Onshape. The files themselves are
+git-ignored (large, and the vendor's to distribute); this list says where to
+get each one.
+
+| File | Part | Source | Notes |
+|---|---|---|---|
+| `B0444.STEP` | Arducam B0444 — IMX462 color, 141° M12 lens, Pivariety (the stereo cameras) | STEP download on Arducam's product page: <https://www.arducam.com/2mp-imx462-color-ultra-low-light-starvis-camera-module-with-141h-wide-angle-m12-lens-for-raspberry-pi.html> (the site blocks scripted downloads — use a browser) | SolidWorks 2021 export, 2023-07-21, ~8 MB. Downloaded 2026-09-26. SHA-256 `089f9e1f994d83802558106c0e795b24fb683035b7f99777f9aaf918f616bde9` |
+
+## B0444 key dimensions (read from the STEP, mm)
+
+Verify against a real board with calipers before trusting them for a fit.
+
+- Board 25 × ~24, 1.6 thick, R2 corners — the Raspberry Pi Camera v2 footprint
+- Mounting holes Ø2.2 (M2), **21 × 12.5** pattern — also the Pi Camera v2 pattern
+- Back-side components ~2 proud of the board
+- M12 lens holder, two screws 18 apart straddling the lens
+- **Optical axis is off-centre:** centred across the 25 width, ~4.7 from the
+  board centre toward the edge opposite the connector (1.3 from the centre of
+  the hole pattern)
+- Lens front ~16 above the board's front face; barrel ~Ø14, front element ~Ø13.4
+- Connector plus ribbon stub reaches ~8 past the connector-end board edge

@@ -30,3 +30,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# Vendor CAD: large, downloadable, not ours to redistribute — see cad/vendor/README.md
+cad/vendor/*
+!cad/vendor/README.md
