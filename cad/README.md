@@ -31,10 +31,9 @@ print — the stage-1 air test rig.
   *Derived* feature (or rebuild it there) and join them with *Boolean →
   Union*, so the export is a single solid.
 - Drop the two cooler-hole pins; keep the four corner pins.
-- **Screwless camera seats** (`docs/sled.md`, "Holding each board"):
-  1.75 mm filament pins through the board holes locate, and one PETG
-  retainer snapped over both boards clamps. Screws + inserts are the
-  fallback.
+- **Print-only camera seats, method open** (`docs/sled.md`, "Holding each
+  board"): slide-in rails, printed pins or a pocket + snap-on retainer, or a
+  retainer held by a printed thumb-nut. The coupon decides.
 
 ## First target: camera carrier + stand-in plate
 
@@ -173,8 +172,8 @@ not update expressions that already use a name.
    (a rib thickness) are local Variable features. A local variable never
    reuses a shared name.
 7. **Print fits get their own variables** so coupon results feed straight
-   in: `pin_hole_diameter` (the hole) is separate from
-   `pin_filament_diameter` (1.75 mm, the filament).
+   in (e.g. a rail groove width, a pin diameter), separate from the
+   measured dimension they fit (`camera_board_thickness`).
 8. **This table mirrors the Variable Studio.** Change a value in Onshape →
    update the table in the same commit as the print or measurement.
 
@@ -193,13 +192,16 @@ not update expressions that already use a name.
 | `lid_thickness` | 19.05 mm | 3/4" acrylic; 9.53 for the aluminium option |
 | `lid_width` | 203.2 mm | 8" |
 | `tie_rod_circle_diameter` | 184 mm | M6 tie rods at 45° |
-| `camera_hole_spacing_x` | 21 mm | B0444 hole pattern |
-| `camera_hole_spacing_y` | 12.5 mm | B0444 hole pattern |
+| `camera_hole_spacing_x` | 21 mm | B0444 hole pattern, along the board width (measured 21.05) |
+| `camera_hole_spacing_y` | 12.5 mm | B0444 hole pattern, along the board height (measured 12.55) |
 | `camera_axis_offset` | 1.3 mm | Hole-pattern centre to optical axis, toward the connector |
 | `camera_board_width` | 25.1 mm | Measured |
 | `camera_board_height` | 24.4 mm | Measured |
 | `camera_lens_height` | 17 mm | Board front face to lens front, measured at current focus |
 | `camera_hole_diameter` | 2.0 mm | Measured (STEP 2.2) |
+| `camera_board_thickness` | 1.7 mm | Measured 2026-09-27 |
+| `camera_lens_barrel_diameter` | 14 mm | Measured; retainer holes clear it |
+| `camera_back_component_height` | 2.2 mm | Measured; standoffs clear it |
 | `camera_connector_reach` | 8 mm | Connector + tightly bent ribbon past the board edge |
 | `dome_height` | 26.7 mm | Flange back face → apex, measured 2026-09-27 |
 | `dome_radius` | 26.2 mm | Glass OD 52.4 / 2; sagitta gives 26.3 — hemisphere |
@@ -209,8 +211,8 @@ not update expressions that already use a name.
 | `lid_counterbore_depth` | 8 mm | Board needs 4.5–7.5; rest is tune margin |
 | `camera_spacer_thickness` | 3 mm | Starting guess; set per camera by the wet tune |
 | `camera_standoff_height` | 3 mm | Board standoffs; clear the 2.2 back-side parts |
-| `pin_filament_diameter` | 1.75 mm | Filament used as board pins |
-| `pin_hole_diameter` | _coupon_ | Press-fit hole for 1.75 mm filament pins (1.75 / 1.8 / 1.85 on the coupon) |
+| `camera_pin_diameter` | 1.8 mm (placeholder) | *If* printed pins win: pin diameter for the Ø2.0 board holes — set from the coupon (1.8 / 1.85 / 1.9) |
+| `print_fit_clearance` | 0.2 mm (placeholder) | General sliding-fit allowance per side — set from the coupon |
 
 ## 3. Build order inside `Front`
 
@@ -230,8 +232,7 @@ not update expressions that already use a name.
    - **both boards the same way up** — never mirrored (rolling-shutter
      readout has to match for the sync, `sled.md`)
    - ribs across the span between them
-   - filament-pin holes at each hole pattern, and catches for the snap-on
-     retainer that clamps both boards
+   - board seats per the chosen print-only method (`docs/sled.md`)
    - dowel + screw interface on its front face (to the lid)
    - a slot for each ribbon to exit rearward
 4. **Spacer** — one part with an Onshape **configuration** table for
@@ -245,17 +246,17 @@ not update expressions that already use a name.
 - **PLA+ for stage 1** — it is bench only (`docs/bom.md` material rule).
   Reprint in PETG before it goes in the vehicle.
 - **Print a tolerance coupon first:** holes and pins at ±0.1–0.3 around
-  nominal. For the screwless seats: press-fit holes for 1.75 mm filament
-  pins at **1.75 / 1.8 / 1.85**, and one **snap-fit test** — a single clip
-  against its catch, in PETG. (Screw fallback: M2 insert and clearance
-  holes.)
+  nominal. For the print-only seats: **rail grooves** at 1.7 + 0.1 / 0.2 /
+  0.3, **printed pins** at Ø1.8 / 1.85 / 1.9 (board holes are Ø2.0), one
+  **cantilever latch** against its catch in PETG, and a **printed nut on a
+  stud** (M6-class threads).
   Printed holes come out undersized; cheaper than reprinting the carrier.
 - **Carrier printed board-seat faces down on the bed**, so both seats come
   out flat and coplanar — that is what sets relative aim. 4+ walls, ≥ 40%
   infill.
 - **Hardware not yet bought** (not in `docs/bom.md`):
-  - Nothing for the board seats — filament pins and a printed retainer
-    (M2 × 6–8 screws + inserts only if the snap-fit fails)
+  - Nothing for the board seats — print-only (M2 × 6–8 screws + inserts
+    only as a fallback)
   - M3 or M4 inserts + screws (carrier to plate)
   - 3 mm steel dowel pins
   - a heat-set tip for the soldering iron

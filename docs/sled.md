@@ -53,24 +53,35 @@ than any baseline error does.
 
 **Holding each board**
 
-- **Screwless: pins locate, a snap-on retainer clamps** (decided
-  2026-09-27). The mount has to hold each board *located and clamped* — no
-  shift, rock or lift when the lens is turned for focus or a ribbon is
-  tugged — or the calibration walks.
-  - **Pins:** short lengths of **1.75 mm filament** pressed into holes in the
-    carrier, through the board's holes (21 × 12.5 pattern, measured ~Ø2.0 —
-    the STEP says 2.2). ~0.1 play per side, inside the lateral target.
-    Filament, not printed pins: a printed Ø1.8 pin shears at a layer line.
-    Press-fit hole size from the tolerance coupon (`pin_hole_diameter`).
-  - **Retainer:** one printed PETG plate that snaps onto the carrier over
-    **both** boards — lens-barrel holes, presses each board onto its
-    standoffs, and bears on the connector end so a tugged ribbon can't lever
-    a board up. PLA snap-fits crack or relax; PETG.
-  - **Alternative:** heat-stake the filament pins (leave them long, melt the
-    tips over the board with the iron) — rigid, no clip to tune, but a camera
-    only comes off by cutting the pins.
-  - **Fallback:** M2 × 6–8 screws into M2 heat-set inserts, if the snap-fit
-    won't hold.
+- **Print-only, method open** (2026-09-27). The mount has to hold each board
+  *located and clamped* — no shift, rock or lift when the lens is turned for
+  focus or a ribbon is tugged — or the calibration walks. For the bench rig
+  stability is what matters (calibration measures where the boards are); the
+  ≤ 0.2 lateral target only bites on the vehicle carrier, lens to dome.
+  Candidates, all printed, none bought:
+  - **Slide-in rails:** each board slides edgewise into two grooves
+    (board 1.7 + clearance) against an end stop, with a small printed detent
+    at the open end. One part, no separate retainer, located by edges and
+    groove. Needs ~1 mm of component-free board edge on the front — check in
+    the STEP.
+  - **Locate + snap-on retainer:** printed pins (two diagonal holes,
+    Ø~1.8–1.9 in the Ø2.0 holes) or a shallow pocket locate; one PETG plate
+    with lens-barrel holes snaps over **both** boards, presses them onto the
+    standoffs and bears on the connector end against ribbon pull.
+  - **Retainer + printed thumb-nut:** the same retainer plate held by one
+    printed nut on a printed stud (≥ M6-class threads print reliably; M2
+    does not). Adjustable clamp force, no snap to tune, reusable.
+  - **Split snap pins** through the board holes, tapered with a lip that
+    snaps over the board: the usual print-only PCB mount, but examples use
+    ~3 mm holes and resin; at Ø2.0 in FDM each half-pin is ~0.7 wide —
+    probably too fragile.
+  - **Filament pins** (1.75 mm filament pressed into the carrier) or
+    heat-staking — stronger than printed Ø1.8 pins; set aside for now.
+  - Fallback: M2 screws into heat-set inserts.
+
+  The tolerance coupon should decide it: rail grooves at 1.7 + 0.1 / 0.2 /
+  0.3, printed pins at Ø1.8 / 1.85 / 1.9, one cantilever latch in PETG, and a
+  printed nut on a stud.
 - The hole pattern sits 1.3 mm off the dome axis, toward the connector
   (`cad/vendor/README.md`: the optical axis is off-centre, away from the
   connector).
