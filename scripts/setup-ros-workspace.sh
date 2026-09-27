@@ -2,10 +2,14 @@
 # Set up ~/ros2_ws for the camera pipeline and install its dependencies with
 # rosdep. Run as yourself, not root: rosdep asks for sudo where it needs it.
 #
-# The workspace holds camera_ros (source, pinned, with patches/camera_ros
-# applied) and a symlink to this repo's ros/carp_camera, whose package.xml
-# lists the runtime pieces (image_transport, ffmpeg_image_transport, rosbag2
-# MCAP storage).
+# The workspace holds, pinned and with this repo's patches/<name> applied:
+#   camera_ros             - shutdown-hang fix
+#   ffmpeg_encoder_decoder - NV12/NV21 pass-through (no BGR round trip).
+#                            Overlays the apt copy that the apt
+#                            ffmpeg_image_transport loads; the patch touches
+#                            no headers, so the two stay ABI-compatible.
+# plus a symlink to this repo's ros/carp_camera, whose package.xml lists the
+# runtime pieces (image_transport, ffmpeg_image_transport, rosbag2 MCAP).
 #
 # Skipped rosdep keys:
 #   libcamera  - camera_ros must use our patched build (build-libcamera.sh),
@@ -19,8 +23,12 @@ WS=${WS:-$HOME/ros2_ws}
 here=$(dirname "$(readlink -f "$0")")
 repo=$(readlink -f "$here/..")
 
-CAMERA_ROS_REPO=https://github.com/christianrauch/camera_ros.git
-CAMERA_ROS_COMMIT=8f792e27a6dbc81e4943a75765fc1b7b7d37b301
+# name repo commit
+SOURCES=(
+    "camera_ros https://github.com/christianrauch/camera_ros.git 8f792e27a6dbc81e4943a75765fc1b7b7d37b301"
+    # tag 3.0.1, the version apt ships for Jazzy; keep them in step
+    "ffmpeg_encoder_decoder https://github.com/ros-misc-utilities/ffmpeg_encoder_decoder.git bdbbe8b159a8a71a21a5fa81478c959e130a0be8"
+)
 
 if [[ $EUID -eq 0 ]]; then
     echo "Run as your user, not with sudo" >&2
@@ -38,21 +46,25 @@ fi
 rosdep update
 
 mkdir -p "$WS/src"
-cr=$WS/src/camera_ros
-if [[ ! -d $cr/.git ]]; then
-    git clone -q "$CAMERA_ROS_REPO" "$cr"
-fi
-if [[ $(git -C "$cr" rev-parse HEAD) != "$CAMERA_ROS_COMMIT" ]]; then
-    git -C "$cr" fetch -q origin
-    git -C "$cr" checkout -q --detach "$CAMERA_ROS_COMMIT"
-fi
-for p in "$repo"/patches/camera_ros/*.patch; do
-    if git -C "$cr" apply --reverse --check "$p" 2>/dev/null; then
-        echo "Already applied: $(basename "$p")"
-    else
-        git -C "$cr" apply "$p"
-        echo "Applied: $(basename "$p")"
+for entry in "${SOURCES[@]}"; do
+    read -r name url commit <<< "$entry"
+    dir=$WS/src/$name
+    if [[ ! -d $dir/.git ]]; then
+        git clone -q "$url" "$dir"
     fi
+    if [[ $(git -C "$dir" rev-parse HEAD) != "$commit" ]]; then
+        git -C "$dir" fetch -q origin
+        git -C "$dir" checkout -q --detach "$commit"
+    fi
+    for p in "$repo/patches/$name"/*.patch; do
+        [[ -e $p ]] || continue
+        if git -C "$dir" apply --reverse --check "$p" 2>/dev/null; then
+            echo "Already applied: $name/$(basename "$p")"
+        else
+            git -C "$dir" apply "$p"
+            echo "Applied: $name/$(basename "$p")"
+        fi
+    done
 done
 ln -sfn "$repo/ros/carp_camera" "$WS/src/carp_camera"
 

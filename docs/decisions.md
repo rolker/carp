@@ -405,6 +405,20 @@ libcamera → `camera_ros` → `image_transport` republisher → libx264
 | 1280×720 at 20 fps | 20.00 fps, every frame | ~45% | ~72 °C, level |
 | **1920×1080 at 10 fps** (default) | 10.00 fps, every frame | ~38–48% (two runs) | 69–71 °C, level |
 | 1920×1080 at 12 fps | 12.00 fps, every frame | ~52% | 72 → 78 °C, **still rising** at 60 s |
+| **1920×1080 at 10 fps, NV21** (default since NV21 pass-through) | 10.00 fps, every frame | **~31%** | 64–66 °C, level |
+
+**Where the encoder time went, and the fix.** With `encoder_measure_performance`
+on at 1080p10, each frame cost ~50 ms in the encoder: ~27 ms x264, but
+**~20 ms converting BGR back to YUV** (`sws_scale`) plus ~3 ms of `cv_bridge`
+copy — the ISP makes YUV, `camera_ros` asked it for BGR, and the encoder
+converted straight back. Stock `ffmpeg_image_transport` always routes input
+through `cv_bridge` to `bgr8`, and ROS declares `nv21` as 2-channel, so YUV
+can't get through unpatched. `patches/ffmpeg_encoder_decoder` passes NV12/NV21
+message buffers to libav directly (and fixes packet height, which was taken
+from the input matrix: 1620 for NV21). Now the camera outputs NV21 and the
+encoder de-interleaves it to yuv420p (~2–3 ms): **~30 ms per frame, ~25% less
+total CPU.** Feeding NV21 into libx264 as `nv21` encoded all-green chroma;
+not pursued. Cost: a third source-built, patched package (see ADR-017).
 
 So the prediction above holds and is worse than stated: 1080p30 stereo does
 not fit on the CPU at all, and without a cooler it overheats trying.
@@ -569,6 +583,13 @@ timing), an IMX462 entry in the sensor property table, and the upstream
   check for exposure flicker under AE before trusting them;
 - rpicam-apps' libav encoder needs ffmpeg 7 (Ubuntu 24.04 has 6.1), so
   encoding goes through the ROS video transport or GStreamer instead.
+- (added later) two more source-built, patched packages in the ROS
+  workspace, both pinned: `camera_ros` (shutdown-hang fix) and
+  `ffmpeg_encoder_decoder` 3.0.1 (NV21 pass-through, ADR-015). The latter
+  overlays the apt copy that apt's `ffmpeg_image_transport` loads — fine
+  while the patch touches no headers, but the two must move in step;
+  `build-ros-workspace.sh` checks the overlay is the one loaded. Also, with
+  NV21 the raw `image_raw` topic is not viewable by stock ROS tools.
 Still open for the gate: dual encode → rosbag on the Pi, measured on a
 stable supply with cooling (the build alone hit undervoltage on a 4.9 V
 supply and the 77 °C soft limit without a fan).

@@ -41,6 +41,13 @@ CAMERAS = {
 # libcamera controls::rpi::SyncMode values
 SYNC_OFF, SYNC_SERVER, SYNC_CLIENT = 0, 1, 2
 SYNC_ROLE = {'cam0': SYNC_SERVER, 'cam1': SYNC_CLIENT}
+# camera_ros (libcamera) format -> libx264 input pixel format.
+# RGB888 (= ROS bgr8) works with stock ffmpeg_encoder_decoder but costs
+# ~20 ms/frame of BGR -> YUV sws_scale at 1080p. NV21 needs
+# patches/ffmpeg_encoder_decoder (pass-through, no cv_bridge) and costs
+# ~2-3 ms to de-interleave into yuv420p. (NV21 -> nv21 straight into
+# libx264 encoded all-green chroma; not pursued.)
+ENCODER_PIXEL_FORMAT = {'RGB888': 'yuv420p', 'NV21': 'yuv420p'}
 NAMESPACE = 'cameras'
 
 
@@ -62,9 +69,7 @@ def pipeline(context):
                 'camera': camera_id,
                 'width': int(arg('width')),
                 'height': int(arg('height')),
-                # libcamera RGB888 = ROS bgr8, which the encoder takes
-                # directly; YUYV costs an extra cv_bridge conversion.
-                'format': 'RGB888',
+                'format': arg('format'),
                 'frame_id': f'{name}_optical_frame',
                 'FrameDurationLimits': [frame_us, frame_us],
                 'SyncMode': SYNC_ROLE[name] if sync else SYNC_OFF,
@@ -80,10 +85,12 @@ def pipeline(context):
                 'in_transport': 'raw',
                 'out_transport': 'ffmpeg',
                 'out.ffmpeg.encoder': 'libx264',
-                'out.ffmpeg.pixel_format': 'yuv420p',
+                'out.ffmpeg.pixel_format': ENCODER_PIXEL_FORMAT[arg('format')],
                 'out.ffmpeg.gop_size': gop,
                 'out.ffmpeg.bit_rate': int(arg('bit_rate')),
                 'out.ffmpeg.max_b_frames': 0,
+                'out.ffmpeg.encoder_measure_performance':
+                    arg('measure').lower() in ('true', '1', 'yes'),
                 'out.ffmpeg.encoder_av_options':
                     f"preset:{arg('preset')},tune:zerolatency",
             }],
@@ -121,6 +128,9 @@ def generate_launch_description():
         DeclareLaunchArgument('fps', default_value='10'),
         DeclareLaunchArgument('width', default_value='1920'),
         DeclareLaunchArgument('height', default_value='1080'),
+        DeclareLaunchArgument('format', default_value='NV21',
+                              choices=list(ENCODER_PIXEL_FORMAT),
+                              description='camera output format'),
         DeclareLaunchArgument('bit_rate', default_value='3000000',
                               description='per camera, bits/s'),
         DeclareLaunchArgument('keyframe_s', default_value='1.5',
@@ -130,6 +140,8 @@ def generate_launch_description():
         DeclareLaunchArgument('sync', default_value='true',
                               description='software stereo sync (rpi.sync)'),
         DeclareLaunchArgument('record', default_value='false'),
+        DeclareLaunchArgument('measure', default_value='false',
+                              description='log encoder per-stage timing'),
         DeclareLaunchArgument('bag_dir', default_value='~/bags'),
         DeclareLaunchArgument('container_prefix', default_value='',
                               description='command prefix for the container, '

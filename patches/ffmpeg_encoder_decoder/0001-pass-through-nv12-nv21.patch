@@ -1,0 +1,60 @@
+diff --git a/src/encoder.cpp b/src/encoder.cpp
+index 80f1de4..c7e6d80 100644
+--- a/src/encoder.cpp
++++ b/src/encoder.cpp
+@@ -29,6 +29,12 @@
+ 
+ namespace ffmpeg_encoder_decoder
+ {
++// Encodings libav takes directly from the message buffer (see encodeImage).
++static bool isPassThrough(const std::string & encoding)
++{
++  return (encoding == "nv12" || encoding == "nv21");
++}
++
+ Encoder::Encoder() : logger_(rclcpp::get_logger("Encoder")) {}
+ 
+ Encoder::~Encoder()
+@@ -304,6 +310,13 @@ void Encoder::doOpenCodec(int width, int height, const std::string & origEncodin
+   packet_->data = NULL;
+   packet_->size = 0;
+ 
++  // YUV 4:2:0 semi-planar input (e.g. straight from a camera ISP) goes to
++  // libav as-is: no cv_bridge copy, no BGR round trip. ROS has no correct
++  // cv type for these (nv21 is declared 2-channel), so they bypass cv_bridge.
++  if (isPassThrough(origEncoding)) {
++    cvBridgeTargetFormat_ = origEncoding;
++  }
++
+   // create (src) frame that wraps the received raw image
+   wrapperFrame_ = av_frame_alloc();
+   wrapperFrame_->width = width;
+@@ -344,7 +357,18 @@ void Encoder::encodeImage(const Image & msg)
+     t0 = rclcpp::Clock().now();
+   }
+   try {
+-    if (utils::encode_single_channel_as_color(
++    if (isPassThrough(cvBridgeTargetFormat_)) {
++      if (msg.encoding != cvBridgeTargetFormat_ || msg.step != msg.width) {
++        RCLCPP_ERROR_STREAM(
++          logger_, "pass-through expects " << cvBridgeTargetFormat_ << " with step == width, got "
++                                           << msg.encoding << " step " << msg.step);
++        return;
++      }
++      // Y plane followed by interleaved chroma at half height
++      cv::Mat img(
++        msg.height * 3 / 2, msg.width, CV_8UC1, const_cast<uint8_t *>(msg.data.data()), msg.step);
++      doEncodeImage(img, msg.header, t0);
++    } else if (utils::encode_single_channel_as_color(
+           cvBridgeTargetFormat_, static_cast<AVPixelFormat>(wrapperFrame_->format))) {
+       // hack to encode single-channel ros formats as nv12/yuv420p etc
+       cv::Mat img(
+@@ -411,7 +435,7 @@ void Encoder::doEncodeImage(const cv::Mat & img, const Header & header, const rc
+   }
+   // now drain all packets
+   while (ret == 0) {
+-    ret = drainPacket(img.cols, img.rows);
++    ret = drainPacket(frame_->width, frame_->height);
+   }
+   if (measurePerformance_) {
+     const rclcpp::Time t4 = rclcpp::Clock().now();
