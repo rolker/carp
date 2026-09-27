@@ -13,7 +13,7 @@ further, in order of cost:
 
 1. **Guide the user.** Give numbered steps with named Onshape features
    (Sketch, Extrude New/Add/Remove, Hole, Linear pattern, Variable,
-   configurations) and the exact dimension expressions (`#stereoBase/2`). The
+   configurations) and the exact dimension expressions (`#stereo_baseline/2`). The
    user has "dabbled" — explain concepts once, briefly.
 2. **Analyse exported geometry locally.** The user exports STL/STEP to
    Windows `Downloads` (`/mnt/c/Users/roland/Downloads` from WSL). Recipe that
@@ -77,7 +77,7 @@ Onshape documents don't expose anything new.
 | Mar | Named assembly positions link to in-context features | Sled in/out positions |
 | Jun 5 | Routing curves with a target length | FFC / cable length from the CAD path (`bom.md` pending cable row) |
 | Jun 26 | Asynchronous simulation | Lid flex check if ever wanted |
-| Aug 28 | **Variable Studio parameters readable from FeatureScript** | Custom features can use `stereoBase` etc. directly |
+| Aug 28 | **Variable Studio parameters readable from FeatureScript** | Custom features can use `stereo_baseline` etc. directly |
 | Aug 28 | Orient normal to sketch (auto camera); resize planes to bounding box | Beginner friendliness |
 | Aug 28 | New Learning Center course: **Introduction to Configurations** | Spacer-thickness configurations (`cad/README.md`) |
 | Sep 18 | Reset configurations to defaults; view-only document mode; filter by warnings; configurable section-view interference colour | Safer review of the user's documents |

@@ -15,13 +15,14 @@ into a printable stereo camera carrier. Trim it as the steps get done.
 - `onshape-notes.md` — Onshape plans, API limits, AI/MCP options and 2026
   changes, for agents (researched 2026-09-27)
 
-**Onshape document:** _(link here once created)_
+**Onshape document:** `carp` (folder `carp`) —
+<https://cad.onshape.com/documents/ec758b3ca6b65519093ac0d1>
 
 ## Next bench print: Pi holder + stereo bar in one piece
 
 The Pi holder has to be reprinted without the cooler-hole pins anyway, so
 the next iteration combines it with a stereo camera bar (both cameras at
-`stereoBase` on standoffs, stock 150 mm cables to the Pi) as one bench
+`stereo_baseline` on standoffs, stock 150 mm cables to the Pi) as one bench
 print — the stage-1 air test rig.
 
 - **Use an Assembly to check fit, a Part Studio to make the print.** An
@@ -30,6 +31,10 @@ print — the stage-1 air test rig.
   *Derived* feature (or rebuild it there) and join them with *Boolean →
   Union*, so the export is a single solid.
 - Drop the two cooler-hole pins; keep the four corner pins.
+- **Screwless camera seats** (`docs/sled.md`, "Holding each board"):
+  1.75 mm filament pins through the board holes locate, and one PETG
+  retainer snapped over both boards clamps. Screws + inserts are the
+  fallback.
 
 ## First target: camera carrier + stand-in plate
 
@@ -138,54 +143,86 @@ One document, `CARP`:
 
 **`Front` is one multi-part Part Studio** — the Onshape idiom for parts
 designed around each other. Lid, carrier and stand-in all reference one
-layout sketch, so changing `stereoBase` moves everything together, and the
+layout sketch, so changing `stereo_baseline` moves everything together, and the
 drilling jig comes later from the same sketch.
 
 **Coordinates:** origin at the centre of the lid's **outer** face, +X
 forward along the optical axes (vehicle X), Z up. Same convention as
 `housing-layout.md`, so this drops into a vehicle assembly later.
 
+### Variable naming conventions
+
+Settled 2026-09-27, before the Variable Studio existed — renaming later does
+not update expressions that already use a name.
+
+1. **snake_case, whole words, subject first:** `dome_flange_diameter`, not
+   `flangeOD`. Names group by part (`camera_*`, `dome_*`, `lid_*`, `tube_*`)
+   and match the ROS side of the repo.
+2. **Property words:** `diameter`, `radius`, `thickness`, `width`, `height`,
+   `length`, `depth`, `spacing` (centre to centre), `offset`, `gap`,
+   `clearance`. The only abbreviations are `min` and `max` (and `cg`).
+   Say what is meant: `camera_hole_spacing_x`, not `camera_hole_x`.
+3. **Axes as a final `_x` / `_y` / `_z`** — vehicle frame (X forward, Z up)
+   unless it is plainly a board's own axes.
+4. **Derived values are expressions,** not typed numbers:
+   `tube_inner_diameter = tube_outer_diameter - 2 * tube_wall_thickness`.
+5. **Units always** (`74 mm`), and the **source in the description field**
+   ("measured 2026-09-27", "design choice, sled.md", "from coupon").
+6. **Shared vs local:** anything used by more than one Part Studio, or named
+   in the docs, lives in the `Housing` Variable Studio. One-part dimensions
+   (a rib thickness) are local Variable features. A local variable never
+   reuses a shared name.
+7. **Print fits get their own variables** so coupon results feed straight
+   in: `pin_hole_diameter` (the hole) is separate from
+   `pin_filament_diameter` (1.75 mm, the filament).
+8. **This table mirrors the Variable Studio.** Change a value in Onshape →
+   update the table in the same commit as the print or measurement.
+
 ### Variable Studio contents
 
 | Variable | Value | Source |
 |---|---|---|
-| `tubeOD` | 168.3 mm | 6" sched-40 |
-| `tubeID` | 154.1 mm | 6" sched-40 |
-| `sealDia` | 161.2 mm | `(tubeOD + tubeID)/2` |
-| `stereoBase` | 74 mm | Minimum; 74–~95 allowed (`sled.md`) — **decision open** |
-| `flangeOD` | 71.9 mm | Measured 2026-09-26 |
-| `boltCircle` | 64.5 mm | Measured 2026-09-26, 6 holes ~Ø2.0 |
-| `flangeGapMin` | 2 mm | Rule: flanges don't touch |
-| `lidT` | 19.05 mm | 3/4" acrylic; 9.53 for the aluminium option |
-| `lidSize` | 203.2 mm | 8" |
-| `rodCircle` | 184 mm | M6 tie rods at 45° |
-| `camHoleX` | 21 mm | B0444 hole pattern |
-| `camHoleY` | 12.5 mm | B0444 hole pattern |
-| `camAxisOffset` | 1.3 mm | Hole-pattern centre to optical axis, toward the connector |
-| `camBoardW` | 25.1 mm | Measured |
-| `camBoardH` | 24.4 mm | Measured |
-| `camLensFront` | 17 mm | Board front face to lens front, measured at current focus |
-| `camHoleD` | 2.0 mm | Measured (STEP 2.2) |
-| `camConnReach` | 8 mm | Connector + tightly bent ribbon past the board edge |
-| `domeH` | 26.7 mm | Flange back face → apex, measured 2026-09-27 |
-| `domeR` | 26.2 mm | Glass OD 52.4 / 2; sagitta gives 26.3 — hemisphere |
-| `domeFlangeT` | 2.0 mm | Measured |
-| `lidHoleD` | 17 mm | Through-hole for the Ø14 barrel; 16–18 |
-| `lidCboreD` | 52 mm | Counterbore from the inside for board + connector |
-| `lidCboreDepth` | 8 mm | Board needs 4.5–7.5; rest is tune margin |
-| `spacerT` | 3 mm | Starting guess; set per camera by the wet tune |
+| `tube_outer_diameter` | 168.3 mm | 6" sched-40 |
+| `tube_wall_thickness` | 7.11 mm | 6" sched-40 |
+| `tube_inner_diameter` | `tube_outer_diameter - 2 * tube_wall_thickness` → 154.1 mm | Derived |
+| `seal_diameter` | `(tube_outer_diameter + tube_inner_diameter) / 2` → 161.2 mm | Derived; O-ring centreline |
+| `stereo_baseline` | 74 mm | Minimum; 74–~95 allowed (`sled.md`) — **decision open** |
+| `dome_flange_diameter` | 71.9 mm | Measured 2026-09-26 |
+| `dome_bolt_circle_diameter` | 64.5 mm | Measured 2026-09-26, 6 holes ~Ø2.0 |
+| `dome_flange_gap_min` | 2 mm | Rule: flanges don't touch |
+| `lid_thickness` | 19.05 mm | 3/4" acrylic; 9.53 for the aluminium option |
+| `lid_width` | 203.2 mm | 8" |
+| `tie_rod_circle_diameter` | 184 mm | M6 tie rods at 45° |
+| `camera_hole_spacing_x` | 21 mm | B0444 hole pattern |
+| `camera_hole_spacing_y` | 12.5 mm | B0444 hole pattern |
+| `camera_axis_offset` | 1.3 mm | Hole-pattern centre to optical axis, toward the connector |
+| `camera_board_width` | 25.1 mm | Measured |
+| `camera_board_height` | 24.4 mm | Measured |
+| `camera_lens_height` | 17 mm | Board front face to lens front, measured at current focus |
+| `camera_hole_diameter` | 2.0 mm | Measured (STEP 2.2) |
+| `camera_connector_reach` | 8 mm | Connector + tightly bent ribbon past the board edge |
+| `dome_height` | 26.7 mm | Flange back face → apex, measured 2026-09-27 |
+| `dome_radius` | 26.2 mm | Glass OD 52.4 / 2; sagitta gives 26.3 — hemisphere |
+| `dome_flange_thickness` | 2.0 mm | Measured |
+| `lid_hole_diameter` | 17 mm | Through-hole for the Ø14 barrel; 16–18 |
+| `lid_counterbore_diameter` | 52 mm | Counterbore from the inside for board + connector |
+| `lid_counterbore_depth` | 8 mm | Board needs 4.5–7.5; rest is tune margin |
+| `camera_spacer_thickness` | 3 mm | Starting guess; set per camera by the wet tune |
+| `camera_standoff_height` | 3 mm | Board standoffs; clear the 2.2 back-side parts |
+| `pin_filament_diameter` | 1.75 mm | Filament used as board pins |
+| `pin_hole_diameter` | _coupon_ | Press-fit hole for 1.75 mm filament pins (1.75 / 1.8 / 1.85 on the coupon) |
 
 ## 3. Build order inside `Front`
 
 1. **Layout sketch** on the lid's outer-face plane:
-   - the two optical axes at ±`stereoBase`/2
+   - the two optical axes at ±`stereo_baseline`/2
    - the dome flange circles and their six-hole patterns
    - the pipe bore and pilot-ring circle
    - the tie-rod circle
 
    Add a constraint that makes the model fail when the flanges collide
-   (`flangeGap ≥ 2`).
-2. **Lid** at `lidT`, modelled but not printed — the reference the carrier
+   (`dome_flange_gap ≥ 2`).
+2. **Lid** at `lid_thickness`, modelled but not printed — the reference the carrier
    mounts to, and later the drawing for the acrylic.
 3. **Camera carrier:**
    - two board seats, each hole pattern 1.3 off its axis toward the
@@ -193,7 +230,9 @@ forward along the optical axes (vehicle X), Z up. Same convention as
    - **both boards the same way up** — never mirrored (rolling-shutter
      readout has to match for the sync, `sled.md`)
    - ribs across the span between them
-   - dowel + screw interface on its front face
+   - filament-pin holes at each hole pattern, and catches for the snap-on
+     retainer that clamps both boards
+   - dowel + screw interface on its front face (to the lid)
    - a slot for each ribbon to exit rearward
 4. **Spacer** — one part with an Onshape **configuration** table for
    thickness, 2.5 to 6 in 0.5 steps. Export the set as STLs.
@@ -206,13 +245,17 @@ forward along the optical axes (vehicle X), Z up. Same convention as
 - **PLA+ for stage 1** — it is bench only (`docs/bom.md` material rule).
   Reprint in PETG before it goes in the vehicle.
 - **Print a tolerance coupon first:** holes and pins at ±0.1–0.3 around
-  nominal for the heat-set inserts, M2 clearance holes and the dowels.
+  nominal. For the screwless seats: press-fit holes for 1.75 mm filament
+  pins at **1.75 / 1.8 / 1.85**, and one **snap-fit test** — a single clip
+  against its catch, in PETG. (Screw fallback: M2 insert and clearance
+  holes.)
   Printed holes come out undersized; cheaper than reprinting the carrier.
 - **Carrier printed board-seat faces down on the bed**, so both seats come
   out flat and coplanar — that is what sets relative aim. 4+ walls, ≥ 40%
   infill.
 - **Hardware not yet bought** (not in `docs/bom.md`):
-  - M2 heat-set inserts + M2 × 6–8 screws (boards)
+  - Nothing for the board seats — filament pins and a printed retainer
+    (M2 × 6–8 screws + inserts only if the snap-fit fails)
   - M3 or M4 inserts + screws (carrier to plate)
   - 3 mm steel dowel pins
   - a heat-set tip for the soldering iron
@@ -231,7 +274,7 @@ forward along the optical axes (vehicle X), Z up. Same convention as
 Cameras on the carrier, stock 150 mm cables to the bench Pi, calibrate in
 air with ROS `camera_calibration` in stereo mode. Check:
 
-- the calibrated baseline matches `stereoBase`;
+- the calibrated baseline matches `stereo_baseline`;
 - rectified images line up row for row.
 
 Both hold → the carrier is rigid and correctly oriented. A baseline that

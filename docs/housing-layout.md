@@ -68,7 +68,7 @@ The table above assumed a ~Ø70 flange. Measured (2026-09-26) it is **71.9**:
 | 75 | 146.9 | +3.6 | 3.1 |
 | 77 | 148.9 | +2.6 | 5.1 |
 
-`boreClear >= 4` needs centres ≤ 74.2; the original `flangeGap >= 5` needed
+`bore_clearance >= 4` needs centres ≤ 74.2; the original `dome_flange_gap >= 5` needed
 centres ≥ 76.9. No baseline satisfied both — until the bolt pattern was
 measured.
 
@@ -76,7 +76,7 @@ measured.
 spanning 66.5 outside / 62.5 inside: **Ø64.5 bolt circle, ~Ø2.0 holes** (M2
 class — confirm with a screw). The bolts sit 3.7 mm in from the flange edge,
 so they never reach the gap between flanges. Worst case, a hole on each flange
-pointing straight at the other, the facing bolt centres are `stereoBase −
+pointing straight at the other, the facing bolt centres are `stereo_baseline −
 64.5` apart — 9.5 mm at 74, room for M2 heads and nuts. Clocked with holes at
 ±30° off the line between centres (free to do), that grows to ~18 mm. The gap
 only needs to keep the flanges from touching, with print/placement tolerance:
@@ -221,7 +221,7 @@ rough; the two dome holes add maybe 1.5–2× to the front lid's flex.
 - **If 3/8" aluminium:** 6061-T6 (5052 only if salt water becomes routine),
   check flatness with a straightedge (< 0.1 across the seal; MIC-6 if not),
   anodise and use Tef-Gel on stainless threads. The re-quote should carry
-  the whole front hole layout — the dome centres at `stereoBase` are the
+  the whole front hole layout — the dome centres at `stereo_baseline` are the
   holes worth paying for, not the corners.
 
 **Before ordering:** pick the O-ring (AS568 2-series, 0.139" cord, ID about
@@ -235,72 +235,72 @@ Build the sketch on these, not on typed-in numbers. Assumed values are flagged
 
 | Variable | mm | Source |
 |---|---|---|
-| `tubeOD` | 168.3 | 6" sched-40 |
-| `tubeWall` | 7.11 | 6" sched-40 |
-| `tubeID` | 154.1 | `tubeOD - 2*tubeWall` |
-| `tubeLen` | 400 | derived, see bay stack |
-| `flangeOD` | 71.9 | **Measured 2026-09-26** (calipers) — over the 70 assumed, see below |
-| `domeGlassOD` | 52.4 | **Measured 2026-09-27** — hemisphere R 26.3, flange 2.0 thick (`sled.md`) |
-| `stereoBase` | 74 | set by bore + measured flange, see "Measured flange" — **74 is now the minimum, ~95 the maximum** (`sled.md`) |
-| `lidT` | 19.05 | 3/4" cast acrylic; 9.53 if the front goes to 3/8" aluminium |
-| `lidSize` | 203.2 | 8" square (acrylic) or 8" disc (aluminium) — outline is free |
-| `rodCircle` | 184 | tie rods at 45°; fits both outlines |
-| `sealDia` | 161.2 | O-ring centreline, mid pipe-end face: `(tubeOD + tubeID)/2` |
-| `boltCircle` | 64.5 | **Measured 2026-09-26** — 6 holes, ~Ø2.0 |
-| `thrusterOD` | 70 | **ASSUMED — measure** |
-| `thrusterLen` | 130 | **ASSUMED — measure** |
-| `escL/W/H` | 75/30/15 | **ASSUMED — measure** |
-| `packL/W/H` | 155/50/37 | `power-budget.md` |
-| `railClear` | 15 | chosen |
-| `vertSep` | 489 | driven by the tail arrangement |
-| `cgZ` | −30 | ≈ BG below hull axis; **verify by float test** |
+| `tube_outer_diameter` | 168.3 | 6" sched-40 |
+| `tube_wall_thickness` | 7.11 | 6" sched-40 |
+| `tube_inner_diameter` | 154.1 | `tube_outer_diameter - 2*tube_wall_thickness` |
+| `tube_length` | 400 | derived, see bay stack |
+| `dome_flange_diameter` | 71.9 | **Measured 2026-09-26** (calipers) — over the 70 assumed, see below |
+| `dome_glass_diameter` | 52.4 | **Measured 2026-09-27** — hemisphere R 26.3, flange 2.0 thick (`sled.md`) |
+| `stereo_baseline` | 74 | set by bore + measured flange, see "Measured flange" — **74 is now the minimum, ~95 the maximum** (`sled.md`) |
+| `lid_thickness` | 19.05 | 3/4" cast acrylic; 9.53 if the front goes to 3/8" aluminium |
+| `lid_width` | 203.2 | 8" square (acrylic) or 8" disc (aluminium) — outline is free |
+| `tie_rod_circle_diameter` | 184 | tie rods at 45°; fits both outlines |
+| `seal_diameter` | 161.2 | O-ring centreline, mid pipe-end face: `(tube_outer_diameter + tube_inner_diameter)/2` |
+| `dome_bolt_circle_diameter` | 64.5 | **Measured 2026-09-26** — 6 holes, ~Ø2.0 |
+| `thruster_diameter` | 70 | **ASSUMED — measure** |
+| `thruster_length` | 130 | **ASSUMED — measure** |
+| `esc_length/width/height` | 75/30/15 | **ASSUMED — measure** |
+| `pack_length/width/height` | 155/50/37 | `power-budget.md` |
+| `rail_clearance` | 15 | chosen |
+| `vertical_thruster_spacing` | 489 | driven by the tail arrangement |
+| `cg_z` | −30 | ≈ BG below hull axis; **verify by float test** |
 
 **Driven, not typed:**
 
 ```
-railY        = tubeOD/2 + thrusterOD/2 + railClear      -> 134
-frameW       = 2*(railY + thrusterOD/2)                 -> 338
-out6Z        = cgZ                                      -> -30
-out6X        = -(tubeLen/2 + lidT + thrusterOD/2 + 5)   -> -259
-out5X        = out6X - thrusterOD - 10                  -> -339
-vertSep      = 150 - out5X                              -> 489
-domeHalfSpan = stereoBase/2 + flangeOD/2                -> 72.95
-boreClear    = tubeID/2 - domeHalfSpan                  -> 4.1
-flangeGap    = stereoBase - flangeOD                    -> 2.1
+rail_y                    = tube_outer_diameter/2 + thruster_diameter/2 + rail_clearance    -> 134
+frame_width               = 2*(rail_y + thruster_diameter/2)                                 -> 338
+thruster_6_z              = cg_z                                                             -> -30
+thruster_6_x              = -(tube_length/2 + lid_thickness + thruster_diameter/2 + 5)       -> -259
+thruster_5_x              = thruster_6_x - thruster_diameter - 10                            -> -339
+vertical_thruster_spacing = 150 - thruster_5_x                                               -> 489
+dome_half_span            = stereo_baseline/2 + dome_flange_diameter/2                       -> 72.95
+bore_clearance            = tube_inner_diameter/2 - dome_half_span                           -> 4.1
+dome_flange_gap           = stereo_baseline - dome_flange_diameter                           -> 2.1
 ```
 
 **Two inequalities are the design rules.** Make them sketch constraints so the
 model breaks loudly rather than quietly:
 
 ```
-boreClear >= 4        (front plate seals inside the pipe)
-flangeGap >= 2        (flanges do not touch, with tolerance; bolts are inside the flange)
-out6Z     == cgZ      (strafe roll couple stays at zero)
+bore_clearance  >= 4       (front plate seals inside the pipe)
+dome_flange_gap >= 2       (flanges do not touch, with tolerance; bolts are inside the flange)
+thruster_6_z    == cg_z    (strafe roll couple stays at zero)
 ```
 
-With the endcap proposal, `boreClear` gives way to "the camera holes fit
-inside the pilot ring" (`sled.md`); keep `flangeGap`.
+With the endcap proposal, `bore_clearance` gives way to "the camera holes fit
+inside the pilot ring" (`sled.md`); keep `dome_flange_gap`.
 
-`out6Z == cgZ` is the one that will drift: CG moves every time ballast or a
+`thruster_6_z == cg_z` is the one that will drift: CG moves every time ballast or a
 component moves. Re-check it after the float test rather than trusting the
 sketch.
 
 **Bay stack drives tube length:**
 
 ```
-tubeLen = domeIntrusion + packL + elecL + escL + capAllow
-        = 30 + 155 + 120 + 80 + 15               -> 400
+tube_length = dome_intrusion + pack_bay_length + electronics_bay_length + esc_bay_length + cap_allowance
+            = 30 + 155 + 120 + 80 + 15    -> 400
 ```
 
-- `packL` 155 — two packs side by side, 100 of the 154 bore
-- `elecL` 120 — Pi 5 and Pixhawk side by side, 106 of the 154 bore
-- `escL` 80 — six ESCs ringed against the wall, not stacked in line
+- `pack_bay_length` 155 — two packs side by side, 100 of the 154 bore
+- `electronics_bay_length` 120 — Pi 5 and Pixhawk side by side, 106 of the 154 bore
+- `esc_bay_length` 80 — six ESCs ringed against the wall, not stacked in line
 
 `sled.md` reorders the bays front to back as cameras → electronics → packs →
 ESCs (was packs ahead of electronics), so the camera ribbons stay short and
 far from the ESCs. The sum is unchanged. The dome centre is now measured
 (on the lid's outer face, `sled.md`): on the acrylic lid the boards sit inside
-the lid's thickness, so `domeIntrusion` is just the carrier and ribbon bends
+the lid's thickness, so `dome_intrusion` is just the carrier and ribbon bends
 behind the inner face — 30 is a comfortable allowance until the carrier is
 drawn.
 
@@ -315,7 +315,7 @@ Four of these five are sitting in boxes waiting on the inventory pass.
       above
 - [ ] **YOWOO pack**, confirm against 155 × 50 × 37 in `power-budget.md`
 - [ ] **Thruster mass, each** — for the buoyancy budget
-- [ ] **Actual CG height**, from the float test — `out6Z` follows it
+- [ ] **Actual CG height**, from the float test — `thruster_6_z` follows it
 
 ## Related
 

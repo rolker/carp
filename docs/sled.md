@@ -44,19 +44,33 @@ than any baseline error does.
 
 | | Target | Why |
 |---|---|---|
-| Baseline | `stereoBase` (74 today — see "The baseline is no longer pinned") | Optical-axis to optical-axis, not board to board |
+| Baseline | `stereo_baseline` (74 today — see "The baseline is no longer pinned") | Optical-axis to optical-axis, not board to board |
 | Lateral: axis to dome centre | ≤ 0.2 mm, each camera | Decentring breaks the pinhole model the dome is meant to keep (prior-art.md). Sub-mm is what matters; 0.2 is a print-achievable aim, not a researched limit |
 | Fore-aft: entrance pupil at dome centre | Adjustable ±3 mm per camera | prior-art.md: "Design fore-aft adjustability into the camera mounts." Domes and lenses vary |
 | Relative aim | Parallel within ~0.5° | Calibration absorbs the rest; this keeps the overlap maximal |
-| Board orientation | **Both identical, never mirrored** | The rolling shutter reads rows in the same direction on both, which is what makes the 23 µs sync (ADR-017) mean the same instant top to bottom. A board rotated 180° reads bottom-up and the sync falls apart. Identical orientation also puts both 1.3 mm axis offsets on the same side, so hole-pattern spacing equals `stereoBase` |
+| Board orientation | **Both identical, never mirrored** | The rolling shutter reads rows in the same direction on both, which is what makes the 23 µs sync (ADR-017) mean the same instant top to bottom. A board rotated 180° reads bottom-up and the sync falls apart. Identical orientation also puts both 1.3 mm axis offsets on the same side, so hole-pattern spacing equals `stereo_baseline` |
 | Sensor rows | Parallel to the baseline | Rectification assumes it; mechanical roll within ~1°. Check which board edge the rows run along — the STEP does not say |
 
 **Holding each board**
 
-- M2 screws through the board's holes (21 × 12.5 pattern, measured ~Ø2.0 —
-  the STEP says 2.2) into M2 heat-set inserts in the carrier. The play is
-  ≤ ±0.1 mm — inside the lateral target, so no extra locating features on the
-  board. Confirm an M2 screw passes before modelling around it.
+- **Screwless: pins locate, a snap-on retainer clamps** (decided
+  2026-09-27). The mount has to hold each board *located and clamped* — no
+  shift, rock or lift when the lens is turned for focus or a ribbon is
+  tugged — or the calibration walks.
+  - **Pins:** short lengths of **1.75 mm filament** pressed into holes in the
+    carrier, through the board's holes (21 × 12.5 pattern, measured ~Ø2.0 —
+    the STEP says 2.2). ~0.1 play per side, inside the lateral target.
+    Filament, not printed pins: a printed Ø1.8 pin shears at a layer line.
+    Press-fit hole size from the tolerance coupon (`pin_hole_diameter`).
+  - **Retainer:** one printed PETG plate that snaps onto the carrier over
+    **both** boards — lens-barrel holes, presses each board onto its
+    standoffs, and bears on the connector end so a tugged ribbon can't lever
+    a board up. PLA snap-fits crack or relax; PETG.
+  - **Alternative:** heat-stake the filament pins (leave them long, melt the
+    tips over the board with the iron) — rigid, no clip to tune, but a camera
+    only comes off by cutting the pins.
+  - **Fallback:** M2 × 6–8 screws into M2 heat-set inserts, if the snap-fit
+    won't hold.
 - The hole pattern sits 1.3 mm off the dome axis, toward the connector
   (`cad/vendor/README.md`: the optical axis is off-centre, away from the
   connector).
@@ -121,7 +135,7 @@ Two consequences:
      assembly can't unlatch or re-bend it.
 2. **Lid thickness is in the chain.** Swapping acrylic for aluminium moves
    the camera ~9.5 mm relative to the inner face, and the counterbore goes
-   away. Make `lidT` a driving variable, and put the difference in one printed
+   away. Make `lid_thickness` a driving variable, and put the difference in one printed
    spacer between carrier and lid, so the swap is a new spacer plus a re-tune,
    not a new carrier. The carrier's board seats reach forward into the
    counterbore on the acrylic lid.
@@ -133,9 +147,9 @@ fit **inside the bore**. With a flat lid on the pipe end they don't — the
 flanges sit on the lid's outside face, and only the camera holes and the
 carrier have to be inside the pipe. The new limits:
 
-| Constraint | Limit on `stereoBase` |
+| Constraint | Limit on `stereo_baseline` |
 |---|---|
-| Flanges don't touch (`flangeGap >= 2`) | ≥ 74 |
+| Flanges don't touch (`dome_flange_gap >= 2`) | ≥ 74 |
 | Camera counterbores (Ø52) inside the pilot ring (~Ø147 ID) | ≤ ~95 |
 | Flanges inside an 8" lid (tie rods at 45° never interfere) | ≤ ~130 |
 | Carrier inside the pilot ring | ≤ ~112 |
@@ -201,8 +215,8 @@ the BG target wants). A 100-wide pack pair fits the 154 bore at up to ~58 below
 the axis. Printed PETG skids on the bore. It is cantilevered from the lid only
 when out of the tube; on the bench it rests on its skids.
 
-**CG moves aft** a little with the packs behind the electronics. `out6Z ==
-cgZ` in `housing-layout.md` already says to re-check after the float test;
+**CG moves aft** a little with the packs behind the electronics. `thruster_6_z ==
+cg_z` in `housing-layout.md` already says to re-check after the float test;
 this is one more reason.
 
 ## Testing stereo before the housing exists
@@ -213,7 +227,7 @@ vehicle hardware rather than a stand-in.
 1. **Air, now.** Print the carrier and a flat stand-in plate with the lid's
    hole pattern. Cameras on the stock 150 mm cables to the bench Pi. Checks
    the rig is rigid, calibration converges, the calibrated baseline matches
-   `stereoBase`, sync holds (ADR-017), and depth on a known target is right.
+   `stereo_baseline`, sync holds (ADR-017), and depth on a known target is right.
    Air calibration does **not** carry over to water — this validates the rig
    and the pipeline, not the numbers.
 2. **Domes in water, no housing — the "glass-bottom" rig.** Drill the real
@@ -233,8 +247,8 @@ vehicle hardware rather than a stand-in.
 ## Modelling order (Onshape)
 
 1. Lid: outline, pilot ring, tie-rod circle, stepped camera holes
-   (`lidHoleD` through, `lidCboreD` counterbore from inside) and blind M2
-   patterns — driven by `stereoBase`, `boltCircle`, `lidT`, `rodCircle`.
+   (`lid_hole_diameter` through, `lid_counterbore_diameter` counterbore from inside) and blind M2
+   patterns — driven by `stereo_baseline`, `dome_bolt_circle_diameter`, `lid_thickness`, `tie_rod_circle_diameter`.
    Model the drilling jig from the same sketch: one jig for acrylic and
    aluminium (`housing-layout.md`, "Endcaps").
 2. Domes (measured) and B0444 STEPs (`cad/vendor/`) placed, dome centre
@@ -259,7 +273,7 @@ vehicle hardware rather than a stand-in.
       element and set the first spacer from that; the ±3 mm spacer range and
       the counterbore margin absorb the error. Keep the chamfer on the
       Ø16–18 through-hole in case the pupil lands behind the outer face
-- [ ] **`stereoBase`: stay at 74 or go wider (≤ ~95)?**
+- [ ] **`stereo_baseline`: stay at 74 or go wider (≤ ~95)?**
 - [ ] Bar30 on the front lid or the rear?
 
 ## Related
