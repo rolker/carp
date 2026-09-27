@@ -43,11 +43,13 @@ bought; `later` = deliberate deferral.
 | JST-GH ↔ DF13 adapter board, 4-pin | 1 | Blue Robotics | 10 | 13.44 | ordered | 2026-09-26. Incl. $1.44 tariff surcharge. Board plus 100 mm DF13↔DF13 and GH↔GH cables — Bar30 → Pixhawk I2C with the pinout guaranteed. Unblocks the Phase 1 depth check |
 | SOS Leak Sensor | 1 | Blue Robotics | 5 | 35.00 | ordered | 2026-09-26, same order ($6.50 shipping). Replaces the bare-wire probe: four sponge-tipped probes (2×6", 2×12") + 4 spare tips — needs liquid, not condensate. 3-pin 0.1" out straight to a Pixhawk AUX pin, ArduSub-native, `FS_LEAK = surface`. **Needs 3.3–5 V on the servo rail** — one ESC BEC (U2 BEC still unconfirmed) or a separate 5 V feed |
 | uxcell FFC 22-pin 0.5 mm **Type B**, 500 mm, 5 pcs | 1 | Amazon (uxcell) | 7 | 6.47 | ordered | 2026-09-26, arriving Tue 2026-09-29. Bench, mock-up and fixture cables plus spares — generous enough to connect cameras without fighting for slack. Plain unshielded FFC: the vehicle gets the shortest length that reaches once the sled/bay order is drawn (pending row below) |
+| Raspberry Pi 5 Active Cooler (official) | 1 | Amazon (UeeKKoo, 3rd party) | — | 10.95 | ordered | 2026-09-27, arriving 2026-09-28. ~$5 list — third-party premium, so check it is genuine on arrival. The bench numbers in ADR-015 were all **uncooled**; re-run them with it. Moves SoC heat into the hull air, not out of the hull — pairs with an air-stirring fan or a conduction path (`sled.md`). Clears the M.2 HAT+ (its standoffs are sized for it). Push-pins and pad are one-use-ish: fit it once. Confirm fan speed control works under Ubuntu, not just RPi OS |
+| iRasptek 27 W 5.1 V / 5 A USB-C PD supply | 1 | Amazon (iRasptek) | — | 10.99 | ordered | 2026-09-27, arriving 2026-09-28. **Bench only** — the vehicle Pi runs from the Pololu off the hotel pack. Fixes the undervoltage the Pi hit on a 4.9 V supply during the build (ADR-017); 5 A lets the Pi 5 run USB peripherals at full current |
 
-**Ordered subtotal: est ~$1,237 (+4 unestimated adds) · paid $1,760.39
+**Ordered subtotal: est ~$1,237 (+6 unestimated adds) · paid $1,782.33
 (Amazon orders through 2026-08-20 + RobotShop $140.69 + $168.74 incl.
 shipping + Blue Robotics $54.94 incl. shipping + uxcell cables $6.47,
-2026-09-26 — per-order
+2026-09-26 + Active Cooler and bench PSU $21.94, 2026-09-27 — per-order
 figures in git history).**
 
 ## Core, pending
@@ -145,8 +147,9 @@ tool serving other projects too, so it doesn't count against the vehicle cost.
 | ELEGOO PLA+ 1.75 mm, white 1 kg | 1 | Amazon (ELEGOO Official US) | 13.24 | received | 1 spool. General purpose |
 | Spurtar vernier caliper, 150 mm, steel | 1 | Amazon (Wittyware) | 16.97 | received | The one to trust for dimensions that drive the CAD — flange OD, thruster OD, ESC brick |
 | Ultrassist plastic vernier calipers, 150 mm ×2 | 1 | Amazon (Ultrassist) | 6.99 | received | One for Isabelle to learn on. The other kept for the shop: plastic is **non-conductive**, which is the right property for measuring around live LiPo terminals |
+| YISHU 6 ft surge-protected power strip, 8 outlets + 4 USB | 1 | Amazon (QINGLIANFENG TECH) | 11.99 | ordered | 2026-09-27, arriving 2026-09-28. Bench power |
 
-**Shop tooling subtotal: $471.38 · out of pocket $395.33** (rewards points −$76.05)
+**Shop tooling subtotal: $483.37 · out of pocket $407.32** (rewards points −$76.05)
 
 Still pending for the print shop: **ASA 1 kg** (~$20 — exterior ROV brackets,
 UV-stable; needs the enclosure + ventilation), desiccant/dry bags for
@@ -185,15 +188,15 @@ part: reprint it in PETG or ASA before it goes in the build.
 
 | | Est $ | Paid $ |
 |---|---|---|
-| Ordered | ~1,237 | 1,760.39 |
+| Ordered | ~1,237 | 1,782.33 |
 | Core pending | ~205–310 | |
 | Small parts pending | ~115 | |
 | Field gear pending | ~55 | |
-| **Paid + pending (6 thrusters, no options)** | **~$2,135–2,240** | |
-| Shop tooling (excluded from above) | | 395.33 out of pocket (471.38 list) |
+| **Paid + pending (6 thrusters, no options)** | **~$2,155–2,260** | |
+| Shop tooling (excluded from above) | | 407.32 out of pocket (483.37 list) |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
-build (≈4×). The projection is Paid ($1,760.39, a known number) plus pending
+build (≈4×). The projection is Paid ($1,782.33, a known number) plus pending
 estimates ($375–480); ordered items ran ~25% over their estimates, so pending
 items may too. (Corrected 2026-08-20 per design review M1 — the earlier
 "$1,550–1,700" summary mixed estimates for items whose real prices were
