@@ -254,9 +254,11 @@ vehicle hardware rather than a stand-in.
 - [x] **B0444 sensor row direction** relative to the connector edge — rows
       run parallel to it (along the 25 mm side); cables-up is upright.
       Inferred from bench frames, `cad/README.md` §1
-- [ ] **Lens entrance pupil**, roughly — rotate a camera about a vertical
-      axis and find the point with no parallax; or leave it to the stage-2
-      wet tune
+- [x] **Lens entrance pupil** — **left to the stage-2 wet tune** (decided
+      2026-09-27). Start with the pupil assumed ~3 mm behind the front
+      element and set the first spacer from that; the ±3 mm spacer range and
+      the counterbore margin absorb the error. Keep the chamfer on the
+      Ø16–18 through-hole in case the pupil lands behind the outer face
 - [ ] **`stereoBase`: stay at 74 or go wider (≤ ~95)?**
 - [ ] Bar30 on the front lid or the rear?
 
