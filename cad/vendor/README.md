@@ -10,7 +10,10 @@ get each one.
 
 ## B0444 key dimensions (read from the STEP, mm)
 
-Verify against a real board with calipers before trusting them for a fit.
+Checked against a real board with calipers on 2026-09-27 (`cad/README.md` §1):
+board 25.1 × 24.4 × 1.7, holes 21.05 × 12.55 at ~Ø2.0, lens front 17.0 above
+the board at the current focus, back-side parts 2.2, barrel Ø14.0. Use the
+measured values where they differ.
 
 - Board 25 × ~24, 1.6 thick, R2 corners — the Raspberry Pi Camera v2 footprint
 - Mounting holes Ø2.2 (M2), **21 × 12.5** pattern — also the Pi Camera v2 pattern

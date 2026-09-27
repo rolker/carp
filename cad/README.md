@@ -24,16 +24,24 @@ then carry them into the docs (the way the 71.9 flange went into
 
 | Measurement | Value (mm) | Notes |
 |---|---|---|
-| Dome height `H`, flange back face → apex | | |
-| Dome glass OD `2R` | | Dome centre sits `H − R` in front of the flange back face, if it is a true hemisphere |
-| Dome glass ID at the flange | | Upper limit on the lid hole before it vignettes |
-| Dome flange thickness | | Listed as 3/8" (9.5) |
-| B0444 board width × height | | STEP says 25 × ~24 |
-| B0444 hole pattern | | STEP says 21 × 12.5, Ø2.2 |
-| B0444 lens front above board front face | | STEP says ~16; changes with focus |
-| B0444 lens barrel OD | | STEP says ~14 |
-| B0444 back-side component height | | STEP says ~2 |
-| B0444 connector + ribbon stub past board edge | | STEP says ~8 |
+| Dome height `H`, flange back face → apex | 26.7 ± 0.2 | Straightedge bridged across both domes (2026-09-27): rule on edge 46.1 − 19.6 = 26.5; rule flat 27.6 − 0.7 = 26.9 |
+| Dome glass OD `2R` | 52.4 | Taken 1 mm above the flange front face (2026-09-27); glass narrows right away, no cylindrical skirt |
+| Dome glass ID at the flange | 47.25 | Measured 2026-09-27 from the back. Wall (52.4 − 47.25) / 2 ≈ 2.6 |
+| Dome flange thickness | 2.0 | Measured 2026-09-27. The listed 3/8" flange is the radial width: (71.9 − 52.4) / 2 = 9.75 |
+| B0444 board width × height | 25.1 × 24.4 | Measured 2026-09-27. STEP says 25 × ~24 |
+| B0444 hole pattern | 21.05 × 12.55, Ø≈2.0 | 2026-09-27, caliper spans (outer / inner): 21-dir 23.1 / 19.0 → 21.05, Ø 2.05; 12.5-dir 14.5 / 10.6 → 12.55, Ø 1.95. Matches STEP (21 × 12.5). Two earlier 12.5-dir readings (14.7 / 11.55, 14.55 / 11.5) gave ~13.1 but an impossible Ø ~1.55 — bad inner span, discarded. STEP lists Ø2.2 |
+| B0444 lens front above board front face | 17.0 | 2026-09-27, at current focus: lens front → PCB back 18.7 − PCB 1.7. STEP says ~16; changes with focus |
+| B0444 lens barrel OD | 14.0 | Measured 2026-09-27. STEP says ~14 |
+| B0444 back-side component height | 2.2 | Measured 2026-09-27. STEP says ~2 |
+| B0444 connector + ribbon stub past board edge | 8 (design) | 2026-09-27: 12.5 with a loose bend; can be bent to the STEP's ~8. Design to 8 and have the carrier hold the bend (clamp behind the connector) so the ribbon cannot pull on the latch |
+
+**Dome centre (from the rows above):** sagitta from the OD point (3.0 above
+the flange back face): h = 26.7 − 3.0 = 23.7, r = 26.2, so
+R = (h² + r²) / 2h = **26.3** — a hemisphere, to measuring accuracy. The
+centre of curvature sits **H − R ≈ 0.4 in front of the flange back face**,
+i.e. on the lid's outer face (plus any gasket under the flange). The 2 mm
+flange cannot clip the 141° cone: the edge ray (70.5°) leaves the glass
+~8.8 above the centre, well clear of the flange top at ~1.6.
 
 - [ ] **Sensor row direction:** photograph a horizontal edge with the
       connector down. Do the pixel rows run along the 25 mm side? Result:
@@ -91,7 +99,7 @@ One document, `CARP`:
 |---|---|
 | **Variable Studio** `Housing` | Driving variables (list below) |
 | **Part Studio** `B0444` | Imported STEP from `vendor/` |
-| **Part Studio** `Dome` | Simple model from the measurements: flange disc + hemisphere, dome centre marked as a mate connector |
+| **Part Studio** `Dome` | Simple model from the measurements: 2.0 flange disc + R 26.3 hemisphere, centre ~0.4 in front of the flange back face, marked as a mate connector |
 | **Part Studio** `Front` | Multi-part: layout sketch, lid, carrier, spacers, stand-in plate |
 | **Assembly** `Front check` | Two cameras + two domes placed on the parts; clearances and axis alignment |
 
@@ -121,11 +129,17 @@ forward along the optical axes (vehicle X), Z up. Same convention as
 | `camHoleX` | 21 mm | B0444 hole pattern |
 | `camHoleY` | 12.5 mm | B0444 hole pattern |
 | `camAxisOffset` | 1.3 mm | Hole-pattern centre to optical axis, toward the connector |
-| `camBoardW` | 25 mm | |
-| `camBoardH` | 24 mm | |
-| `camLensFront` | 16 mm | Board front face to lens front |
-| `domeH` | _measure_ | |
-| `domeR` | _measure_ | |
+| `camBoardW` | 25.1 mm | Measured |
+| `camBoardH` | 24.4 mm | Measured |
+| `camLensFront` | 17 mm | Board front face to lens front, measured at current focus |
+| `camHoleD` | 2.0 mm | Measured (STEP 2.2) |
+| `camConnReach` | 8 mm | Connector + tightly bent ribbon past the board edge |
+| `domeH` | 26.7 mm | Flange back face → apex, measured 2026-09-27 |
+| `domeR` | 26.2 mm | Glass OD 52.4 / 2; sagitta gives 26.3 — hemisphere |
+| `domeFlangeT` | 2.0 mm | Measured |
+| `lidHoleD` | 17 mm | Through-hole for the Ø14 barrel; 16–18 |
+| `lidCboreD` | 52 mm | Counterbore from the inside for board + connector |
+| `lidCboreDepth` | 8 mm | Board needs 4.5–7.5; rest is tune margin |
 | `spacerT` | 3 mm | Starting guess; set per camera by the wet tune |
 
 ## 3. Build order inside `Front`

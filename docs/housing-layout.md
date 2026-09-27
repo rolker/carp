@@ -217,7 +217,7 @@ rough; the two dome holes add maybe 1.5–2× to the front lid's flex.
   it is 3/8" 6061), or a custom-cut 8 × 8 of 3/8" 6061-T651, drilled with the
   same jig as the acrylic. The jig locates from its own first hole (drill,
   pin, drill the rest), not the outline; steel or brass bushings in the
-  printed body; flips on plugs in the Ø52 dome holes for the inner-face holes.
+  printed body; flips on plugs in the Ø52 camera counterbores for the inner-face holes.
 - **If 3/8" aluminium:** 6061-T6 (5052 only if salt water becomes routine),
   check flatness with a straightedge (< 0.1 across the seal; MIC-6 if not),
   anodise and use Tef-Gel on stainless threads. The re-quote should carry
@@ -240,7 +240,7 @@ Build the sketch on these, not on typed-in numbers. Assumed values are flagged
 | `tubeID` | 154.1 | `tubeOD - 2*tubeWall` |
 | `tubeLen` | 400 | derived, see bay stack |
 | `flangeOD` | 71.9 | **Measured 2026-09-26** (calipers) — over the 70 assumed, see below |
-| `domeGlassOD` | 50 | SupremeTech 2" |
+| `domeGlassOD` | 52.4 | **Measured 2026-09-27** — hemisphere R 26.3, flange 2.0 thick (`sled.md`) |
 | `stereoBase` | 74 | set by bore + measured flange, see "Measured flange" — **74 is now the minimum, ~95 the maximum** (`sled.md`) |
 | `lidT` | 19.05 | 3/4" cast acrylic; 9.53 if the front goes to 3/8" aluminium |
 | `lidSize` | 203.2 | 8" square (acrylic) or 8" disc (aluminium) — outline is free |
@@ -298,8 +298,11 @@ tubeLen = domeIntrusion + packL + elecL + escL + capAllow
 
 `sled.md` reorders the bays front to back as cameras → electronics → packs →
 ESCs (was packs ahead of electronics), so the camera ribbons stay short and
-far from the ESCs. The sum is unchanged; `domeIntrusion` becomes the
-camera carrier's depth behind the lid once the dome centre is measured.
+far from the ESCs. The sum is unchanged. The dome centre is now measured
+(on the lid's outer face, `sled.md`): on the acrylic lid the boards sit inside
+the lid's thickness, so `domeIntrusion` is just the carrier and ribbon bends
+behind the inner face — 30 is a comfortable allowance until the carrier is
+drawn.
 
 ## Measure before cutting
 

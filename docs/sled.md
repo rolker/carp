@@ -53,9 +53,10 @@ than any baseline error does.
 
 **Holding each board**
 
-- M2 screws through the board's Ø2.2 holes (21 × 12.5 pattern) into M2
-  heat-set inserts in the carrier. The hole play is about ±0.1 mm — inside the
-  lateral target, so no extra locating features on the board.
+- M2 screws through the board's holes (21 × 12.5 pattern, measured ~Ø2.0 —
+  the STEP says 2.2) into M2 heat-set inserts in the carrier. The play is
+  ≤ ±0.1 mm — inside the lateral target, so no extra locating features on the
+  board. Confirm an M2 screw passes before modelling around it.
 - The hole pattern sits 1.3 mm off the dome axis, toward the connector
   (`cad/vendor/README.md`: the optical axis is off-centre, away from the
   connector).
@@ -78,41 +79,52 @@ has the hardened nozzle). **Not PLA** — it creeps when warm, and this part
 lives next to a Pi that ran at 64–85 °C on the open bench (ADR-015). Rib it
 across the baseline; stiffness across that span is what holds relative aim.
 
-## The board may sit inside the lid
+## The board sits inside the lid
 
-Where the camera ends up fore-aft is set by where the dome's centre of
-curvature is, and that has not been measured. The chain:
+Measured 2026-09-27 (`cad/README.md` §1 has the readings and the arithmetic):
 
-- The lens entrance pupil goes at the dome centre. For a wide M12 lens the
-  pupil is a few mm behind the front element.
-- The lens front stands ~16 in front of the board (`cad/vendor/README.md`).
-- If the dome is a true hemisphere, its centre sits roughly on the flange's
-  glass base — i.e. near the lid's outer face, give or take the 3/8" flange.
+- **The dome is a hemisphere, R 26.3** (glass OD 52.4, ID 47.25, wall ~2.6).
+  Height from the flange's back face to the apex is 26.7, so the **centre of
+  curvature sits ~0.4 in front of the flange's back face** — on the lid's
+  outer face, plus any gasket under the flange.
+- **The flange is 2.0 thick.** The "3/8" flange" in the listing is its
+  radial width, (71.9 − 52.4) / 2 ≈ 9.75, not its thickness. The flange cannot
+  clip the 141° cone: the 70.5° edge ray leaves the glass ~8.8 above the
+  centre, the flange top is at ~1.6.
+- **The lens front stands 17.0 in front of the board** at the current focus
+  (the STEP said ~16), and the entrance pupil is a few mm behind the front
+  element.
 
-So the board's front face lands somewhere around 16–20 behind the lid's
-**outer** face. With the 3/4" (19 mm) acrylic lid, that is **inside the lid's
-thickness**: the board has to go into the dome hole. With the 3/8" (9.5 mm)
-aluminium upgrade it probably stays behind the inner face.
+So with the pupil at the dome centre, the board's front face lands **~12–15
+behind the lid's outer face**, and its back-side parts reach ~15.5–18.5. With
+the 3/4" (19 mm) acrylic lid the whole board sits **inside the lid's
+thickness**. With the 3/8" (9.5 mm) aluminium upgrade it sits behind the inner
+face.
 
 Two consequences:
 
-1. **The dome hole must pass the board and its connector** if the board goes
-   in. Measured from the optical axis (STEP numbers): 7.3 to the edge away
-   from the connector, 16.7 to the connector edge plus ~8 of connector and
-   ribbon stub, ±12.5 across. That needs about **Ø52** — close to the dome's
-   glass opening, and it leaves a ~5 mm land for the dome's O-ring inside its
-   Ø64.5 bolt circle. Tight but workable. A counterbore from the inside is the
-   fallback.
+1. **The camera hole is stepped, not straight.** The pupil sits at the outer
+   face and the whole field opens forward into the dome, so the outer part of
+   the lid only has to pass the **Ø14 lens barrel**: a **Ø16–18 through-hole**,
+   with a light chamfer on the outer edge in case the pupil turns out to sit
+   behind the face. The board, connector and ribbon go in a **Ø52 counterbore
+   from the inside, ~8 deep** (the board needs 4.5–7.5 of it; the rest is
+   margin for the fore-aft tune). From the optical axis the board reaches 7.3
+   away from the connector, 16.7 + 8 of connector and ribbon on the connector
+   side, ±12.5 across — Ø52 clears that and leaves ~5 of acrylic to the
+   dome's bolt holes. The **whole flange face stays intact** for the dome
+   seal, which a straight Ø52 hole would have cut down to a ~5 mm land.
+   - The 8 needs the ribbon **bent back tightly at the connector** — a 1–2 mm
+     radius, not a crease, a few mm clear of the latch, bent once. A loose
+     bend measured 12.5 and would push the counterbore to ~Ø58, 2 mm from the
+     bolt holes. The carrier clamps the ribbon behind the bend so a tug in
+     assembly can't unlatch or re-bend it.
 2. **Lid thickness is in the chain.** Swapping acrylic for aluminium moves
-   the camera ~9.5 mm relative to the inner face. Make `lidT` a driving
-   variable, and put the difference in one printed spacer between carrier and
-   lid, so the swap is a new spacer plus a re-tune, not a new carrier.
-
-**Measure first** (it decides all of the above): dome height `H` from the
-flange's back face to the apex, and glass OD `2R`. For a hemisphere the
-centre of curvature sits `H − R` in front of the flange's back face. Also
-check that with the pupil there, the 3/8" flange does not clip the edge of
-the 141° cone.
+   the camera ~9.5 mm relative to the inner face, and the counterbore goes
+   away. Make `lidT` a driving variable, and put the difference in one printed
+   spacer between carrier and lid, so the swap is a new spacer plus a re-tune,
+   not a new carrier. The carrier's board seats reach forward into the
+   counterbore on the acrylic lid.
 
 ## The baseline is no longer pinned
 
@@ -124,7 +136,7 @@ carrier have to be inside the pipe. The new limits:
 | Constraint | Limit on `stereoBase` |
 |---|---|
 | Flanges don't touch (`flangeGap >= 2`) | ≥ 74 |
-| Camera holes (Ø52) inside the pilot ring (~Ø147 ID) | ≤ ~95 |
+| Camera counterbores (Ø52) inside the pilot ring (~Ø147 ID) | ≤ ~95 |
 | Flanges inside an 8" lid (tie rods at 45° never interfere) | ≤ ~130 |
 | Carrier inside the pilot ring | ≤ ~112 |
 
@@ -220,22 +232,25 @@ vehicle hardware rather than a stand-in.
 
 ## Modelling order (Onshape)
 
-1. Lid: outline, pilot ring, tie-rod circle, dome holes and blind M2
+1. Lid: outline, pilot ring, tie-rod circle, stepped camera holes
+   (`lidHoleD` through, `lidCboreD` counterbore from inside) and blind M2
    patterns — driven by `stereoBase`, `boltCircle`, `lidT`, `rodCircle`.
    Model the drilling jig from the same sketch: one jig for acrylic and
    aluminium (`housing-layout.md`, "Endcaps").
 2. Domes (measured) and B0444 STEPs (`cad/vendor/`) placed, dome centre
-   marked.
+   marked on the lid's outer face.
 3. Carrier: camera pockets, 1.3 mm axis offset, spacer stack, dowels to lid.
 4. Stand-in plate for stage 1 (same hole pattern, printable).
 5. Tray, skids, disconnect positions — after the carrier works.
 
 ## Measure / decide before cutting the lid
 
-- [ ] **Dome height `H` and glass OD** — puts the dome centre, hence the
-      camera fore-aft and whether the board sits in the lid
-- [ ] **Dome glass inner opening at the flange** — upper limit on the lid
-      hole before it vignettes
+- [x] **Dome height `H` and glass OD** — 26.7 and 52.4, measured 2026-09-27:
+      hemisphere, centre on the lid's outer face, board inside the lid
+- [x] **Dome glass inner opening at the flange** — 47.25; moot now the lid
+      hole is stepped (Ø16–18 through, Ø52 counterbore from inside)
+- [x] **B0444 board, holes, lens height, connector** — measured 2026-09-27,
+      `cad/README.md` §1
 - [ ] **B0444 sensor row direction** relative to the connector edge (image a
       horizontal edge)
 - [ ] **Lens entrance pupil**, roughly — rotate a camera about a vertical
