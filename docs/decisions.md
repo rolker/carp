@@ -580,9 +580,9 @@ enabled in our tuning file (`build-libcamera.sh` adds it) and `SyncMode`
 server on cam0 / client on cam1 (launch default `sync:=true`), cam1 locked
 ~3.4 s after start and then held its sensor timestamps a median **23 µs**
 from cam0's (p99 50 µs, max 137 µs over 790 pairs at 1080p10; max 0.2 ms at
-1080p12), against 2–49 ms free-running. That is well under a line-scan's
-worth of rolling-shutter skew, so no hardware trigger is needed for stereo
-at ROV speeds. Frames from the first few seconds, before lock, are not
+1080p12), against 2–49 ms free-running. That is ~1.5 sensor lines (line
+time 14.8 µs), negligible next to the ~16 ms rolling-shutter readout both
+cameras share, so no hardware trigger is needed for stereo at ROV speeds. Frames from the first few seconds, before lock, are not
 paired; `camera_ros` does not surface libcamera's `SyncReady`, so drop
 them downstream by timestamp offset. Sync traffic is UDP multicast
 239.255.255.250:10000 on the default route (Wi-Fi on the bench) — confirm
