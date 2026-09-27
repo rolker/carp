@@ -38,6 +38,51 @@ then carry them into the docs (the way the 71.9 flange went into
 - [ ] **Sensor row direction:** photograph a horizontal edge with the
       connector down. Do the pixel rows run along the 25 mm side? Result:
 
+### Image orientation — which way up is upright?
+
+The bench tests ran with the boards' printing upside down and the cables
+up, and the images looked upright. Nothing in this repo rotates or flips
+(launch file, patches, scripts checked 2026-09-27), so one of:
+
+1. **The sensor is upright that way** — the board's natural orientation is
+   connector-up.
+2. **libcamera corrected it** — the overlay declares a `rotation`, and
+   camera_ros's default orientation makes libcamera compensate using the
+   sensor's own flip bits (no CPU cost, but it reverses the row readout
+   order).
+3. **The viewing step flipped it** — an ffmpeg/Python preview in the test
+   session, not the bag itself.
+
+Checks, on the Pi:
+
+```bash
+# 1. Does the overlay declare a rotation? (big-endian u32: 0 or 180)
+xxd /proc/device-tree/axi/pcie@120000/rp1/i2c@88000/arducam_pivariety@c/rotation
+
+# 2. With cameras.launch.py running: are the sensor flip bits set?
+for d in /dev/v4l-subdev*; do echo $d; v4l2-ctl -d $d --list-ctrls | grep -i flip; done
+
+# 3. Ground truth: cables up, camera pointed at a sheet with "TOP ↑" on it,
+#    view a frame decoded straight from the bag in a stock viewer.
+```
+
+| Result | Meaning |
+|---|---|
+| No rotation property, flips off | 1 — cables-up is upright |
+| Rotation 180, flips on | 2 — libcamera corrects for a connector-down board |
+| Bag frame upside down | 3 — the preview was flipped after the fact |
+
+- [ ] Rotation property: — Flip bits: — Bag frame upright?: —
+
+**For the carrier:** any orientation works as long as both boards are
+mounted the same way and both cameras run identical settings — that keeps
+the readout order matched for the sync. Pick cables-up or cables-down for
+ribbon routing to the Pi, then make the software match (camera_ros
+`orientation`) rather than bending the mount to suit. **Calibrate with the
+final orientation settings** — changing them afterwards invalidates the
+intrinsics. Update the "connector down" assumption above, and `sled.md`,
+once decided.
+
 ## 2. Onshape document structure
 
 One document, `CARP`:
