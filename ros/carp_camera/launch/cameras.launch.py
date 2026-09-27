@@ -99,6 +99,7 @@ def pipeline(context):
         namespace=NAMESPACE,
         package='rclcpp_components',
         executable='component_container_mt',
+        prefix=arg('container_prefix') or None,
         composable_node_descriptions=nodes,
         output='screen',
     )]
@@ -130,5 +131,8 @@ def generate_launch_description():
                               description='software stereo sync (rpi.sync)'),
         DeclareLaunchArgument('record', default_value='false'),
         DeclareLaunchArgument('bag_dir', default_value='~/bags'),
+        DeclareLaunchArgument('container_prefix', default_value='',
+                              description='command prefix for the container, '
+                              'e.g. a gdb wrapper'),
         OpaqueFunction(function=pipeline),
     ])

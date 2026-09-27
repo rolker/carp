@@ -2,9 +2,10 @@
 # Set up ~/ros2_ws for the camera pipeline and install its dependencies with
 # rosdep. Run as yourself, not root: rosdep asks for sudo where it needs it.
 #
-# The workspace holds camera_ros (source, pinned) and a symlink to this
-# repo's ros/carp_camera, whose package.xml lists the runtime pieces
-# (image_transport, ffmpeg_image_transport, rosbag2 MCAP storage).
+# The workspace holds camera_ros (source, pinned, with patches/camera_ros
+# applied) and a symlink to this repo's ros/carp_camera, whose package.xml
+# lists the runtime pieces (image_transport, ffmpeg_image_transport, rosbag2
+# MCAP storage).
 #
 # Skipped rosdep keys:
 #   libcamera  - camera_ros must use our patched build (build-libcamera.sh),
@@ -45,6 +46,14 @@ if [[ $(git -C "$cr" rev-parse HEAD) != "$CAMERA_ROS_COMMIT" ]]; then
     git -C "$cr" fetch -q origin
     git -C "$cr" checkout -q --detach "$CAMERA_ROS_COMMIT"
 fi
+for p in "$repo"/patches/camera_ros/*.patch; do
+    if git -C "$cr" apply --reverse --check "$p" 2>/dev/null; then
+        echo "Already applied: $(basename "$p")"
+    else
+        git -C "$cr" apply "$p"
+        echo "Applied: $(basename "$p")"
+    fi
+done
 ln -sfn "$repo/ros/carp_camera" "$WS/src/carp_camera"
 
 rosdep install --from-paths "$WS/src" --ignore-src -y \

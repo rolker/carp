@@ -1,0 +1,82 @@
+diff --git a/src/CameraNode.cpp b/src/CameraNode.cpp
+index 76ed413..317dfc2 100644
+--- a/src/CameraNode.cpp
++++ b/src/CameraNode.cpp
+@@ -89,8 +89,13 @@ private:
+   std::vector<std::thread> request_threads;
+   std::unordered_map<const libcamera::Request *, std::mutex> request_mutexes;
+   std::unordered_map<const libcamera::Request *, std::condition_variable> request_condvars;
++  // set by requestComplete, cleared by process; guarded by request_mutexes
++  std::unordered_map<const libcamera::Request *, bool> request_ready;
+   std::atomic<bool> running;
+ 
++  void
++  stop_request_threads();
++
+   struct buffer_info_t
+   {
+     void *data;
+@@ -606,6 +611,7 @@ CameraNode::CameraNode(const rclcpp::NodeOptions &options)
+     // create mutexes in-place
+     request_mutexes[request.get()];
+     request_condvars[request.get()];
++    request_ready[request.get()] = false;
+     request_threads.emplace_back(&CameraNode::process, this, request.get());
+   }
+ 
+@@ -643,11 +649,7 @@ CameraNode::~CameraNode()
+   camera->requestCompleted.disconnect(this, &CameraNode::requestComplete);
+ 
+   // stop request processing threads
+-  running = false;
+-
+-  // unlock all threads
+-  for (auto &[req, condvar] : request_condvars)
+-    condvar.notify_all();
++  stop_request_threads();
+ 
+   // wait for all currently running threads to finish
+   for (std::thread &thread : request_threads)
+@@ -703,15 +705,28 @@ CameraNode::onDisconnect()
+     pub_diagnostics->publish(diagnostic_array);
+   }
+ 
++  stop_request_threads();
++}
++
++void
++CameraNode::stop_request_threads()
++{
+   running = false;
+-  for (auto &[req, condvar] : request_condvars)
++
++  // Notify under each request's mutex: a thread that is busy with a frame
++  // re-checks 'running' before it waits again, and one about to wait cannot
++  // miss the wakeup, so join() cannot hang on a lost notification.
++  for (auto &[req, condvar] : request_condvars) {
++    std::lock_guard lk(request_mutexes.at(req));
+     condvar.notify_all();
++  }
+ }
+ 
+ void
+ CameraNode::requestComplete(libcamera::Request *const request)
+ {
+   std::unique_lock lk(request_mutexes.at(request));
++  request_ready.at(request) = true;
+   request_condvars.at(request).notify_one();
+ }
+ 
+@@ -721,10 +736,11 @@ CameraNode::process(libcamera::Request *const request)
+   while (true) {
+     // block until request is available
+     std::unique_lock lk(request_mutexes.at(request));
+-    request_condvars.at(request).wait(lk);
++    request_condvars.at(request).wait(lk, [&] { return !running || request_ready.at(request); });
+ 
+     if (!running)
+       return;
++    request_ready.at(request) = false;
+ 
+     // prepare message header
+     std_msgs::msg::Header hdr;
