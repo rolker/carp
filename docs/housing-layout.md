@@ -50,6 +50,13 @@ At 75 mm the flanges land **inside the bore**, not merely inside the tube OD.
 So the front plate is a plain disc sealing in the pipe — option C's
 oversized-flange fabrication risk never appears.
 
+> **Superseded by the endcap proposal below (2026-09-27).** A disc sealing
+> *in* the pipe is a radial seal against the bore — the one prior-art.md says
+> fails on out-of-round PVC. The proposal puts a flat lid *on* the pipe end
+> instead, with the domes on its outside face, and that removes the reason the
+> bore pinned the baseline: see `sled.md`, "The baseline is no longer
+> pinned". The table and the 74 below still hold as the minimum.
+
 ### Measured flange: 71.9 — baseline moves to 74 mm
 
 The table above assumed a ~Ø70 flange. Measured (2026-09-26) it is **71.9**:
@@ -90,10 +97,13 @@ Thruster numbering is ArduSub motor outputs, matching the matrix in
 | 2 | Horizontal stbd | Y +134, low, amidships-aft |
 | 3 | Vertical fwd-port | X +150, Y −134 |
 | 4 | Vertical fwd-stbd | X +150, Y +134 |
-| 5 | Vertical aft-centre | X −320, centreline |
-| 6 | Lateral | X −240, **Z −30 — the CG datum**, aft of the rear cap |
+| 5 | Vertical aft-centre | X −339, centreline |
+| 6 | Lateral | X −259, **Z −30 — the CG datum**, aft of the rear cap |
 
-Verticals 3/4/5 form the triangle at **470 mm fore-aft separation** — better
+Outputs 5 and 6 moved aft 19 mm (from −320 / −240) when the rear cap became
+a 19 mm lid on the pipe end — see "Endcaps".
+
+Verticals 3/4/5 form the triangle at **489 mm fore-aft separation** — better
 than the 400 mm the pitch-authority calculation in `frame-and-mixing.md`
 assumes, so that calc is conservative here. Outputs 3 and 1 share a side rail, as do 4 and 2, so each side is one
 fabricated part carrying two thrusters.
@@ -137,6 +147,87 @@ fabricated part carrying two thrusters.
    thruster frame for camera aiming and then building option A means building
    the hull that makes aiming sluggish.
 
+## Endcaps — proposal
+
+**Status: proposal (2026-09-27).** Nothing bought. Replaces the "plain disc
+sealing in the pipe" above.
+
+**Both ends: a flat, square lid on the faced pipe end, held on by vacuum,
+with tie rods as backup.**
+
+- **Seal:** one O-ring lying on the pipe's end face (7.1 wide, centreline
+  Ø161). Both pipe ends faced flat and square — wet-sand on 800 grit over
+  glass, the Cave Pearl prep (prior-art.md). The lid face needs no prep;
+  cast acrylic is cast between glass.
+- **Clamp:** vacuum through the Schrader stem. 15 inHg on the Ø161 seal is
+  **~1,040 N** at the surface; 5 m of water adds about as much again. The
+  vacuum test that ADR-001 makes the gate is also the closure: pull 15 inHg,
+  watch it hold, done.
+- **Pilot ring**, printed, fixed to the lid's inner face (blind holes): drops
+  into the bore to centre the lid, carries a clocking pin, and has a thin
+  shoulder that backs the O-ring's inside edge (outside pressure pushes the
+  O-ring inward, onto it) and acts as the compression stop. It is not
+  pressure boundary, so FDM is fine. **Bench check:** does 15 inHg pull the
+  lid down to the stop?
+- **Tie rods:** four M6 on a **Ø184 circle at 45°**, outside the pipe (~5
+  clear of the OD). That circle fits both an 8" square and an 8" disc (~7 of
+  metal outside each hole), so the lid outline is free and one drilling jig
+  serves acrylic squares and aluminium discs alike. Nuts set on fixed
+  spacers ~1 mm off the lid — they keep a lid from leaving if the vacuum
+  bleeds away in the kayak; they must never clamp, or they override the
+  O-ring squeeze. Opening the front is: crack the Schrader, undo the four
+  front nuts. The rear nuts stay put.
+- **Relief for free:** a swelling pack or a hot Pi lifts the lid before the
+  tube becomes a pressure vessel — the relief path ADR-013 and
+  `power-budget.md` ask for. Crack the Schrader before opening, as ADR-013
+  already says.
+- **Leak monitor for free, probably:** the Pixhawk's onboard barometer reads
+  hull pressure. Rising internal pressure during a dive is a leak, well
+  before the SOS probes get wet. Unverified: confirm the Radiolink board has
+  one and that ArduSub logs it.
+
+**Front** is the service end: domes on its outside face, the sled on its
+inside face (`sled.md`). **Rear** is hardly ever opened: penetrators, the
+Schrader stem, and perhaps the ESCs as a heat path if the lid is aluminium.
+A flat lid is a better penetrator face than a PVC cap's slight dome, and it
+comes straight off without twisting cables — which rules out the threaded
+cleanout plug, where every penetrator turns with the plug.
+
+**Material: 3/4" cast acrylic, 8 × 8", both ends (~$40 each).** Clear, so the
+O-ring contact, condensation and leak probes are visible. Aluminium only if
+the sealed thermal soak says the Pi needs a heatsink — then **the front lid
+only**, same outline and holes.
+
+| Lid | Centre flex, 1 bar | Peak stress | Weight (air / net in water) | Cost |
+|---|---|---|---|---|
+| **3/4" cast acrylic** | ~0.13 mm | ~2.2 MPa (~7 at a hole; acrylic crazes ~10 sustained) | 0.93 / 0.15 kg | ~$40 per 8 × 8 |
+| 1/4" 6061-T6 | ~0.16 mm | ~20 MPa (yield 276) | 0.71 / 0.45 kg | — |
+| **3/8" 6061-T6** (front upgrade) | ~0.05 mm | ~9 MPa | 1.06 / 0.67 kg | SendCutSend, 2 × 8.5", 4 holes, anodised: ~$200 (quoted 2026-09-27, with 2-off discount) |
+
+1 bar = surface vacuum plus 5 m. Simply-supported plate on the Ø161 seal —
+rough; the two dome holes add maybe 1.5–2× to the front lid's flex.
+
+- **Rejected on cost for v1:** the Blue Robotics 6" O-ring flange ($90 per
+  end, plus a cap) epoxied into the bore — its radial O-rings are sized for
+  BR's 151.9 ± 1.5 bore, not sched-40's 154.1. Revisit for v2.
+- **Rejected:** HDPE (epoxy won't bond, so penetrator pots fail; creeps);
+  single-layer 0.22" extruded acrylic (~13 MPa at the surface, cracks at
+  holes); 6 × 6 sheet (smaller than the 154.1 bore).
+- **Cheaper aluminium route:** Online Metals 8" discs (~$60 each; confirm
+  it is 3/8" 6061), or a custom-cut 8 × 8 of 3/8" 6061-T651, drilled with the
+  same jig as the acrylic. The jig locates from its own first hole (drill,
+  pin, drill the rest), not the outline; steel or brass bushings in the
+  printed body; flips on plugs in the Ø52 dome holes for the inner-face holes.
+- **If 3/8" aluminium:** 6061-T6 (5052 only if salt water becomes routine),
+  check flatness with a straightedge (< 0.1 across the seal; MIC-6 if not),
+  anodise and use Tef-Gel on stainless threads. The re-quote should carry
+  the whole front hole layout — the dome centres at `stereoBase` are the
+  holes worth paying for, not the corners.
+
+**Before ordering:** pick the O-ring (AS568 2-series, 0.139" cord, ID about
+6.2" to sit mid-face) and check the corner rods and nuts against thrusters 1,
+2 and 6.
+
 ## Onshape driving variables
 
 Build the sketch on these, not on typed-in numbers. Assumed values are flagged
@@ -150,14 +241,18 @@ Build the sketch on these, not on typed-in numbers. Assumed values are flagged
 | `tubeLen` | 400 | derived, see bay stack |
 | `flangeOD` | 71.9 | **Measured 2026-09-26** (calipers) — over the 70 assumed, see below |
 | `domeGlassOD` | 50 | SupremeTech 2" |
-| `stereoBase` | 74 | set by bore + measured flange, see "Measured flange" |
+| `stereoBase` | 74 | set by bore + measured flange, see "Measured flange" — **74 is now the minimum, ~95 the maximum** (`sled.md`) |
+| `lidT` | 19.05 | 3/4" cast acrylic; 9.53 if the front goes to 3/8" aluminium |
+| `lidSize` | 203.2 | 8" square (acrylic) or 8" disc (aluminium) — outline is free |
+| `rodCircle` | 184 | tie rods at 45°; fits both outlines |
+| `sealDia` | 161.2 | O-ring centreline, mid pipe-end face: `(tubeOD + tubeID)/2` |
 | `boltCircle` | 64.5 | **Measured 2026-09-26** — 6 holes, ~Ø2.0 |
 | `thrusterOD` | 70 | **ASSUMED — measure** |
 | `thrusterLen` | 130 | **ASSUMED — measure** |
 | `escL/W/H` | 75/30/15 | **ASSUMED — measure** |
 | `packL/W/H` | 155/50/37 | `power-budget.md` |
 | `railClear` | 15 | chosen |
-| `vertSep` | 470 | driven by the tail arrangement |
+| `vertSep` | 489 | driven by the tail arrangement |
 | `cgZ` | −30 | ≈ BG below hull axis; **verify by float test** |
 
 **Driven, not typed:**
@@ -166,9 +261,9 @@ Build the sketch on these, not on typed-in numbers. Assumed values are flagged
 railY        = tubeOD/2 + thrusterOD/2 + railClear      -> 134
 frameW       = 2*(railY + thrusterOD/2)                 -> 338
 out6Z        = cgZ                                      -> -30
-out6X        = -(tubeLen/2 + thrusterOD/2 + 5)          -> -240
-out5X        = out6X - thrusterOD - 10                  -> -320
-vertSep      = 150 - out5X                              -> 470
+out6X        = -(tubeLen/2 + lidT + thrusterOD/2 + 5)   -> -259
+out5X        = out6X - thrusterOD - 10                  -> -339
+vertSep      = 150 - out5X                              -> 489
 domeHalfSpan = stereoBase/2 + flangeOD/2                -> 72.95
 boreClear    = tubeID/2 - domeHalfSpan                  -> 4.1
 flangeGap    = stereoBase - flangeOD                    -> 2.1
@@ -182,6 +277,9 @@ boreClear >= 4        (front plate seals inside the pipe)
 flangeGap >= 2        (flanges do not touch, with tolerance; bolts are inside the flange)
 out6Z     == cgZ      (strafe roll couple stays at zero)
 ```
+
+With the endcap proposal, `boreClear` gives way to "the camera holes fit
+inside the pilot ring" (`sled.md`); keep `flangeGap`.
 
 `out6Z == cgZ` is the one that will drift: CG moves every time ballast or a
 component moves. Re-check it after the float test rather than trusting the
@@ -198,6 +296,11 @@ tubeLen = domeIntrusion + packL + elecL + escL + capAllow
 - `elecL` 120 — Pi 5 and Pixhawk side by side, 106 of the 154 bore
 - `escL` 80 — six ESCs ringed against the wall, not stacked in line
 
+`sled.md` reorders the bays front to back as cameras → electronics → packs →
+ESCs (was packs ahead of electronics), so the camera ribbons stay short and
+far from the ESCs. The sum is unchanged; `domeIntrusion` becomes the
+camera carrier's depth behind the lid once the dome centre is measured.
+
 ## Measure before cutting
 
 Four of these five are sitting in boxes waiting on the inventory pass.
@@ -213,6 +316,7 @@ Four of these five are sitting in boxes waiting on the inventory pass.
 
 ## Related
 
+- `sled.md` — camera mount, sled contents, stereo test plan
 - `frame-and-mixing.md` — the BlueROV1 matrix these positions come from
 - `open-questions.md` — the question this file answers
 - `power-budget.md` — pack dimensions, buoyancy accounting
