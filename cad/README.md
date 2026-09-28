@@ -145,9 +145,11 @@ designed around each other. Lid, carrier and stand-in all reference one
 layout sketch, so changing `stereo_baseline` moves everything together, and the
 drilling jig comes later from the same sketch.
 
-**Coordinates:** origin at the centre of the lid's **outer** face, +X
-forward along the optical axes (vehicle X), Z up. Same convention as
-`housing-layout.md`, so this drops into a vehicle assembly later.
+**Coordinates:** origin at the **front pipe end, on the tube axis** (= the front
+lid's inner face; `housing-layout.md`, "Coordinate frame"), +X
+forward along the optical axes (vehicle X), **Y to port**, Z up —
+right-handed, ROS REP-103, same as `housing-layout.md`, so this drops into a
+vehicle assembly (and a URDF export) later.
 
 ### Variable naming conventions
 
@@ -161,7 +163,7 @@ not update expressions that already use a name.
    `length`, `depth`, `spacing` (centre to centre), `offset`, `gap`,
    `clearance`. The only abbreviations are `min` and `max` (and `cg`).
    Say what is meant: `camera_hole_spacing_x`, not `camera_hole_x`.
-3. **Axes as a final `_x` / `_y` / `_z`** — vehicle frame (X forward, Z up)
+3. **Axes as a final `_x` / `_y` / `_z`** — vehicle frame (X forward, Y port, Z up)
    unless it is plainly a board's own axes.
 4. **Derived values are expressions,** not typed numbers:
    `tube_inner_diameter = tube_outer_diameter - 2 * tube_wall_thickness`.
@@ -209,6 +211,10 @@ not update expressions that already use a name.
 | `lid_hole_diameter` | 17 mm | Through-hole for the Ø14 barrel; 16–18 |
 | `lid_counterbore_diameter` | 52 mm | Counterbore from the inside for board + connector |
 | `lid_counterbore_depth` | 8 mm | Board needs 4.5–7.5; rest is tune margin |
+| `tube_length` | 400 mm | **Provisional** — bay stack total, `housing-layout.md` |
+| `camera_pupil_depth` | 3 mm | Lens front → entrance pupil. **Estimate**; the wet tune corrects it |
+| `dome_center_x` | `lid_thickness + dome_height - dome_radius` → ~19.5 mm | Derived: dome centre (and the camera pupils) in front of the origin |
+| `sled_tray_top_z` | −55 mm | Tray top below the axis; ≥ −58.6 so the 100-wide pack pair fits the bore |
 | `camera_spacer_thickness` | 3 mm | Starting guess; set per camera by the wet tune |
 | `camera_standoff_height` | 3 mm | Board standoffs; clear the 2.2 back-side parts |
 | `camera_pin_diameter` | 1.8 mm (placeholder) | *If* printed pins win: pin diameter for the Ø2.0 board holes — set from the coupon (1.8 / 1.85 / 1.9) |

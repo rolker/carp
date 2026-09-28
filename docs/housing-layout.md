@@ -91,17 +91,36 @@ sits in the 60–120 band optically. 73 buys more bore clearance but leaves
 Thruster numbering is ArduSub motor outputs, matching the matrix in
 `frame-and-mixing.md`.
 
+**Coordinate frame (CAD and ROS): X forward, Y to port, Z up** — right-handed,
+ROS REP-103 body frame, and what Onshape builds in. Fixed 2026-09-27: earlier
+revisions had port at −Y with Z up, a left-handed frame that would have
+modelled mirrored.
+
+**Origin: the front pipe end, on the tube axis** (= the front lid's inner
+face). Moved 2026-09-27 from the tube's mid-length. Like a ship's aft
+perpendicular and baseline, it is a physical datum fixed early that
+everything mates to: the lid seats on it, the sled hangs from it, the tube
+starts there. A lid-material change then moves only the lid's outer face and
+the domes and cameras with it (optics unchanged); a tube-length change moves
+only the rear. The tube runs from X = 0 to X = −`tube_length`. Z = 0 stays on
+the tube axis, where `cg_z` and the BG target are already quoted from. The
+dynamics frame — ArduPilot's, at the CG — is a fixed offset from this, set
+after the float test. ArduPilot's own body frame (forward-right-down) is a
+separate thing; the matrix factors in `frame-and-mixing.md` are in that
+frame and are unaffected.
+
 | Out | Role | Position |
 |---|---|---|
-| 1 | Horizontal port | Y −134, low, amidships-aft |
-| 2 | Horizontal stbd | Y +134, low, amidships-aft |
-| 3 | Vertical fwd-port | X +150, Y −134 |
-| 4 | Vertical fwd-stbd | X +150, Y +134 |
-| 5 | Vertical aft-centre | X −339, centreline |
-| 6 | Lateral | X −259, **Z −30 — the CG datum**, aft of the rear cap |
+| 1 | Horizontal port | Y +134, low, amidships-aft |
+| 2 | Horizontal stbd | Y −134, low, amidships-aft |
+| 3 | Vertical fwd-port | X −50, Y +134 |
+| 4 | Vertical fwd-stbd | X −50, Y −134 |
+| 5 | Vertical aft-centre | X −539, centreline |
+| 6 | Lateral | X −459, **Z −30 — the CG datum**, aft of the rear cap |
 
-Outputs 5 and 6 moved aft 19 mm (from −320 / −240) when the rear cap became
-a 19 mm lid on the pipe end — see "Endcaps".
+Outputs 5 and 6 moved aft 19 mm when the rear cap became a 19 mm lid on the
+pipe end — see "Endcaps". All X values are from the front pipe end (they
+read +150 / −339 / −259 from the old mid-tube origin).
 
 Verticals 3/4/5 form the triangle at **489 mm fore-aft separation** — better
 than the 400 mm the pitch-authority calculation in `frame-and-mixing.md`
@@ -261,9 +280,10 @@ Build the sketch on these, not on typed-in numbers. Assumed values are flagged
 rail_y                    = tube_outer_diameter/2 + thruster_diameter/2 + rail_clearance    -> 134
 frame_width               = 2*(rail_y + thruster_diameter/2)                                 -> 338
 thruster_6_z              = cg_z                                                             -> -30
-thruster_6_x              = -(tube_length/2 + lid_thickness + thruster_diameter/2 + 5)       -> -259
-thruster_5_x              = thruster_6_x - thruster_diameter - 10                            -> -339
-vertical_thruster_spacing = 150 - thruster_5_x                                               -> 489
+thruster_3_x              = -50  (chosen: front verticals, 50 behind the front pipe end)      -> -50
+thruster_6_x              = -(tube_length + lid_thickness + thruster_diameter/2 + 5)         -> -459
+thruster_5_x              = thruster_6_x - thruster_diameter - 10                            -> -539
+vertical_thruster_spacing = thruster_3_x - thruster_5_x                                      -> 489
 dome_half_span            = stereo_baseline/2 + dome_flange_diameter/2                       -> 72.95
 bore_clearance            = tube_inner_diameter/2 - dome_half_span                           -> 4.1
 dome_flange_gap           = stereo_baseline - dome_flange_diameter                           -> 2.1
