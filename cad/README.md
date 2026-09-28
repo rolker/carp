@@ -1,5 +1,9 @@
 # CAD
 
+> **Decided vs proposed:** most of this file is agent proposals from design
+> discussion, not approved decisions. `docs/open-questions.md` lists which
+> is which — check it before treating anything here as settled.
+
 Onshape is the CAD tool; the Centauri Carbon 2 prints the parts. This file
 is the working plan for turning `docs/sled.md` and `docs/housing-layout.md`
 into a printable stereo camera carrier. Trim it as the steps get done.

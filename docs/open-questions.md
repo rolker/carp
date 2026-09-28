@@ -1,5 +1,41 @@
 # Open Questions
 
+## Sled, endcaps and CAD — decided vs proposed (2026-09-27)
+
+Much of `sled.md`, the endcap proposal in `housing-layout.md` and
+`cad/README.md` was written by an agent in design discussion. **Only the
+first list below has Roland's approval.** Everything else is a proposal —
+agents must not treat it as decided, build on it silently, or describe it
+as settled. Visual: the "CARP Front-End Layout" artifact (side and front
+views, cables up/down).
+
+**Decided (Roland):**
+
+- Domes stay on the front plate; cameras go on the sled so their cables
+  connect outside the ROV.
+- Rear end vacuum-held as well, with a mechanical backup, hardly ever
+  opened.
+- Aluminium lids are not v1 (cost); revisit later.
+- CAD/ROS frame X forward, Y port, Z up; origin at the front pipe end on the
+  tube axis.
+- Onshape variable names: snake_case, whole words (`cad/README.md`).
+- Camera board seats are print-only; which print-only method is open.
+- The bench rig should mirror the vehicle layout.
+
+**Proposed, not approved:**
+
+- Front lid vacuum-held on the pipe end with an O-ring, printed pilot ring,
+  M6 tie rods on a 184 mm circle; 3/4" cast acrylic, 8" square.
+- Bay order cameras → electronics → packs → ESCs; packs ride on the sled;
+  the disconnect list; Bar30 on the front lid.
+- Tray top at Z −55; `tube_length` 400.
+- Stepped lid hole (Ø17 through, Ø52 × 8 counterbore) and the camera
+  position chain (pupil 3 mm behind the lens front, board inside the lid).
+- Stereo baseline stays 74 (could go to ~95).
+- Board-seat method (rails, pins + retainer, thumb-nut retainer, …).
+- Cables up or down — **open, leaning up** (Roland).
+- Internal fan, Active Cooler, thermal soak before any aluminium.
+
 ## Blocking the build
 
 **~~Thruster count: 4 or 6?~~ Resolved by purchase — six ordered 2026-08-19.**

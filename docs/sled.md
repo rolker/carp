@@ -6,6 +6,10 @@ the domes, and how to test stereo before there is a housing to put it in.
 **Status: proposal (2026-09-27).** Nothing drawn yet. The endcaps it hangs
 from are in `housing-layout.md`, "Endcaps".
 
+> **Decided vs proposed:** most of this file is agent proposals from design
+> discussion, not approved decisions. `docs/open-questions.md` lists which
+> is which — check it before treating anything here as settled.
+
 ## The idea in one paragraph
 
 The front lid carries the domes on its outside face and the whole sled on its
