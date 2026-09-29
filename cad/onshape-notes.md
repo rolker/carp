@@ -97,6 +97,31 @@ Onshape documents don't expose anything new.
   (`docs/sled.md`: both boards must be identical, not mirrored).
 - Units: everything in this repo is mm; say so in every dimension you hand
   the user.
+- **Printed threads: the Plastic Thread custom feature** (william_knoblauch,
+  [doc](https://cad.onshape.com/documents/7a5d17f7ab4323f51774364f/v/40e5786c17172c1c23f38138/e/31ca9e4b737302343e72270b)).
+  Onshape's Hole threads are cosmetic only. Add it by pasting that link in
+  *Add custom features → Other documents*; searching "plastic threads"
+  mostly finds greyed-out documents that only use it. Select the stud's
+  cylinder and the nut's hole together so the threads match; presets
+  Close / Normal / Loose.
+  - **Draw the hole at the nominal size (Ø6 for M6), not the minor
+    diameter.** The feature builds the internal thread around the selected
+    hole; a Ø4.9 hole gave an "M4.9" nut that interfered with the M6 stud
+    by ~0.5 on diameter (coupon B, 2026-09-28).
+  - Its *View* panel (pitch, TPI, min layer) is read-only and did not
+    reflect the Advanced-tab inputs (showed 3.175 pitch for a 1 mm thread,
+    min layer blank). Measure the geometry instead.
+  - Measured clearance on M6 × 1.0 (radial, per side): Close 0.22, Normal
+    0.28, Loose 0.33.
+- **Copy-pasted sketch text keeps the original string** — edit every
+  pasted label (coupon A shipped three "1.85" pin labels at first).
+- **A sketch hides itself once a feature consumes it.** To reference its
+  geometry from a later sketch (e.g. a pattern centreline), show it with
+  the eye icon in the feature list.
+- **Check exported STLs locally.** The user's Windows Downloads is
+  `/mnt/c/Users/roland/Downloads/`; parse the binary STL in Python
+  (bounding box, Z levels, per-part split by shared vertices, thread radii)
+  — it caught a 5 mm-for-0.5 mm pin height and the undersized nut threads.
 
 ## Sources
 

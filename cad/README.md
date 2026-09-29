@@ -15,7 +15,9 @@ into a printable stereo camera carrier. Trim it as the steps get done.
   in daily bench use. Its two pins beside the corner pins, at (3.5, 9.5) and
   (61.5, 46.5), sit in the Pi 5's **Active Cooler mounting holes** — cut them
   off or reprint without them before fitting the cooler, and keep the space
-  under those holes clear for the cooler's push-pin tips)
+  under those holes clear for the cooler's push-pin tips;
+  `coupon_a_c1.stl` and `coupon_b1.stl`: the 2026-09-28 tolerance
+  coupons, §4)
 - `onshape-notes.md` — Onshape plans, API limits, AI/MCP options and 2026
   changes, for agents (researched 2026-09-27)
 
@@ -255,15 +257,40 @@ not update expressions that already use a name.
 
 - **PLA+ for stage 1** — it is bench only (`docs/bom.md` material rule).
   Reprint in PETG before it goes in the vehicle.
-- **Print a tolerance coupon first:** holes and pins at ±0.1–0.3 around
-  nominal. For the print-only seats: **rail grooves** at 1.7 + 0.1 / 0.2 /
-  0.3, **printed pins** at Ø1.8 / 1.85 / 1.9 (board holes are Ø2.0), one
-  **cantilever latch** against its catch in PETG, and a **printed nut on a
-  stud** (M6-class threads).
-  Printed holes come out undersized; cheaper than reprinting the carrier.
+- **Print a tolerance coupon first** — cheaper than reprinting the
+  carrier; it picks the board-seat method. Modelled 2026-09-28 in two Part
+  Studios (layout proposed by an agent, sizes are starting guesses):
+  - **`Coupon A`** (PLA+, one part, 110 × 60 × 8.5, plate down, no
+    supports; label "C1"):
+    - three **rail pairs**: walls 3 wide × 6.5 tall, lips 23.1 apart
+      (`camera_board_width - 2 * coupon_lip_width`), grooves 25.4 wide
+      (`camera_board_width + 0.3`) with the floor at
+      `camera_standoff_height`, groove height 1.7 + 0.1 / 0.2 / 0.3; end
+      stop at the back, board slides in connector end last
+    - three **pin pads**: Ø4 bosses × 3 on one diagonal of the 21 × 12.5
+      hole pattern, pins Ø1.80 / 1.85 / 1.90 × 2.2 (0.5 above a seated
+      board)
+    - embossed labels 0.4 high
+  - **`Coupon B`** (PETG, nine parts, 112 × 35 × 15, no supports,
+    0.12 layers for the threads):
+    - two **latches**, printed flat so the arm flexes in the bed plane:
+      arm 1.0 / 1.4 × 12, hook 0.8 over a 3 ramp, channel 8.2, rigid wall
+      2.5; one **catch** block 8 × 8.8 fits both (0.6 arm deflection)
+    - three **M6 × 1.0 stud + nut pairs** (Plastic Thread, ISO profile,
+      presets Close / Normal / Loose, labelled C / N / L): studs Ø6 × 12
+      on 12 × 12 × 3 bases, nuts 10 A/F × 5
+  - **Results** (fill in after printing):
+
+    | Test | Result |
+    |---|---|
+    | Rails +0.1 / +0.2 / +0.3 | 2026-09-28: +0.1 a bit too tight, +0.2 a bit loose |
+    | Pins 1.80 / 1.85 / 1.90 | 2026-09-28: all too small, board moves around |
+    | Latch 1.0 / 1.4 (20 cycles) | |
+    | Nut C / N / L | |
 - **Carrier printed board-seat faces down on the bed**, so both seats come
   out flat and coplanar — that is what sets relative aim. 4+ walls, ≥ 40%
-  infill.
+  infill. **Conflicts with rails or pins:** both stand up from the seat
+  face, so those methods print seat-side up (as coupon A does) — open.
 - **Hardware not yet bought** (not in `docs/bom.md`):
   - Nothing for the board seats — print-only (M2 × 6–8 screws + inserts
     only as a fallback)
