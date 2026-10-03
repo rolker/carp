@@ -57,16 +57,19 @@ than any baseline error does.
 
 **Holding each board**
 
-- **Print-only, method open** (2026-09-27). The mount has to hold each board
+- **Print-only: slide-in rails** (chosen 2026-10-02 from the tolerance
+  coupons, `cad/README.md` §4; print-only decided 2026-09-27). The mount has to hold each board
   *located and clamped* — no shift, rock or lift when the lens is turned for
   focus or a ribbon is tugged — or the calibration walks. For the bench rig
   stability is what matters (calibration measures where the boards are); the
   ≤ 0.2 lateral target only bites on the vehicle carrier, lens to dome.
   Candidates, all printed, none bought:
   - **Slide-in rails:** each board slides edgewise into two grooves
-    (board 1.7 + clearance) against an end stop, with a small printed detent
-    at the open end. One part, no separate retainer, located by edges and
-    groove. Needs ~1 mm of component-free board edge on the front — check in
+    (board 1.7 + 0.1, coupon A) against an end stop. Located by edges and
+    groove. Open end: a small printed detent, or a retainer held by a
+    printed nut (Close preset, coupon B) that could also clamp behind the
+    connector against ribbon pull — **open** (retainer suggested by Roland
+    2026-10-02). Needs ~1 mm of component-free board edge on the front — check in
     the STEP.
   - **Locate + snap-on retainer:** printed pins (two diagonal holes,
     Ø~1.8–1.9 in the Ø2.0 holes) or a shallow pocket locate; one PETG plate

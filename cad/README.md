@@ -37,9 +37,9 @@ print — the stage-1 air test rig.
   *Derived* feature (or rebuild it there) and join them with *Boolean →
   Union*, so the export is a single solid.
 - Drop the two cooler-hole pins; keep the four corner pins.
-- **Print-only camera seats, method open** (`docs/sled.md`, "Holding each
-  board"): slide-in rails, printed pins or a pocket + snap-on retainer, or a
-  retainer held by a printed thumb-nut. The coupon decides.
+- **Print-only camera seats: slide-in rails** (`docs/sled.md`, "Holding each
+  board"), chosen 2026-10-02 from the coupons (§4). Groove height from
+  coupon A.
 
 ## First target: camera carrier + stand-in plate
 
@@ -283,14 +283,13 @@ not update expressions that already use a name.
 
     | Test | Result |
     |---|---|
-    | Rails +0.1 / +0.2 / +0.3 | 2026-09-28: +0.1 a bit too tight, +0.2 a bit loose |
-    | Pins 1.80 / 1.85 / 1.90 | 2026-09-28: all too small, board moves around |
-    | Latch 1.0 / 1.4 (20 cycles) | |
-    | Nut C / N / L | |
-- **Carrier printed board-seat faces down on the bed**, so both seats come
-  out flat and coplanar — that is what sets relative aim. 4+ walls, ≥ 40%
-  infill. **Conflicts with rails or pins:** both stand up from the seat
-  face, so those methods print seat-side up (as coupon A does) — open.
+    | Rails +0.1 / +0.2 / +0.3 | 2026-09-28: +0.1 a bit too tight, +0.2 a bit loose. 2026-10-02: +0.1 works well after a few insertions — **use +0.1** |
+    | Pins 1.80 / 1.85 / 1.90 | 2026-09-28: all too small, board moves around. 2026-10-02: pins measure ~0.05 under design (1.90 → ~1.85) |
+    | Latch 1.0 / 1.4 (20 cycles) | 2026-10-02: both snap in and work, but hold weakly; 1.0 is weaker |
+    | Nut C / N / L | 2026-10-02: all thread smoothly, all wobble a little (L most, C least); all hold when snug |
+- **Carrier printed seat-side up** (rails stand up from the seat face, as on
+  coupon A). Both seats finish on the same top layer, so they come out flat
+  and coplanar. 4+ walls, ≥ 40% infill.
 - **Hardware not yet bought** (not in `docs/bom.md`):
   - Nothing for the board seats — print-only (M2 × 6–8 screws + inserts
     only as a fallback)

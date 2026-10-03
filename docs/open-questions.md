@@ -19,7 +19,8 @@ views, cables up/down).
 - CAD/ROS frame X forward, Y port, Z up; origin at the front pipe end on the
   tube axis.
 - Onshape variable names: snake_case, whole words (`cad/README.md`).
-- Camera board seats are print-only; which print-only method is open.
+- Camera board seats are print-only: slide-in rails (2026-10-02, after the
+  tolerance coupons, `cad/README.md` §4).
 - The bench rig should mirror the vehicle layout.
 
 **Proposed, not approved:**
@@ -32,8 +33,9 @@ views, cables up/down).
 - Stepped lid hole (Ø17 through, Ø52 × 8 counterbore) and the camera
   position chain (pupil 3 mm behind the lens front, board inside the lid).
 - Stereo baseline stays 74 (could go to ~95).
-- Board-seat method (rails, pins + retainer, thumb-nut retainer, …).
 - Cables up or down — **open, leaning up** (Roland).
+- What holds the board at the rails' open end: printed detent, or a
+  nut-held retainer (Roland's suggestion, 2026-10-02).
 - Internal fan, Active Cooler, thermal soak before any aluminium.
 
 ## Blocking the build
