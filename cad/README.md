@@ -66,6 +66,10 @@ then carry them into the docs (the way the 71.9 flange went into
 | B0444 lens barrel OD | 14.0 | Measured 2026-09-27. STEP says ~14 |
 | B0444 back-side component height | 2.2 | Measured 2026-09-27. STEP says ~2 |
 | B0444 connector + ribbon stub past board edge | 8 (design) | 2026-09-27: 12.5 with a loose bend; can be bent to the STEP's ~8. Design to 8 and have the carrier hold the bend (clamp behind the connector) so the ribbon cannot pull on the latch |
+| B0444 front-face edge clearance | ≥ 1 clear | 2026-10-02: nothing within 1 mm of the slid edges on the lens side — the rail lips (1.0 overlap) clear |
+| B0444 connector height | 2.3 proud of the back face | 2026-10-02. On the back (opposite the lens); the tallest back-side part, so it sets the 2.2 → 2.3 clearance. Ribbon leaves parallel to the board, straight out past the edge |
+| Stock camera cable reach | ~100 | 2026-10-02: usable distance from Pi 5 camera connector to board connector on the ~150 mm stock cables, allowing for the bends. Sets where the stereo bar sits relative to the Pi holder |
+| Active Cooler push-pin tips below the Pi board | 3.5 | 2026-10-02, measured before fitting. The holder must leave this clear under the two cooler holes |
 
 **Dome centre (from the rows above):** sagitta from the OD point (3.0 above
 the flange back face): h = 26.7 − 3.0 = 23.7, r = 26.2, so

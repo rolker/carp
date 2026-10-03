@@ -266,9 +266,9 @@ Build the sketch on these, not on typed-in numbers. Assumed values are flagged
 | `tie_rod_circle_diameter` | 184 | tie rods at 45°; fits both outlines |
 | `seal_diameter` | 161.2 | O-ring centreline, mid pipe-end face: `(tube_outer_diameter + tube_inner_diameter)/2` |
 | `dome_bolt_circle_diameter` | 64.5 | **Measured 2026-09-26** — 6 holes, ~Ø2.0 |
-| `thruster_diameter` | 70 | **ASSUMED — measure** |
-| `thruster_length` | 130 | **ASSUMED — measure** |
-| `esc_length/width/height` | 75/30/15 | **ASSUMED — measure** |
+| `thruster_diameter` | 70 | **Measured 2026-10-02** — matches the assumption, nothing moves |
+| `thruster_length` | 96 | **Measured 2026-10-02** (was 130 assumed) |
+| `esc_length/width/height` | 75/30/15 | **ASSUMED — measure.** The U2 cable carries a sealed Ø20 × 72 cylinder 150 mm from the thruster, then > 1 m to a blue waterproof circular plug (2026-10-02 photo). The plug has **3 pins** (~5 mm spacing, ~10 long; shell OD 15, ID 11.5) — no separate ESC came in the box, so the cylinder is most likely a potted ESC outside the hull, and the 3 pins are V+, GND and signal. **Unconfirmed** — check with an ohmmeter across the pins (~0.1–1 Ω on all pairs would mean motor phases instead) |
 | `pack_length/width/height` | 155/50/37 | `power-budget.md` |
 | `rail_clearance` | 15 | chosen |
 | `vertical_thruster_spacing` | 489 | driven by the tail arrangement |
@@ -328,7 +328,10 @@ drawn.
 
 Four of these five are sitting in boxes waiting on the inventory pass.
 
-- [ ] **ApisQueen U2 body OD and length** — sets frame width and vertical clearance
+- [x] **ApisQueen U2 body OD and length** — **Ø70 × 96**, measured 2026-10-02.
+      Mounting pad: four threaded brass inserts on a rectangle ~15.7 × 29.7
+      centre to centre (caliper spans 13.5 / 17.8 and 27.3 / 32.1; holes
+      Ø~2.2–2.4, thread size not yet identified)
 - [ ] **One U2 ESC brick, L×W×H** — the swing factor in tube length, ×6
 - [x] **Dome flange OD** — **71.9**, measured 2026-09-26. Over 70, so note 1
       stops holding and the baseline moves to 74 mm — see "Measured flange"
