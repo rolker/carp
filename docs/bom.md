@@ -45,11 +45,22 @@ bought; `later` = deliberate deferral.
 | uxcell FFC 22-pin 0.5 mm **Type B**, 500 mm, 5 pcs | 1 | Amazon (uxcell) | 7 | 6.47 | received | 2026-09-26, arriving Tue 2026-09-29. Bench, mock-up and fixture cables plus spares — generous enough to connect cameras without fighting for slack. Plain unshielded FFC: the vehicle gets the shortest length that reaches once the sled/bay order is drawn (pending row below) |
 | Raspberry Pi 5 Active Cooler (official) | 1 | Amazon (UeeKKoo, 3rd party) | — | 10.95 | received | 2026-09-27, arriving 2026-09-28. ~$5 list — third-party premium, so check it is genuine on arrival. **Fitted 2026-10-10.** ADR-015 re-run with it: 1080p10 holds 50–51 °C (was 64–66 uncooled), 1080p20 holds under 60 °C. Moves SoC heat into the hull air, not out of the hull — pairs with an air-stirring fan or a conduction path (`sled.md`). Clears the M.2 HAT+ (its standoffs are sized for it). Push-pins and pad are one-use-ish: fit it once. Fan speed control works under stock Ubuntu 24.04 (`pwm-fan`, starts at 50 °C, steps up at 60) |
 | iRasptek 27 W 5.1 V / 5 A USB-C PD supply | 1 | Amazon (iRasptek) | — | 10.99 | received | 2026-09-27, arriving 2026-09-28. **Bench only** — the vehicle Pi runs from the Pololu off the hotel pack. Fixes the undervoltage the Pi hit on a 4.9 V supply during the build (ADR-017); 5 A lets the Pi 5 run USB peripherals at full current |
+| QimKero USB-A → 3.5 mm TRRS sound card dongle, 2-pack | 2 pk | Amazon (QimKero) | — | 13.88 | ordered | 2026-10-10, arriving 2026-10-11. 6.94 per pack — **4 dongles**. Cheap-parts bench test of the acoustic ranging idea (`navigation.md` Method 4) before spending on the 96–192 kHz interface in Options. Female TRRS jack: stereo out + mono mic in per dongle. **Check on arrival:** chipset and supported sample rates (`lsusb`, `arecord --dump-hw-params`) — likely 48 kHz, which caps the usable band near 20 kHz — and the TRRS pinout with a multimeter |
+| XMSJSIY 3.5 mm TRRS male → 4-pin screw-terminal cable, 32 cm, 2-pack | 2 pk | Amazon (Sissel's Store) | — | 17.20 | ordered | 2026-10-10 (two orders, 8.60 each), arriving 2026-10-11. **4 cables**, 4-pole male plug per the listing ("trrs male" variant) — matches the dongles' female jack. Solderless hookup from the dongles to the breadboard for the acoustic bench test. **Check on arrival:** which terminal is tip / ring 1 / ring 2 / sleeve — buzz it out, don't trust the labels |
+| EDGELEC Dupont jumper wire kit, 120 pcs, 20 cm | 1 | Amazon (EDGELEC) | — | 6.98 | ordered | 2026-10-10, arriving 2026-10-11. Breadboard hookup for the acoustic bench test. Assorted kit — presumably M-M / M-F / F-F, confirm on arrival. 20 cm loose leads pick up noise on the small receive signals: keep the mic-input side short and away from the transmit wiring |
+| Chanzon MB-102 solderless breadboard, 830 tie points, 3 pcs | 1 | Amazon (Chanzon) | — | 7.99 | ordered | 2026-10-10, arriving 2026-10-11. **3 boards** — one per end of the acoustic bench test plus a spare. Generic MB-102 contacts are loose-ish: stranded piezo leads need tinning or header pins to stay put. Power rails on some MB-102 boards are split at mid-length — buzz them out before relying on a rail end to end |
+| ALLECIN monolithic ceramic capacitor kit, 24 values, 10 pF–10 µF | 1 | Amazon (ALLECIN E.C. US) | — | 9.99 | ordered | 2026-10-10, arriving 2026-10-11. For the 1 µF per receive disc; non-polarized, so orientation does not matter. Replaces an electrolytic kit ordered and cancelled the same day. Count the 1 µF parts on arrival — one per receive disc plus spares. Loose tolerance at the high values: measure if a value matters |
+| Zorfeter 20 mm piezo discs, 20 pcs | 1 | Amazon (YONWUF) | — | 4.99 | ordered | 2026-10-10, arriving 2026-10-11. Bench transducers, smaller size to compare against the 27 mm. Resonance differs between the two sizes — find each by sweep rather than assuming |
+| Zorfeter 27 mm piezo discs, 20 pcs, 100 mm leads | 1 | Amazon (YONWUF) | — | 5.99 | ordered | 2026-10-10, **arriving Mon 2026-10-12** — a day after the rest. The size `navigation.md` names. 20 pcs leaves room to sort by capacitance and pick matched ones |
+| AYWFEY 30 AWG stranded hookup wire, 6 colors × 32.8 ft | 1 | Amazon (AYWFEY) | — | 9.99 | ordered | 2026-10-10, arriving 2026-10-11. Extending the piezo disc leads. Single conductors, not twisted pair or shielded — twist the two leads of each receive disc together by hand to cut pickup. Too thin and limp for breadboard holes: tin the ends or land them in the screw terminals |
+| BOJACK resistor kit, 1000 pcs, 25 values 1 Ω–1 MΩ, 5 % ¼ W carbon film | 1 | Amazon (BOJACK ELECTRON) | — | 9.99 | ordered | 2026-10-10, arriving 2026-10-11. Reference and level-setting resistors for the acoustic bench circuit. **Check the kit has 100 kΩ** and what it offers between 47 k and 470 k. 5 % parts: where two resistors need to match, pick a pair with the multimeter |
 
-**Ordered subtotal: est ~$1,237 (+6 unestimated adds) · paid $1,782.33
+**Ordered subtotal: est ~$1,237 (+15 unestimated adds) · paid $1,869.33
 (Amazon orders through 2026-08-20 + RobotShop $140.69 + $168.74 incl.
 shipping + Blue Robotics $54.94 incl. shipping + uxcell cables $6.47,
-2026-09-26 + Active Cooler and bench PSU $21.94, 2026-09-27 — per-order
+2026-09-26 + Active Cooler and bench PSU $21.94, 2026-09-27 + acoustic
+bench-test parts $87.00 across six orders, net of two cancelled items,
+2026-10-10 — per-order
 figures in git history).**
 
 ## Core, pending
@@ -115,8 +126,8 @@ Previously mentioned in notes but never costed as line items.
 | Item | Est $ | Notes |
 |---|---|---|
 | Parallel green line lasers | 20 | Scaling **and** altitude for optical flow. Green penetrates turbid water far better than red |
-| USB audio interface, 96–192 kHz multichannel | 100–200 | Acoustic ranging. CM6206-class does 96k stereo |
-| 27 mm piezo discs + polyurethane | 20 | Transducers. Work far better underwater than they should |
+| USB audio interface, 96–192 kHz multichannel | 100–200 | Acoustic ranging. CM6206-class does 96k stereo. Hold until the cheap dongle test (Ordered) shows the idea is worth it |
+| Polyurethane potting resin for the piezo discs | 20 | Discs themselves are in Ordered (20 mm and 27 mm, 2026-10-10). Potting is for the wet stage only — not needed for the in-air bench test. Est was for discs + resin together |
 | 12 V LiFePO4 pack | 50 | Hotel only — BMS current limit rules out propulsion |
 | Single small diffuse light, potted | 20 | Shadowed-structure inspection; required for deeper sites (ADR-004) |
 | Down/nav camera + optical flow | 100 | Deferred past v1. For ambient ops prefer mono IMX296 + fast CS lens over OV9281 |
@@ -188,15 +199,15 @@ part: reprint it in PETG or ASA before it goes in the build.
 
 | | Est $ | Paid $ |
 |---|---|---|
-| Ordered | ~1,237 | 1,782.33 |
+| Ordered | ~1,237 | 1,869.33 |
 | Core pending | ~205–310 | |
 | Small parts pending | ~115 | |
 | Field gear pending | ~55 | |
-| **Paid + pending (6 thrusters, no options)** | **~$2,155–2,260** | |
+| **Paid + pending (6 thrusters, no options)** | **~$2,245–2,350** | |
 | Shop tooling (excluded from above) | | 407.32 out of pocket (483.37 list) |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
-build (≈4×). The projection is Paid ($1,782.33, a known number) plus pending
+build (≈4×). The projection is Paid ($1,869.33, a known number) plus pending
 estimates ($375–480); ordered items ran ~25% over their estimates, so pending
 items may too. (Corrected 2026-08-20 per design review M1 — the earlier
 "$1,550–1,700" summary mixed estimates for items whose real prices were
