@@ -96,6 +96,8 @@ chirp at a known instant, and it becomes one-way ranging.** Sub-100 µs sync is
 measurement in a pool; only jitter hurts.
 
 This is the single strongest argument against going tetherless (ADR-009).
+The proposed two-way variant below would remove the need for it — if it
+works, this argument weakens.
 
 ### Build range-only first
 
@@ -103,6 +105,63 @@ Time of flight plus the MS5837 gives horizontal radius directly:
 √(r² − Δz²). One channel, no array, no bearing math — and it already answers
 the question that matters during a spiral search: *am I 2 m from the downline
 or 9 m?* Bearing is a later increment on the same signal chain.
+
+### Proposed variant: two-way ranging without the tether (2026-10-11)
+
+**Status: proposed, untested.** Roland's idea; he does not want to rely on
+the tether. The loopback was suggested in a chat with another agent. The
+numbers here are an agent's rough estimates, not measurements.
+
+**Layout.** Each end carries two transmitters a fixed distance apart and
+two receivers a fixed distance apart, the two pairs forming a cross. Both
+ends use the same layout, possibly at different sizes. The topside cross
+ends up on a platform with GPS and an IMU; for now the test is relative
+range and orientation only.
+
+**Loopback.** Each transmitter also feeds its drive signal through a
+resistor into the receive input at its own end, so the outgoing pulse is
+recorded in the same stream as the incoming ones. When an end hears a ping
+and replies, the turnaround time (TAT) it achieved is measured in samples
+on one clock, so USB audio buffering drops out. Roland's plan: send the
+measured TAT encoded in the next reply ping.
+
+**Open (Roland):** which transmitter answers which receiver, or whether
+both transmitters reply with a TAT for each receiver.
+
+**Agent's notes, not approved:**
+
+- **A round trip measures a sum of two paths**, not one range: the ping
+  goes transmitter → receiver and the reply leaves a different transmitter
+  for a different receiver. Two transmitters and two receivers per end give
+  seven independent numbers by the agent's count, not eight ranges — still
+  enough to solve relative position and orientation directly. So which
+  transmitter answers matters little: each replies in turn with a
+  distinguishable chirp, with the TAT recorded against both receivers.
+- **The cross gives direction on two axes**: the receiver pair along one,
+  and the transmitter pair along the other as heard by the far end —
+  provided the far end reports its arrival times back.
+- **Two dongles per end are two clocks** (one mic input each). Feeding the
+  same transmit pulse into both inputs makes it a shared time marker.
+- **Fixed TAT instead of encoding it.** Input and output on one dongle
+  share a clock, so the offset between the two streams should stay constant
+  once they run. Measure it once by loopback, schedule the reply an exact
+  number of samples after detection, and check it by loopback on every
+  ping. No acoustic data link needed. **To test:** whether the dongles hold
+  that offset steady.
+- **Remaining clock error** is the rate difference between the ends over
+  the TAT: ~1–2 cm for a 0.2 s TAT on cheap dongles.
+- **Expectation:** range to about a centimetre; bearing ~2° from a 0.3 m
+  cross, under 1° from 1 m.
+- **Sound speed for free:** each end hears its own transmitter across a
+  known distance on every ping.
+
+**Bench stages, in air, with the 2026-10-10 parts (`bom.md`):**
+
+1. One dongle: loopback plus a disc pair, time of flight against a tape
+   measure.
+2. Two dongles: two-way range with the measured TAT.
+3. Fixed, scheduled TAT.
+4. Second receiver and transmitter per end, for direction.
 
 ### Hardware
 

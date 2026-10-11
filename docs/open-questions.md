@@ -78,6 +78,15 @@ spring keeps it shut. Options discussed, none chosen:
   straight into acrylic. Parts and prices not looked up.
 - A bolt-in tyre stem, which clamps through a flat lid, with an open-flow
   chuck on a barb.
+- A 1/8" brass ball valve with a screw plug as backup (Roland's idea):
+  pump through a barb fitting, close the valve, swap the barb for a solid
+  plug. **Roland's leaning (2026-10-11), still thinking it over** — for
+  both the vacuum test and setting the dive vacuum, with the Pixhawk's
+  pressure sensor monitoring the vacuum during the dive. Brass over 304
+  (no gain in fresh water, galls) and 316 (only for regular salt use).
+  To check: NPT or BSP thread on the listing; a plug that seals on an
+  O-ring or gasket rather than taped taper thread; no taper thread
+  straight into acrylic.
 - Until one is chosen, the "core out" wording in `bom.md`,
   `bringup-checklist.md` and `decisions.md` stays as written.
 
