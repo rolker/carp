@@ -291,7 +291,9 @@ vehicle hardware rather than a stand-in.
       element and set the first spacer from that; the ±3 mm spacer range and
       the counterbore margin absorb the error. Keep the chamfer on the
       Ø16–18 through-hole in case the pupil lands behind the outer face
-- [ ] **`stereo_baseline`: stay at 74 or go wider (≤ ~95)?**
+- [ ] **`stereo_baseline`: stay at 74 or go wider (≤ ~95)?** The first
+      bench bracket was printed and fitted at 95 (2026-10-10,
+      `cad/README.md`) — tested, not decided
 - [ ] Bar30 on the front lid or the rear?
 
 ## Related

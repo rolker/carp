@@ -17,7 +17,9 @@ into a printable stereo camera carrier. Trim it as the steps get done.
   off or reprint without them before fitting the cooler, and keep the space
   under those holes clear for the cooler's push-pin tips;
   `coupon_a_c1.stl` and `coupon_b1.stl`: the 2026-09-28 tolerance
-  coupons, §4)
+  coupons, §4;
+  `stereo_cameras_assembly.stl` and `sled_assembly.stl`: the 2026-10-10
+  stereo bracket and sled part, results under "Next bench print")
 - `onshape-notes.md` — Onshape plans, API limits, AI/MCP options and 2026
   changes, for agents (researched 2026-09-27)
 
@@ -40,6 +42,25 @@ print — the stage-1 air test rig.
 - **Print-only camera seats: slide-in rails** (`docs/sled.md`, "Holding each
   board"), chosen 2026-10-02 from the coupons (§4). Groove height from
   coupon A.
+
+### First stereo bracket print (2026-10-10)
+
+Sliced 2026-10-10 as one plate: the stereo bracket (124.2 × 26.4 × 10.3)
+and the sled part (97.5 × 55 × 53), Elegoo PETG, 0.16 mm layers, 2 walls,
+15% infill, tree supports, 23.3 g. STLs in `prints/`; the dimensions below
+are read from those exports, not from Onshape.
+
+- **Baseline as printed: 95 mm** — seat centres at ±47.5. **Tested, not
+  decided**: `stereo_baseline` is still an open choice (`docs/sled.md`), and
+  the variable table below still says 74 until it is checked against
+  Onshape.
+- **Camera fit: good.** Rail slots are 25.22 wide for the 25.1 board, the
+  +0.1 per side from coupon B.
+- **Stiffness: flimsy**, as Roland expected. The base plate is ~2 mm thick
+  over the 124 mm span.
+- **Ribbon reach: one camera's ribbon is tighter than Roland likes** on the
+  stock cable (~100 mm usable reach, §1). He will probably move the Pi
+  closer to the cameras — not yet done. Which camera is not recorded.
 
 ## First target: camera carrier + stand-in plate
 
@@ -197,7 +218,7 @@ not update expressions that already use a name.
 | `tube_wall_thickness` | 7.11 mm | 6" sched-40 |
 | `tube_inner_diameter` | `tube_outer_diameter - 2 * tube_wall_thickness` → 154.1 mm | Derived |
 | `seal_diameter` | `(tube_outer_diameter + tube_inner_diameter) / 2` → 161.2 mm | Derived; O-ring centreline |
-| `stereo_baseline` | 74 mm | Minimum; 74–~95 allowed (`sled.md`) — **decision open** |
+| `stereo_baseline` | 74 mm | Minimum; 74–~95 allowed (`sled.md`) — **decision open**. The 2026-10-10 bracket was printed at 95; confirm the Onshape value and sync this row |
 | `dome_flange_diameter` | 71.9 mm | Measured 2026-09-26 |
 | `dome_bolt_circle_diameter` | 64.5 mm | Measured 2026-09-26, 6 holes ~Ø2.0 |
 | `dome_flange_gap_min` | 2 mm | Rule: flanges don't touch |

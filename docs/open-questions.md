@@ -32,7 +32,12 @@ views, cables up/down).
 - Tray top at Z −55; `tube_length` 400.
 - Stepped lid hole (Ø17 through, Ø52 × 8 counterbore) and the camera
   position chain (pupil 3 mm behind the lens front, board inside the lid).
-- Stereo baseline stays 74 (could go to ~95).
+- Stereo baseline stays 74 (could go to ~95). The first bench bracket was
+  printed and fitted at 95 (2026-10-10, `cad/README.md`) — **tested, not
+  decided**.
+- Pi closer to the cameras on the bench rig: one ribbon is tighter than
+  Roland likes at the current spacing — **leaning yes** (Roland,
+  2026-10-11), not yet done.
 - Cables up or down — **open, leaning up** (Roland).
 - What holds the board at the rails' open end: printed detent, or a
   nut-held retainer (Roland's suggestion, 2026-10-02).
