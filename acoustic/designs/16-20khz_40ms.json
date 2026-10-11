@@ -1,0 +1,37 @@
+{
+ "signals": [
+  {
+   "name": "chirp up",
+   "f0": 2000.0,
+   "f1": 20000.0,
+   "duration": 0.02,
+   "amplitude": 0.5
+  },
+  {
+   "name": "chirp down",
+   "f0": 20000.0,
+   "f1": 2000.0,
+   "duration": 0.02,
+   "amplitude": 0.5
+  },
+  {
+   "name": "16-20 up",
+   "f0": 16000.0,
+   "f1": 20000.0,
+   "duration": 0.04,
+   "amplitude": 0.5
+  }
+ ],
+ "events": [
+  {
+   "channel": "left",
+   "signal": "16-20 up",
+   "time": 0.0
+  },
+  {
+   "channel": "right",
+   "signal": "16-20 up",
+   "time": 0.15
+  }
+ ]
+}

@@ -1,0 +1,88 @@
+{
+ "signals": [
+  {
+   "name": "chirp up",
+   "f0": 2000.0,
+   "f1": 20000.0,
+   "duration": 0.02,
+   "amplitude": 0.5
+  },
+  {
+   "name": "chirp down",
+   "f0": 20000.0,
+   "f1": 2000.0,
+   "duration": 0.02,
+   "amplitude": 0.5
+  },
+  {
+   "name": "14up",
+   "f0": 13000.0,
+   "f1": 15000.0,
+   "duration": 0.05,
+   "amplitude": 0.5
+  },
+  {
+   "name": "14down",
+   "f0": 15000.0,
+   "f1": 13000.0,
+   "duration": 0.05,
+   "amplitude": 0.5
+  },
+  {
+   "name": "16down",
+   "f0": 17000.0,
+   "f1": 15000.0,
+   "duration": 0.05,
+   "amplitude": 0.5
+  },
+  {
+   "name": "16up",
+   "f0": 15000.0,
+   "f1": 17000.0,
+   "duration": 0.05,
+   "amplitude": 0.5
+  }
+ ],
+ "events": [
+  {
+   "channel": "left",
+   "signal": "14up",
+   "time": 0.0
+  },
+  {
+   "channel": "right",
+   "signal": "16down",
+   "time": 0.0
+  },
+  {
+   "channel": "right",
+   "signal": "16up",
+   "time": 0.1
+  },
+  {
+   "channel": "left",
+   "signal": "14down",
+   "time": 0.1
+  },
+  {
+   "channel": "left",
+   "signal": "16down",
+   "time": 0.2
+  },
+  {
+   "channel": "right",
+   "signal": "14down",
+   "time": 0.2
+  },
+  {
+   "channel": "right",
+   "signal": "14up",
+   "time": 0.3
+  },
+  {
+   "channel": "left",
+   "signal": "16up",
+   "time": 0.3
+  }
+ ]
+}

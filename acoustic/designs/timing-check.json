@@ -1,0 +1,28 @@
+{
+ "signals": [
+  {
+   "name": "chirp up",
+   "f0": 2000.0,
+   "f1": 20000.0,
+   "duration": 0.02,
+   "amplitude": 0.5
+  }
+ ],
+ "events": [
+  {
+   "channel": "right",
+   "signal": "chirp up",
+   "time": 0.0
+  },
+  {
+   "channel": "right",
+   "signal": "chirp up",
+   "time": 0.15
+  },
+  {
+   "channel": "right",
+   "signal": "chirp up",
+   "time": 0.3
+  }
+ ]
+}

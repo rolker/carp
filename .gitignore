@@ -17,6 +17,9 @@ bags/
 *.db3
 *.mcap
 
+# Acoustic test recordings (acoustic/README.md)
+acoustic/runs/
+
 # Media
 *.mp4
 *.h264

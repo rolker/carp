@@ -1,0 +1,30 @@
+{
+ "signals": [
+  {
+   "name": "low band",
+   "f0": 2000.0,
+   "f1": 9000.0,
+   "duration": 0.03,
+   "amplitude": 0.5
+  },
+  {
+   "name": "high band",
+   "f0": 11000.0,
+   "f1": 20000.0,
+   "duration": 0.03,
+   "amplitude": 0.5
+  }
+ ],
+ "events": [
+  {
+   "channel": "left",
+   "signal": "high band",
+   "time": 0.0
+  },
+  {
+   "channel": "right",
+   "signal": "low band",
+   "time": 0.0
+  }
+ ]
+}
