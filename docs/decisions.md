@@ -420,6 +420,23 @@ encoder de-interleaves it to yuv420p (~2–3 ms): **~30 ms per frame, ~25% less
 total CPU.** Feeding NV21 into libx264 as `nv21` encoded all-green chroma;
 not pursued. Cost: a third source-built, patched package (see ADR-017).
 
+**Re-measured 2026-10-10 with the Active Cooler fitted** (same pipeline,
+NV21, recording to MCAP, open bench, fan on the stock Ubuntu `pwm-fan`
+trip points 50 / 60 / 67.5 / 75 °C):
+
+| Setting (per camera) | Encoded | CPU | SoC temp | Fan |
+|---|---|---|---|---|
+| **1920×1080 at 10 fps** (default) | 10.00 fps, every frame (5.6 min) | ~33% | **50–51 °C**, level | step 1 of 4, ~2400 rpm |
+| 1920×1080 at 15 fps | 15.00 fps, every frame (3.6 min) | ~49% | 53–55 °C, level | step 1, ~2500 rpm |
+| 1920×1080 at 20 fps | 20.00 fps, every frame (3.6 min) | ~66% | 56–59 °C | step 2, ~4900 rpm |
+
+No throttling flags in any run. The default runs ~15 °C cooler than
+uncooled (64–66 °C). With the fan off (below the 50 °C trip) the heatsink
+alone took ~4 min of 1080p10 to climb from 41 to 50 °C. CPU scales ~3.3%
+per fps, so the ceiling is still the CPU near 30 fps, not heat. The bench
+scene was busier than on 2026-09-26: ~3.4 Mbit/s per camera, at the
+3 Mbit/s cap.
+
 So the prediction above holds and is worse than stated: 1080p30 stereo does
 not fit on the CPU at all, and without a cooler it overheats trying.
 **Default is 1920×1080 at 10 fps** (`ros/carp_camera` launch file): sensor
@@ -428,7 +445,7 @@ stereo depth precision scales with pixels across (~1.5× finer than 720p at
 the 74 mm baseline), while at ROV speeds 10 fps already overlaps
 consecutive frames by >90% at 0.5–2 m. Frame rate matters for piloting
 feel, which argues for a separate low-res live view rather than a faster
-recording. 12 fps is the edge uncooled; everything was measured on an open
+recording. 12 fps is the edge uncooled (with the cooler, 20 fps holds); everything was measured on an open
 bench, so the sealed housing needs its own thermal soak. Bench-scene
 bitrates were ~155 kbit/s (720p10) and ~330 kbit/s (1080p10) per camera,
 well under the caps. Shutdown sometimes hangs (container SIGKILLed after

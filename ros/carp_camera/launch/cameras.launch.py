@@ -11,9 +11,10 @@ Topics, per camera N in {0, 1} (N = CAM/DISP port on the Pi 5):
     /cameras/camN/camera_info
 
 Needs: source ~/opt/libcamera/env.sh && source ~/ros2_ws/install/setup.bash
-Defaults are 1920x1080 (sensor native) at 10 fps: ~38% CPU and ~69 C on an
-uncooled bench Pi 5, every frame kept. 1080p30 saturated the CPU at ~10 fps
-per camera and throttled at 85 C. See ADR-015.
+Defaults are 1920x1080 (sensor native) at 10 fps: ~33% CPU and ~50 C on a
+bench Pi 5 with the Active Cooler, every frame kept; 20 fps also holds
+(~66% CPU, <60 C). Uncooled, 1080p30 saturated the CPU at ~10 fps per
+camera and throttled at 85 C. See ADR-015.
 
 sync:=true (default) uses Raspberry Pi's software camera sync (rpi.sync in
 the tuning file): cam0 serves frame timing over UDP multicast and cam1
