@@ -39,7 +39,7 @@ bought; `later` = deliberate deferral.
 | BOJACK MIDI 80 A fuses ×3 + holders ×2 | 1 | Amazon (BOJACK) | 15 | 21.98 | received | **4 fuses arrived** (listing said ×3), 2 holders. Main fuse at the star point (review B1) + two spare elements and a spare holder — field-box spares covered |
 | IP68 RJ45 panel-mount coupler, F-F ×2 | 1 | Amazon | — | 15.99 | received | Topside dry box wall only — splash-rated, **never submerged** (prior-art: IP67/68 couplers are not pressure-rated). Second is the spare |
 | Tomotato transparent waterproof dry box | 1 | Amazon | 20 | 17.99 | received | **Too small** for the Opal + power bank — needs a bigger box (return or repurpose this one). Topside station: Opal + power bank; tether enters via PG9 gland or the panel coupler. Confirm it floats loaded; leash to kayak |
-| Hand vacuum pump / brake bleeder kit w/ gauge | 1 | Amazon (Pathfinder Auto) | 35 | 19.89 | received | The pre-dive leak-test tool: **15 inHg** via the Schrader stem (core out), watch for a steady needle. Check kit for a Schrader adapter; verify pump holds vacuum dead-headed on arrival |
+| Hand vacuum pump / brake bleeder kit w/ gauge | 1 | Amazon (Pathfinder Auto) | 35 | 19.89 | received | The pre-dive leak-test tool: **15 inHg** via the Schrader stem (core out), watch for a steady needle. **Kit checked 2026-10-11: no Schrader adapter** — push-on vinyl hose and barbed adapters only (T, straight, tapered, bleeder-nipple, cup), plus a reservoir jar with two-port lids. The gauge is built into the pump body, so it reads the hull only while the pump stays connected. Still to do: verify the pump holds vacuum dead-headed, and measure the hose inside diameter (sets the barb size) |
 | JST-GH ↔ DF13 adapter board, 4-pin | 1 | Blue Robotics | 10 | 13.44 | received | 2026-09-26. Incl. $1.44 tariff surcharge. Board plus 100 mm DF13↔DF13 and GH↔GH cables — Bar30 → Pixhawk I2C with the pinout guaranteed. Unblocks the Phase 1 depth check |
 | SOS Leak Sensor | 1 | Blue Robotics | 5 | 35.00 | received | 2026-09-26, same order ($6.50 shipping). Replaces the bare-wire probe: four sponge-tipped probes (2×6", 2×12") + 4 spare tips — needs liquid, not condensate. 3-pin 0.1" out straight to a Pixhawk AUX pin, ArduSub-native, `FS_LEAK = surface`. **Needs 3.3–5 V on the servo rail** — one ESC BEC (U2 BEC still unconfirmed) or a separate 5 V feed |
 | uxcell FFC 22-pin 0.5 mm **Type B**, 500 mm, 5 pcs | 1 | Amazon (uxcell) | 7 | 6.47 | received | 2026-09-26, arriving Tue 2026-09-29. Bench, mock-up and fixture cables plus spares — generous enough to connect cameras without fighting for slack. Plain unshielded FFC: the vehicle gets the shortest length that reaches once the sled/bay order is drawn (pending row below) |
@@ -83,7 +83,7 @@ Previously mentioned in notes but never costed as line items.
 | Item | Qty | Source | Est $ | Paid $ | Status | Notes |
 |---|---|---|---|---|---|---|
 | DF13 pigtails, 4-pin | set | | 0–10 | | pending | The Bar30 mismatch (JST-GH lead vs DF13 I2C port, confirmed 2026-09-26) is solved by the Blue Robotics adapter in Ordered. Buy DF13 pigtails only if another Pixhawk port needs one — check the Radiolink box first |
-| Schrader valve stem + core tool | 1 | | 8 | | pending | **NOT yet ordered.** One fitting, three jobs: pressure test (bike pump, core in), vacuum test (bleeder pump, core out — check the kit for a Schrader adapter), LiPo relief/equalization. Auto-parts store |
+| Schrader valve stem + core tool | 1 | | 8 | | pending | **NOT yet ordered.** One fitting, three jobs: pressure test (bike pump, core in), vacuum test (bleeder pump, core out — the kit has no Schrader adapter, checked 2026-10-11), LiPo relief/equalization. Auto-parts store. **Open (2026-10-11):** core out cannot keep a vacuum for the dive, and a core is held shut against vacuum only by its spring — valve type and how to pump through it are undecided (`open-questions.md`) |
 | Thermal pads / gap filler | — | | 12 | | pending | NVMe, converters, ESCs to hull wall |
 | MicroSD 16–32 GB for Pixhawk, FAT32 | 1 | | 7 | | pending | Only if the Radiolink box card is junk — FMUv2 likes small plain cards |
 | Spare o-rings, every size | kit | | 15 | | pending | **Before first assembly.** A nicked o-ring on a Sunday ends the day |
@@ -182,6 +182,8 @@ housing layout can be swept rather than argued — see `open-questions.md`.
 
 Printed parts are brackets and mounts only — **never the pressure boundary**
 (FDM layer bonds are not watertight; housing stays PVC/acrylic/epoxy).
+A printed cover is to be tested against this rule (2026-10-11,
+`open-questions.md`); the rule stands until that test says otherwise.
 
 **Material rule for printed parts:**
 

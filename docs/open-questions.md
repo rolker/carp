@@ -43,6 +43,60 @@ views, cables up/down).
   nut-held retainer (Roland's suggestion, 2026-10-02).
 - Internal fan, Active Cooler, thermal soak before any aluminium.
 
+**To test (Roland, 2026-10-11): a 3D-printed cover.** Roland wants to try a
+printed cover before going to something else. This revisits the "never the
+pressure boundary" rule in `bom.md` — the rule stands until the test says
+otherwise. Nothing printed yet. Proposed test, not approved in detail:
+
+- Seal the cover against a flat smooth plate (glass or an acrylic offcut)
+  with the O-ring, Schrader stem in the cover — no pipe needed, and it
+  separates the cover's porosity and stiffness from the pipe-end problem.
+- Pull 15 inHg (the Phase 4 gate), watch the needle for a minute, then
+  leave it overnight for slow weeping and creep.
+- Measure the bow with a straightedge. Rough estimate for a flat solid PETG
+  disc on the Ø161 seal at 1 bar, assuming 2 GPa: ~1.3 mm at 10 thick,
+  ~0.4 mm at 15 thick. Ribs or a shallow dome do the same with less plastic.
+- Print for tightness: 5–6 walls, 5+ top and bottom layers, high infill,
+  seal face on the bed. Test bare first, then epoxy-coated.
+- Pump connection for this test (proposed): a plain hose barb in the cover
+  and the bleeder kit's hose — the kit has no Schrader adapter (`bom.md`).
+  The gauge is on the pump, so leave the pump connected for the hold and
+  do the dead-head check first; an overnight hold needs the pump to stay
+  tight or a second gauge teed in. The kit's reservoir jar can stand in as
+  a small test vessel to try the pump and hose before printing.
+
+**Vacuum valve — open (raised by Roland, 2026-10-11).** The docs say to
+pull the vacuum with the Schrader core out, but the plan is to dive under
+vacuum, and with the core out the vacuum is lost when the pump comes off.
+A Schrader core is also built to hold pressure in: against vacuum only its
+spring keeps it shut. Options discussed, none chosen:
+
+- Core in, pump through a coupler that depresses the pin, then a gasketed
+  metal cap as the real seal.
+- An A/C access valve (1/4" SAE flare, gasketed cap; core removal tools
+  exist) instead of a tyre stem. Its tapered pipe thread cannot go
+  straight into acrylic. Parts and prices not looked up.
+- A bolt-in tyre stem, which clamps through a flat lid, with an open-flow
+  chuck on a barb.
+- Until one is chosen, the "core out" wording in `bom.md`,
+  `bringup-checklist.md` and `decisions.md` stays as written.
+
+**Under discussion, not decided (Roland's ideas, 2026-10-11):**
+
+- Cameras mounted in the front end-cap with the Pi bracket attached to it,
+  Pixhawk possibly beside the Pi, so some or all of the electronics come
+  out with the cap. That cap is opened rarely.
+- The rear is the regular battery door. This would change the decided
+  "rear hardly ever opened" above — not changed yet.
+- A printed adapter epoxied to the tube end to take up the pipe's loose
+  tolerances. At the rear the adapter carries the cable glands, so the
+  cover comes off with no cables in it.
+- Two shorter tubes that separate in the middle for battery access — costs
+  a third seal.
+- Agent's lean, not approved: keep the front lid acrylic (it is the stereo
+  datum); glands in the rear adapter rather than the mid-body split; check
+  that the packs still pass through the adapter ring.
+
 ## Blocking the build
 
 **~~Thruster count: 4 or 6?~~ Resolved by purchase — six ordered 2026-08-19.**
