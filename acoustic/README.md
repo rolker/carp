@@ -146,10 +146,29 @@ back and saves an image. A zoom on the top plot is kept from ping to ping;
 
 ## Bench hardware (2026-10-11)
 
-Nothing built or measured yet. Drawings:
+Nothing built yet. Drawings:
 [twelve-pocket ring](https://claude.ai/artifact/99bWLWpf5B9tmFNcdqrJaM),
 [flat cross with 45° receivers](https://claude.ai/artifact/PXHUPA8RArRitkF7W4AGMo)
 (private pages on Roland's account).
+
+**Measured, 20 mm disc (Roland, 2026-10-11):**
+
+| | mm |
+|---|---|
+| Brass diameter | 20 |
+| Ceramic diameter | 15 |
+| Brass thickness | 0.22 |
+| Thickness at the ceramic (brass + ceramic) | 0.46 |
+| Thickness at the solder on the ceramic (the thicker joint) | 1.14 |
+| Outer edge to the far end of the solder | 9.1 |
+| Solder width, across the radius | 5 |
+| Wire diameter | 0.8 |
+
+So the ceramic is about 0.24 thick and the bare brass rim is 2.5 wide.
+The joint on the ceramic stands 0.68 above it; the joint on the brass is
+lower. 9.1 in from the edge is 0.9 short of the centre, so the solder runs
+nearly a full radius. The wire leaves at one edge of the 5 mm width, not
+from its middle. Not measured yet: capacitance.
 
 **Decided (Roland):**
 
@@ -170,9 +189,17 @@ Nothing built or measured yet. Drawings:
   cannot fit the 256 bed. Alternative: print 230 in two halves. Open.
 - Pocket for a 20 mm disc: Ø20.4 recess 1 mm deep in a 3 mm plate, Ø17
   through, 26 mm ring width; disc held by its rim with glue dots. Lead
-  groove 3 wide x 1.5 deep on the back face, and a 5-6 mm notch through
-  the ledge for the solder joint on the brass. All from typical disc and
-  wire sizes — measure first.
+  groove 3 wide x 1.5 deep on the back face, and a 6 mm notch through
+  the ledge for the solder joint on the brass. Checked against the
+  measured disc: Ø17 clears the 15 ceramic by 1 all round and leaves 1.5
+  of brass rim on the ledge; Ø20.4 gives 0.2 clearance. The 1 mm recess is
+  twice the 0.46 disc — it sits 0.54 below the face. Solder at 1.14
+  total stays inside the 2 mm ledge, so nothing stands proud of the back
+  face. The two 0.8 wires side by side are 1.6 wide and 0.8 deep,
+  so the 3 x 1.5 groove has room to spare. The notch is 6 for the 5 mm
+  solder, 0.5 clear each side. The wires leave about 2.5 off the notch
+  centre line, on one side; a centred groove means a small jog inside
+  the notch.
 - Stand: cross or ring on a post and base, centre about 300 mm above the
   table so the table reflection separates from the direct sound.
 - A short boom for a third axis was discussed and left out for now.
