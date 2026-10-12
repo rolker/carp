@@ -203,3 +203,32 @@ def test_set_control_errors():
         mixer.set_control(1, "Playback Switch", "off", runner)
     with pytest.raises(mixer.MixerError, match="read-only"):
         mixer.set_control(1, "Capture Channel Map", "1", runner)
+
+
+def test_snapshot_and_restore_put_changed_controls_back():
+    runner = FakeAmixer(fixture("amixer_usb_dongle.txt"))
+    saved = mixer.snapshot(1, runner)
+    mixer.set_control(1, "Speaker Playback Volume", "60%", runner)
+    mixer.set_control(1, "auto gain control", "off", runner)
+    restored, failed = mixer.restore(1, saved, runner)
+    assert not failed
+    assert {name for name, _ in restored} == {"Speaker Playback Volume",
+                                             "Auto Gain Control"}
+    after = {c.numid: list(c.values) for c in mixer.read_controls(1, runner)}
+    assert all(after[numid] == values for numid, (_, _, values) in saved.items())
+    # Nothing changed since: nothing to put back.
+    assert mixer.restore(1, saved, runner) == ([], [])
+
+
+def test_restore_reports_a_control_it_cannot_set():
+    runner = FakeAmixer(fixture("amixer_usb_dongle.txt"))
+    saved = mixer.snapshot(1, runner)
+    mixer.set_control(1, "auto gain control", "off", runner)
+    original = runner.__call__
+
+    def refusing(args):
+        if args[2] == "cset":
+            raise mixer.MixerError("amixer: Control busy")
+        return original(args)
+    restored, failed = mixer.restore(1, saved, refusing)
+    assert restored == [] and failed and "busy" in failed[0][1]

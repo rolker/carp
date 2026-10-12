@@ -269,6 +269,36 @@ def set_control(card, name, value, runner=run_amixer):
     return SetResult(after, before, str(value), verified, note)
 
 
+def snapshot(card, runner=run_amixer):
+    """The values of every writable control of card `card`, to put back
+    later with `restore`: {numid: (name, type, values)}."""
+    return {c.numid: (c.name, c.type, list(c.values))
+            for c in read_controls(card, runner) if c.writable}
+
+
+def restore(card, saved, runner=run_amixer):
+    """Put back the controls whose values differ from `saved` (from
+    `snapshot`). Returns (restored, failed): lists of (name, value text)
+    and (name, error text). A control that cannot be set is reported, not
+    raised, so one bad control does not stop the others."""
+    restored, failed = [], []
+    current = {c.numid: c for c in read_controls(card, runner)}
+    for numid, (name, kind, values) in saved.items():
+        control = current.get(numid)
+        if control is None or control.values == values:
+            continue
+        if kind == "BOOLEAN":
+            text = ",".join("on" if v else "off" for v in values)
+        else:
+            text = ",".join(str(v) for v in values)
+        try:
+            runner(["-c", str(card), "cset", f"numid={numid}", text])
+            restored.append((name, text))
+        except MixerError as error:
+            failed.append((name, str(error)))
+    return restored, failed
+
+
 def _verify(control, requested):
     wanted = [part.strip() for part in requested.split(",")]
     values = control.values

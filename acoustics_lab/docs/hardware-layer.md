@@ -75,8 +75,19 @@ desktop's port switching is not in charge, so the test signal can come out
 of the laptop speakers as well as the jack), printing the exact `--mixer
 --set 'Speaker Playback Switch=off'` command, and says which `Capture
 Source` (Internal Mic, Headset Mic, Headphone Mic) is being recorded,
-warning when it is the internal one. Mixer settings stay changed afterwards;
-set them back by hand if wanted (the first line of `--mixer` shows them).
+warning when it is the internal one.
+
+**Mixer settings are put back.** When a test runs, the tool saves every
+mixer control first and, after the test (also on errors and Ctrl-C), sets
+back any that changed, before the card goes back to the desktop. So put
+test-only settings on the test command itself:
+
+    python3 tools/duplex_check.py --device 1 --offset-test --minutes 1 --level -30 \
+        --set 'Speaker Playback Switch=off' --set 'Capture Source=Headset Mic'
+
+`--keep-mixer` leaves them as the test left them. `--mixer --set` without a
+test changes the mixer and leaves it changed (that is what it is for); its
+output shows each control's previous value.
 
 **Checking by hand.**
 

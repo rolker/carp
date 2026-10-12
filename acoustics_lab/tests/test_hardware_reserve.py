@@ -342,3 +342,38 @@ def test_tool_mixer_only_borrows_nothing(bus, holder, tool):
     before = owner(bus)
     code, text = tool("--device", str(CARD), "--mixer")
     assert "Borrowed" not in text and owner(bus) == before
+
+
+def test_tool_puts_mixer_settings_back_after_a_test(bus, holder, tool, monkeypatch):
+    """Settings changed with --set on a test command are restored before the
+    card goes back to the desktop."""
+    from acoustics_lab.hardware import mixer
+    state = {"text": BUILTIN_MIXER}
+    calls = []
+
+    def read(n, *a, **k):
+        return mixer.parse_contents(state["text"])
+
+    def set_control(card, name, value, runner=None):
+        calls.append(("set", name, value))
+        return mixer.SetResult(mixer.find_control(read(card), name), [1],
+                               value, True)
+
+    def restore(card, saved, runner=None):
+        calls.append(("restore", card))
+        return [("Speaker Playback Switch", "on")], []
+    monkeypatch.setattr(mixer, "read_controls", read)
+    monkeypatch.setattr(mixer, "set_control", set_control)
+    monkeypatch.setattr(mixer, "restore", restore)
+    holder("agree")
+    code, text = tool("--device", str(CARD), "--offset-test", "--no-wait",
+                      "--set", "Speaker Playback Switch=off")
+    assert ("set", "Speaker Playback Switch", "off") in calls
+    assert ("restore", CARD) in calls
+    assert "put back as before the test" in text
+    # Put back before the card is given back to the desktop.
+    assert text.index("put back as before") < text.index(f"Released card {CARD}")
+    calls.clear()
+    code, text = tool("--device", str(CARD), "--offset-test", "--no-wait",
+                      "--set", "Speaker Playback Switch=off", "--keep-mixer")
+    assert ("restore", CARD) not in calls

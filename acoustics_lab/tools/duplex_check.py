@@ -71,6 +71,9 @@ def parse_args(argv=None):
     p.add_argument("--block", type=int, default=512,
                    help="frames per callback (default 512)")
     p.add_argument("--runs", default=DEFAULT_RUNS, help="folder for results")
+    p.add_argument("--keep-mixer", action="store_true",
+                   help="leave mixer settings as the test left them instead of "
+                        "putting them back (for debugging)")
     p.add_argument("--no-borrow", action="store_true",
                    help="do not borrow the card from the desktop's sound server "
                         "(for debugging; opening a card it holds then fails as busy)")
@@ -146,7 +149,9 @@ def check_builtin(card, out):
             warn(f"The internal speakers are on ('{c.name}' is on). While the "
                  "card is borrowed the desktop no longer switches them off when "
                  "something is plugged in, so test signals may play through "
-                 "the laptop speakers as well as the jack. To mute them:\n"
+                 "the laptop speakers as well as the jack. To mute them for "
+                 f"the test only, add --set '{c.name}=off' to the test command "
+                 "(put back afterwards); or on their own, kept until changed:\n"
                  f"  python3 tools/duplex_check.py --device {card.number} --mixer "
                  f"--set '{c.name}=off'", out)
         if "auto-mute" in c.name.lower():
@@ -160,7 +165,9 @@ def check_builtin(card, out):
             if "internal" in source.lower():
                 warn(f"The capture source is '{source}', the laptop's own "
                      "microphone, not the jack. For a loopback or a headset "
-                     "mic input:\n"
+                     "mic input, add --set 'Capture Source=Headset Mic' to the "
+                     "test command (put back afterwards); or on its own, kept "
+                     "until changed:\n"
                      f"  python3 tools/duplex_check.py --device {card.number} --mixer "
                      "--set 'Capture Source=Headset Mic'", out)
 
@@ -313,14 +320,33 @@ def main(argv=None, out=None):
     args = parse_args(argv)
     out = out or sys.stdout
     holds = []                  # borrowed cards, always given back
+    restores = []               # mixer snapshots, put back before giving back
     try:
-        return run(args, out, holds)
+        return run(args, out, holds, restores)
     finally:
+        for card, saved in restores:
+            put_back_mixer(card, saved, out)
         for reservation in holds:
             give_back(reservation, out)
 
 
-def run(args, out, holds):
+def put_back_mixer(card, saved, out):
+    """Restore the mixer settings saved before a test, so the desktop gets
+    the card back as it was."""
+    try:
+        restored, failed = mixer.restore(card.number, saved)
+    except mixer.MixerError as error:
+        warn(f"Could not put the mixer of {card.label()} back: {error}", out)
+        return
+    if restored:
+        print(f"Mixer of card {card.number} put back as before the test: "
+              + "; ".join(f"{name} = {value}" for name, value in restored),
+              file=out)
+    for name, error in failed:
+        warn(f"Could not put back {name}: {error}", out)
+
+
+def run(args, out, holds, restores):
     if args.list:
         return do_list(out)
     if not (args.device or args.fake):
@@ -357,6 +383,15 @@ def run(args, out, holds):
             if not card.usb:
                 warn_not_usb(card, out, borrowing=bool(
                     (args.offset_test or args.schedule_test) and not args.no_borrow))
+            testing = args.offset_test or args.schedule_test
+            if testing and not args.keep_mixer:
+                try:
+                    restores.append((card, mixer.snapshot(card.number)))
+                    print("Mixer settings saved; they are put back after the "
+                          "test (--keep-mixer leaves them).", file=out)
+                except mixer.MixerError as error:
+                    warn(f"Could not save the mixer settings, so they will "
+                         f"not be put back: {error}", out)
             code = 0
             try:
                 if args.mixer or not args.set:
