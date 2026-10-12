@@ -244,6 +244,22 @@ mic junction.
 blob height; turn off any automatic gain; then `designs/timing-check.json`
 through the loopback alone, before any disc is connected.
 
+**Arrived (2026-10-12), first look with two dongles plugged in, nothing
+connected to them:** "Generic iStore Audio", USB `001f:0b21`, full-speed USB,
+48 kHz only, 16-bit, stereo out and mono in. The mixer has only playback
+switch and volume and mic capture switch and volume: no automatic gain to
+turn off, no mic monitoring. All of them report the same USB serial
+number, so a dongle is known only by the USB port it is in: label them and
+keep each in its socket (`../acoustics_lab/tools/duplex_check.py --list`
+shows the port of each). The desktop's sound server picks them up as extra
+outputs and inputs without making them the default. The USB descriptors
+list the output as adaptive (clocked from the computer's USB frames) and
+the input as asynchronous (the dongle's own crystal); whether the two stay
+locked on one dongle, which the fixed turnaround idea needs, is the first
+thing the loopback offset test should show. The checks above still apply;
+the hardware tools now live in `../acoustics_lab/` (`tools/duplex_check.py`,
+`docs/hardware-layer.md`).
+
 ## Ideas for later (Roland, 2026-10-11) — not built
 
 - Top-level tabs for the tools: Noise and Data as their own tabs, not
