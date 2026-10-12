@@ -22,6 +22,10 @@ numid=7,iface=MIXER,name='Capture Volume'
   ; type=INTEGER,access=rw---R--,values=1,min=0,max=63,step=0
   : values=40
   | dBscale-min=-17.25dB,step=0.75dB,mute=0
+numid=9,iface=MIXER,name='Internal Mic Boost Volume'
+  ; type=INTEGER,access=rw---R--,values=1,min=0,max=3,step=0
+  : values=2
+  | dBscale-min=0.00dB,step=10.00dB,mute=0
 """
 
 

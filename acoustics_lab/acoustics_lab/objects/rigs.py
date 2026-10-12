@@ -25,6 +25,13 @@ LAPTOP_DEMO = "laptop_in_a_room"
 LAPTOP_SIGNAL = "room_chirp"
 LAPTOP_DESIGN = "room_chirp_from_the_laptop"
 NEAR_M = 0.5                   # "near": an output and an input this close
+# What worked on the laptop's built-in card (2026-10-12, speaker to internal
+# mic): the desktop leaves the mic at +30 dB capture and +20 dB boost, which
+# clips with a large DC offset. Control names are the card's own; one that a
+# card does not have is a warning, and the rest are still set. All are put
+# back when the card is given back.
+LAPTOP_MIXER = {"Master Playback Volume": "-15dB", "Capture Volume": "5dB",
+                "Internal Mic Boost Volume": "0dB"}
 
 
 def placements(rig):
@@ -210,7 +217,7 @@ def laptop_template(workspace):
         if not ws.exists("rigs", LAPTOP_RIG):
             create_rig(
                 ws, "Laptop speaker and mic", LAPTOP_LAYOUT,
-                devices=[s.device_config("laptop")],
+                devices=[s.device_config("laptop", mixer=dict(LAPTOP_MIXER))],
                 transducers=[dict(id="speaker", device="laptop", channel="left"),
                              dict(id="mic", device="laptop", channel=0)])
         rig = ws.get("rigs", LAPTOP_RIG)

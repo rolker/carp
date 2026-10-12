@@ -92,19 +92,25 @@ def start_watching(card, say, warn):
     return watcher
 
 
-def apply_settings(card, assignments, say):
+def apply_settings(card, assignments, say, warn=None, stop_on_error=True):
     """Set mixer controls from (name, value) pairs, reading each back.
-    Returns 0 if all took, 1 if one did not, 2 for a bad pair or a mixer
-    error (a message is said)."""
+    Returns 0 if all took, 1 if one did not. A control that does not exist or
+    refuses the value is said (through `warn` if given, which is what a rig
+    wants) and ends the list, unless `stop_on_error` is False and the rest
+    are tried."""
     code = 0
     for name, value in assignments:
         try:
             result = mixer.set_control(card.number, name.strip(), str(value).strip())
         except mixer.MixerError as error:
-            say(f"cannot set '{name}': {error}")
-            return 1
+            (warn or say)(f"cannot set '{name}': {error}")
+            code = 1
+            if stop_on_error:
+                return code
+            continue
         status = "ok" if result.verified else f"NOT AS ASKED ({result.note})"
-        say(f"set {result.control.name} = {value}: read back "
+        (say if result.verified else (warn or say))(
+            f"set {result.control.name} = {value}: read back "
             f"{result.control.value_text()} (was {result.before}): {status}")
         code = code or (0 if result.verified else 1)
     return code
@@ -229,7 +235,7 @@ class CardHold:
         """Set mixer controls from a dict of name -> value."""
         pairs = [(k, v) for k, v in dict(settings or {}).items() if str(v).strip()]
         if pairs:
-            apply_settings(self.card, pairs, self.say)
+            apply_settings(self.card, pairs, self.say, self.warn, stop_on_error=False)
             self.applied.update(dict(pairs))
 
     def watch(self):

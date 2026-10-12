@@ -127,7 +127,8 @@ def save_capture(folder, number, capture, receiver=None):
                            scene=capture.meta.get("scene"),
                            layout=capture.meta.get("layout"),
                            rig=capture.meta.get("rig"),
-                           hardware=capture.meta.get("hardware"),
+                           devices=capture.meta.get("devices"),
+                           warnings=capture.meta.get("warnings"),
                            detection_design=capture.meta.get("detection_design"),
                            ping=capture.meta.get("ping"))))
     return str(path)

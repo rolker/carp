@@ -2,8 +2,9 @@
 
 The lowest layer for real sound hardware, under the hardware backend of
 design step 2 (`design.md`, "Backend interface"). It lives in
-`acoustics_lab/hardware/`, has no Qt, and nothing in `backends/` uses it yet.
-`tools/duplex_check.py` is the command-line check to run on a new dongle.
+`acoustics_lab/hardware/` and has no Qt. `backends/hardware.py` sits on it
+(see "The hardware backend and rigs" below). `tools/duplex_check.py` is the
+command-line check to run on a new dongle.
 
 ## What is in it
 
@@ -15,8 +16,10 @@ design step 2 (`design.md`, "Backend interface"). It lives in
 | `alsa_ctl` | ALSA's control API in `libasound.so.2` through `ctypes` (like `stream` does for PortAudio): open `hw:N`, list controls, read info, values and dB scales, write values, subscribe to change events. |
 | `mixer` | A card's mixer on top of `alsa_ctl`: `MixerControl`s; set a control, read it back, verify; dB ranges; save, restore and compare (`snapshot`, `restore`, `differences`); `Watcher` reports what changed while a test ran; the controls that matter are flagged. Falls back to the `amixer` command, with a warning, if `libasound` cannot be loaded. |
 | `desktop` | The desktop sound server's own volume and mute for a card's sinks and sources: save before borrowing, wait for the server to recreate them, restore and verify afterwards. Through `python3-pulsectl`, else `pactl`. |
-| `checks` | The offset test and the schedule test as functions on any device. |
+| `checks` | The offset test and the schedule test as functions on any device; the detection settings they use are a `DetectionDesign`; both keep the raw input; an offset test can be analysed again. |
 | `reserve` | Borrow a card from the desktop's sound server (device reservation over D-Bus) and give it back; see "Borrowing a card". |
+| `hold` | The whole sequence of taking hold of a card and putting everything back (below), as functions and as `CardHold`, for the tool and the backend alike. |
+| `shared` | The shared access mode: the sound server's own PortAudio device, and reading (never changing) its volumes. |
 
 ## Borrowing a card from the desktop
 
@@ -152,6 +155,84 @@ fractions of 100 % (what `wpctl get-volume` shows).
   a test is running.
 - Desktop sound is back when `wpctl status` lists the card's sink again.
 
+## The sequence, in `hold.py`
+
+`CardHold` is the sequence `duplex_check.py` worked out, as code both use:
+`save()` the desktop's volumes and then the mixer; `apply(settings)` the mixer
+values the run wants (a control the card does not have is a warning and the
+rest are still set); `watch()` the mixer for changes by anyone else;
+`borrow()` the card; ... open the stream, run ...; `finish()` stops watching and
+reports changes, puts the mixer back, gives the card back, waits for the
+desktop to recreate its sinks and sources and puts its volumes back, and
+checks the mixer once more. It looks up `reserve.Reservation`, `mixer` and
+`desktop` when it runs, so tests replace them with fakes. The same pieces are
+plain functions (`hold.borrow`, `hold.put_back_desktop`, ...) that take
+`say(text)` and `warn(text)`; the tool prints them, a window collects them.
+
+## Raw input and analysing again
+
+Both tests keep the device's input exactly as the device gave it (an
+`InputRecorder` reads the ring as the test goes, so a long test is not limited
+to the ring's 30 s). `checks.save` writes it to the run folder as `input.wav`
+(int16, not rescaled) with `input.wav.json`: the plan of scheduled output
+samples, the ping, the level, the xruns, the timing figures and the detection
+design used. `summary.json` also records the design.
+
+`checks.reanalyse_offset(checks.load_run(folder), design)` reads a saved offset
+test again with another detection design, feeding the detector in steps as it
+was fed live; with the design the test was made with it agrees with the live
+result to a few hundredths of a sample. Nothing is opened or played.
+
+    python3 tools/duplex_check.py --reanalyse RUN_FOLDER --detect first_fraction=0.6
+    python3 tools/duplex_check.py --reanalyse RUN_FOLDER --detection design.json
+
+`--detection FILE` is a design file (a workspace's `detection_designs/<id>.json`)
+and `--detect KEY=VALUE` changes one setting of it (or of the design the run was
+made with); the same two options apply to a live test. The result is saved in
+a new folder inside the run's.
+
+## The hardware backend and rigs
+
+`backends/hardware.py` implements the backend interface on this layer, and
+`objects/rigs.py` holds the rig that tells it what is plugged where.
+
+- **A rig** (`rigs/<id>.json`): a layout, devices (`card`: empty is the built-in
+  card, else a card number, id or USB port path; `access`: `exclusive` or
+  `shared`; `server_device` for shared; `rate`, `block`, `input_channel`;
+  `mixer`: control name to value, applied before use; `latency_allowance_s`),
+  transducers (`device` and `channel`: "left", "right" or an index) and
+  loopbacks (an input and the output whose electrical copy it carries, on the
+  same device).
+- **Exclusive**: the first ping opens the device (`hold.prepare`, `borrow`, the
+  `hw:` stream, then lets the input settle for the detection design's settle time and
+  checks it: clipping, DC offset, noise, as warnings). The stream stays open
+  between pings; `close()` (leaving Hardware, changing the rig, closing the
+  window) runs `hold.finish`. Nothing on disk changes; if the program dies the
+  reservation lapses with its D-Bus connection, but the mixer and the desktop's
+  volumes are not put back (they are only restored by a program that is still
+  running).
+- **Shared**: opens the sound server's PortAudio device at the rig's rate, reads
+  the server's default sink and source volumes, records them in the capture's
+  meta and warns when either is not 100 % or is muted. Nothing is borrowed or
+  written.
+- **A ping**: each sending device schedules its emissions a little ahead of its
+  output counter; each receiving device's recording starts when the first sound
+  can reach it (its own scheduled start if it also sends, else when the ping was
+  issued) and lasts the sound, the listening time and the device's latency
+  allowance. `Recording.started` is the first input sample over the rate on the
+  device's clock; `clock` is the rig's device ID; `loopback_of` comes from the rig.
+  Dropouts (xruns) in a recording's window are listed in the capture's warnings.
+- **The capture's meta** has the rig and layout used, per device the access mode,
+  card, stream facts, mixer applied, desktop volumes saved, mixer changes seen,
+  server volumes, the input check and the input window, the ping's own meta (with
+  the design IDs), warnings and the messages from taking hold.
+- **Identify** (`HardwareBackend.identify`) plays a 0.5 s, 1 kHz tone at
+  -20 dBFS on one output, opening and then giving back the device if it was not
+  already open.
+
+What cannot be checked without hardware is in the next section; the whole
+backend is tested against a faked machine (`tests/fake_hardware.py`).
+
 ## The duplex stream
 
 One PortAudio callback stream per device, input and output together, int16,
@@ -270,6 +351,16 @@ hardware, `--fake` runs the same tests on the simulated dongle in seconds.
   stays off, whether the mic monitor exists.
 
 ## Only checkable on real hardware
+
+- The hardware backend end to end on a real card: that a ping scheduled
+  `max(2 blocks, 50 ms)` ahead is never late, that the recording window
+  (sound + listening + 0.15 s allowance) always holds the direct sound (the
+  laptop's offset was 3195 samples, 67 ms), that the borrowed card's mixer
+  and the desktop's volumes come back after the backend's `close()` as they do
+  after the tool's, and how long that takes with the window waiting.
+- Shared access through `pulse` / `pipewire`: that PortAudio accepts the
+  device with the rig's rate and one input channel, and what the server's
+  volumes read as.
 
 - Borrowing from the real WirePlumber: the protocol is tested against a fake
   holder on a private bus. That WirePlumber agrees at priority 100, that the

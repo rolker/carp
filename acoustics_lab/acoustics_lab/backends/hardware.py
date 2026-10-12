@@ -261,7 +261,10 @@ class HardwareBackend(Backend):
 
     def close(self):
         """Stop every stream and put everything back: mixers, the card to
-        the desktop, the desktop's volumes. Safe to call again."""
+        the desktop's volumes. Safe to call again."""
+        if self._open:
+            self._say("Giving the sound card back to the desktop and putting its "
+                      "volumes back ...")
         for device_id in list(self._open):
             try:
                 self._discard(device_id)

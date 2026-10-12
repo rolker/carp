@@ -137,6 +137,31 @@ def test_a_ping_borrows_the_card_sets_the_mixer_and_close_puts_everything_back(w
     assert log.count("release") == 1
 
 
+def test_the_laptop_template_carries_what_worked_on_the_real_card(ws, world):
+    mixer_settings = ws.get("rigs", rigs.LAPTOP_RIG)["devices"][0]["mixer"]
+    assert mixer_settings == {"Master Playback Volume": "-15dB", "Capture Volume": "5dB",
+                              "Internal Mic Boost Volume": "0dB"}
+    backend = backend_for(ws, world)
+    backend.fire(ping_of(ws, backend))
+    changed = {c.name: c.values for c in world.mixer.controls.values()}
+    assert changed["Master Playback Volume"] != [17] and changed["Capture Volume"] != [40]
+    assert changed["Internal Mic Boost Volume"] == [0]          # was +20 dB
+    backend.close()
+    assert {c.name: c.values for c in world.mixer.controls.values()}["Internal Mic Boost Volume"] == [2]
+
+
+def test_a_mixer_control_the_card_does_not_have_is_a_warning_and_the_rest_are_still_set(ws, world):
+    devices = ws.get("rigs", rigs.LAPTOP_RIG)["devices"]
+    devices[0]["mixer"] = {"No Such Control": "50", "Capture Volume": "10"}
+    rigs.update_rig(ws, rigs.LAPTOP_RIG, devices=devices)
+    backend = backend_for(ws, world)
+    capture = backend.fire(ping_of(ws, backend))
+    assert any(lv == "warning" and "cannot set 'No Such Control'" in t for lv, t in backend.messages)
+    assert "mixer write Capture Volume" in world.log
+    assert capture.meta["devices"]["laptop"]["mixer_applied"]["Capture Volume"] == "10"
+    backend.close()
+
+
 def test_pings_keep_the_streams_open_and_a_capture_has_the_structure_of_hardware(ws, world):
     backend = backend_for(ws, world)
     stream = backend.open_stream(ping_of(ws, backend))
@@ -155,6 +180,28 @@ def test_pings_keep_the_streams_open_and_a_capture_has_the_structure_of_hardware
     # long enough for the sound, the listening time and the latency allowance
     assert len(rec.samples) >= (0.01 + 0.04 + 0.15) * 48000
     backend.close()
+
+
+def test_a_hardware_capture_saves_with_what_made_it_and_replays(ws, world, tmp_path):
+    import json
+    from acoustics_lab import capture_io
+    from acoustics_lab.experiments import room
+    backend = backend_for(ws, world)
+    capture = backend.fire(ping_of(ws, backend))
+    backend.close()
+    path = capture_io.save_capture(tmp_path, 1, capture, "mic")
+    side = json.load(open(path + ".json"))["acoustics_lab"]
+    assert side["backend"] == "Hardware" and side["rig"]["name"] == "Laptop speaker and mic"
+    assert side["devices"]["laptop"]["access"] == "exclusive"
+    assert side["devices"]["laptop"]["mixer_applied"]["Capture Volume"] == "5dB"
+    assert side["layout"]["transducers"][0]["id"] == "speaker"
+    assert side["ping"]["design_id"] == rigs.LAPTOP_DESIGN
+    loaded = capture_io.load_capture(path)
+    assert loaded.meta["sound_speed"] == pytest.approx(capture.meta["sound_speed"])
+    assert loaded.ping.meta["design_id"] == rigs.LAPTOP_DESIGN
+    result = room.analyse(loaded, "speaker", "mic")
+    assert result.heard and result.baseline_m == pytest.approx(0.2)
+    assert result.direct_sample == pytest.approx(DIRECT, abs=1.0)    # 16-bit rounding of the WAV
 
 
 def test_the_output_to_input_offset_is_measured_from_the_recording(ws, world):

@@ -378,6 +378,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _hardware_message(self, level, text):
         self.hardware_log.appendPlainText(("WARNING: " if level == "warning" else "") + text)
+        if text.startswith("Giving the sound card back"):
+            self.statusBar().showMessage(text)
+            QtWidgets.QApplication.processEvents()      # shown before the wait
         if level == "warning":
             self.hardware_dock.show()
             self.statusBar().showMessage("Hardware: " + text.splitlines()[0])

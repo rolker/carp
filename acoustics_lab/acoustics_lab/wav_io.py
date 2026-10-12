@@ -27,10 +27,19 @@ def read_wav(path):
         return data.astype(np.float32) / 32768.0, f.getframerate()
 
 
+def _plain(value):
+    """json's `default`: numpy numbers and arrays as plain ones."""
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    raise TypeError(f"{type(value).__name__} is not JSON serializable")
+
+
 def write_meta(path, meta):
     """Save the settings for a recording next to it, as <path>.json."""
     with open(path + ".json", "w") as f:
-        json.dump(meta, f, indent=1)
+        json.dump(meta, f, indent=1, default=_plain)
         f.write("\n")
 
 
