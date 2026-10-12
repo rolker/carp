@@ -1,7 +1,7 @@
 # acoustics_lab — design
 
-Status: **draft, 2026-10-12.** The tables under Decisions are settled. Items
-marked *open*, and the user-experience section, are still to be decided.
+Status: **draft, 2026-10-12.** Decisions and the user-experience section
+are settled; items marked *open* are still to be decided.
 
 ## What it is
 
@@ -603,19 +603,50 @@ measured is shown as assumed.
 Later, an oscilloscope as an instrument would add phase and timing
 procedures, such as the series-resistor impedance sweep from the 2007 lab.
 
-## User experience (proposal, to discuss)
+## User experience
 
-- **Window.** A list of pages down the left, grouped into foundations and
-  systems. A toolbar across the top holds what applies everywhere: backend
-  (simulation, hardware, replay) with its rig or scene, sample rate, and a
-  run button.
-- **Medium.** The scene owns the medium; the toolbar shows the current
-  scene's medium and edits it there. Pages pass it to the models
-  explicitly. Replay uses the medium recorded with the capture, which can
-  be overridden for reprocessing.
-- **A page.** Parameters on the left with units, each with its derived
-  values beside it. Plots in the centre, in docks that can be rearranged.
-  Notes on the right, collapsible, with the equations and current numbers.
+Decided 2026-10-12, except where marked open.
+
+- **Window.** A list of pages down the left, grouped into foundations
+  (signals, transducers, beam patterns, sound speed, propagation, echo
+  sounding, Doppler, noise, receiver chain) and systems (ranging and
+  positioning, comms, multibeam design, sonar equation). Ten-plus pages
+  are too many for tabs. A toolbar across the top holds what applies
+  everywhere: backend (simulation, hardware, replay) with its active scene
+  or rig, sample rate, and a run button.
+- **A page.** Model and experiment on the same page: theory as lines and
+  measurements as points on the same axes is the point of the tool. When a
+  page has no experiment, or the current backend cannot run it, the run
+  controls are greyed out with the reason. Parameters on the left with
+  units, each with its derived values beside it; plots in the centre, in
+  docks that can be rearranged; notes on the right.
+- **Notes.** A collapsible panel, written as short text tied to what is on
+  screen, with live values in the sentences ("a 20 mm disc at 18 kHz has
+  ka = 3.3, so 60° off axis is about −15 dB"), later draggable to change
+  the page. Models for this: Bartosz Ciechanowski's interactive articles
+  (*Sound*, *GPS*) for text tied to live figures; Bret Victor's Tangle and
+  "explorable explanations" for live numbers in sentences; PhET simulations
+  for few words and readouts beside controls; MATLAB's Sensor Array
+  Analyzer for a table of computed characteristics beside a plot.
+- **Scenes: one active, pages say what they need.** Scenes are saved
+  workspace objects and one is active for the whole tool, like the rig:
+  the bench is one bench, set up one way at a time, and every page sees
+  the same setup. Each page with an experiment declares what it needs
+  ("one transducer on a positioner"; "at least two transducers on
+  different devices"; "a reflector in front of a transducer"). If the
+  active scene does not fit, the page says why and offers the scenes that
+  do, or a new one from a template. Comparing setups (the ring at 220 mm
+  against 230 mm) means two scenes whose captures are overlaid. Model-only
+  pages (multibeam design, sonar equation, much of sound speed) take their
+  inputs as page settings, not from a scene.
+- **Medium.** The active scene owns the medium; the toolbar shows it and
+  edits it there. Pages pass it to the models explicitly. Replay uses the
+  medium recorded with the capture, which can be overridden for
+  reprocessing.
+- **Air and water numbers.** With an air-scaled scene, quantities that
+  carry over are shown both ways by default ("115 mm (0.5 m in water)"; a
+  pendulum speed with its vehicle speed). A workspace setting chooses air
+  only, water only, or both.
 - **Running.** One ping, continuous, or a sequence (sweep, rotation), with
   progress and stop at the bottom. Space bar pings.
 - **Bench measurements.** Run from the rig editor (and offered when a
@@ -628,17 +659,22 @@ procedures, such as the series-resistor impedance sweep from the 2007 lab.
 - **Scripting.** The workspace objects and models usable from a Python
   script or notebook, for batch runs, without the window.
 
-Questions to settle (current leaning in brackets):
+**Scenes and the bench as built.** Scene and rig are chosen separately,
+so a setup that cannot be built (a larger ring, water instead of air, a
+transducer that is not on the bench) can be simulated while the hardware
+stays as it is. Getting back to the real setup is one step:
 
-1. Page list on the left, tabs, or a free workbench where views from
-   different pages can sit side by side? (List; docks within a page.)
-2. Is the scene global, or does each page carry its own? (Global: the bench
-   is one bench.)
-3. Notes always visible, collapsible, or as hover tips? Static text, or
-   filled in with live values? (Collapsible, with live values.)
-4. Model and experiment on one page, or as separate modes? (One page.)
-5. For air-scaled bench work, show air numbers, water numbers, or both?
-   (Air, with water equivalents beside them.)
+- Each rig has an **as-built scene**: its twin, holding the layout the rig
+  is wired to, the bench medium and the bench's reflecting surfaces. It is
+  created with the rig and kept in step when the rig or its layout changes.
+- A toolbar button, **As built**, makes the rig's as-built scene active.
+  Switching the backend to hardware does the same automatically, since
+  hardware can only ever be the bench as built.
+- When the active scene is not the as-built one, the toolbar says so
+  plainly ("simulating ring 230 mm, not built"), so a simulated result is
+  never mistaken for the bench.
+- Exploring a variant starts from the as-built scene: *copy as new scene*,
+  change it, compare, and return with As built.
 
 ## Testing
 
