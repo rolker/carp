@@ -1,0 +1,25 @@
+numid=2,iface=CARD,name='Headphone Jack'
+  ; type=BOOLEAN,access=r-------,values=1
+  : values=off
+numid=14,iface=MIXER,name='Master Playback Volume'
+  ; type=INTEGER,access=rw---R--,values=1,min=0,max=87,step=0
+  : values=87
+  | dBscale-min=-65.25dB,step=0.75dB,mute=0
+numid=13,iface=MIXER,name='Master Playback Switch'
+  ; type=BOOLEAN,access=rw------,values=1
+  : values=on
+numid=8,iface=MIXER,name='Capture Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=63,step=0
+  : values=39,39
+  | dBscale-min=-17.25dB,step=0.75dB,mute=0
+numid=3,iface=MIXER,name='Capture Switch'
+  ; type=BOOLEAN,access=rw------,values=2
+  : values=on,on
+numid=9,iface=MIXER,name='Mic Boost Volume'
+  ; type=INTEGER,access=rw---R--,values=2,min=0,max=3,step=0
+  : values=0,0
+  | dBrange-
+    rangemin=0,,rangemax=1
+      | dBscale-min=0.00dB,step=0.00dB,mute=0
+    rangemin=2,,rangemax=3
+      | dBscale-min=20.00dB,step=10.00dB,mute=0

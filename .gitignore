@@ -37,3 +37,6 @@ Thumbs.db
 # Vendor CAD: large, downloadable, not ours to redistribute — see cad/vendor/README.md
 cad/vendor/*
 !cad/vendor/README.md
+
+# acoustics_lab hardware check results
+acoustics_lab/runs/
