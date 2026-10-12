@@ -87,6 +87,8 @@ is the likely choice.
   the same clock domain can be timed against each other exactly; across
   domains only by measurement.
 - **Backend:** where pings are made: hardware, simulation or replay.
+- **Instrument:** a bench meter (a multimeter, later perhaps an
+  oscilloscope) described by what it can measure and how well.
 
 ## Decisions
 
@@ -176,7 +178,8 @@ acoustics_lab/
       doppler.py           # shifts, Doppler-tolerant signals, velocity estimation
     qtcompat.py            # the Qt 5 / Qt 6 shim
     workspace.py           # folder, files, IDs, undo stack, file watching
-    objects/               # signals, ping designs, layouts, scenes, rigs, profiles
+    objects/               # signals, ping designs, layouts, scenes, rigs, profiles, instruments
+    procedures/            # guided bench measurements, one module each
     backends/
       base.py              # the interface below
       hardware.py          # from carp/acoustic/audio_io.py
@@ -414,6 +417,7 @@ my_workspace/
   scenes/<id>.json
   rigs/<id>.json
   profiles/<id>.json     # sound-speed profiles: casts, typed in, or built
+  instruments/<id>.json  # bench meters and their limits
   runs/<date>/...        # captures: WAV per recording + JSON sidecar
   .gitignore             # runs/ by default
 ```
@@ -434,7 +438,8 @@ References between objects always use IDs.
 - **No Save button.** Each edit is written as it is made, atomically (write
   a temporary file, then rename), so a crash never leaves half a file.
 - **Undo and redo** (one Qt `QUndoStack` per workspace) cover signals,
-  ping designs, layouts, scenes, rigs and profiles: Ctrl+Z, Ctrl+Shift+Z, and an
+  ping designs, layouts, scenes, rigs, profiles and instruments: Ctrl+Z,
+  Ctrl+Shift+Z, and an
   optional history panel. Undo rewrites the file too. One committed cell
   edit is one undo step; typing within a cell is not.
 - **Runs are records, not edits,** and are not undone.
@@ -537,6 +542,48 @@ backscatter and water-column backscatter at once.
 then C, repeat; an echosounder calls this sequencing). A third list of
 sequences can come when that page needs it.
 
+## Bench measurements
+
+Hardware numbers the rest of the tool relies on (volts per full scale,
+output impedance, input sensitivity, mic bias, disc capacitance) are
+measured on the bench with ordinary meters. The tool guides those
+measurements, does the playing and the arithmetic, and keeps the results in
+the rig with where they came from.
+
+**Instruments.** A workspace object per meter: model, what it measures,
+whether its AC reading is true RMS, its AC bandwidth (cheap multimeters are
+often specified only to 400 Hz or 1 kHz and read low above that), its
+ranges and resolution. Procedures choose test frequencies and levels the
+meter can handle, and flag a reading outside its specification.
+
+**Procedures.** Each is a short guided sequence: what to connect (with a
+diagram), which meter mode and range, what the tool will play, the range of
+readings to expect, and a field for the reading. The tool computes the
+result and stores it in the rig with the date, instrument and raw readings.
+
+| Procedure | Meter mode | How | Gives |
+|---|---|---|---|
+| Plug pinout | Continuity | Plug inserted, probe each contact against the leads | Which contact is left, right, mic, ground |
+| Output DC offset | DC volts | Output idle | Offset, should be near 0 V |
+| Mic bias | DC volts | Mic contact to ground, nothing connected | Bias voltage, which the coupling capacitor must block |
+| Output level and linearity | AC volts | Sine at a frequency inside the meter's bandwidth (typically 1 kHz), at −20, −10, −6 and −3 dBFS, never at 0 dBFS where outputs can clip; the device's own mixer at a known setting and system volume bypassed | Volts RMS at full scale, and whether each 10 dB step reads ×3.16 |
+| Output impedance | AC volts | The same tone, open circuit, then across a known resistor (about 100 Ω): Z = R·(V_open/V_loaded − 1) | Output impedance, used by the simulator and the receiver chain page |
+| Input sensitivity | AC volts | The calibrated output into the mic input through a resistor divider (for example 100 kΩ over 1 kΩ); meter on the divided voltage if it resolves millivolts, otherwise computed from the divider | Volts at the input per full scale |
+| Disc capacitance | Capacitance | Disc disconnected | Capacitance, for the transducer model |
+| Resistors | Resistance | Out of circuit | Actual values of the bench circuit's resistors |
+
+Responses at higher frequencies (16–20 kHz and up) are not taken from the
+meter; they are measured relative to the 1 kHz point through the loopback,
+by the sweep.
+
+**Where results show.** Pages that use a measured value (levels in volts,
+output impedance in the simulator, capacitance in the transducer model)
+say which measurement it came from and when; a value that was never
+measured is shown as assumed.
+
+Later, an oscilloscope as an instrument would add phase and timing
+procedures, such as the series-resistor impedance sweep from the 2007 lab.
+
 ## User experience (proposal, to discuss)
 
 - **Window.** A list of pages down the left, grouped into foundations and
@@ -552,6 +599,9 @@ sequences can come when that page needs it.
   Notes on the right, collapsible, with the equations and current numbers.
 - **Running.** One ping, continuous, or a sequence (sweep, rotation), with
   progress and stop at the bottom. Space bar pings.
+- **Bench measurements.** Run from the rig editor (and offered when a
+  page needs a value that has not been measured); the Receiver chain
+  page's notes explain what each measurement means.
 - **Editors.** Layouts, scenes and rigs each have one editor, shared by
   every page: a layout shown top-down and side-on; a rig as a table of
   transducers against devices, with an "identify" button that plays a tone.
@@ -661,8 +711,10 @@ until the new tool does everything it does; then its programs retire, and
    loopback); replay; the ranging page with one ping, continuous and the
    echogram. No hardware yet.
 2. **Hardware:** the hardware backend from `audio_io.py`, with streams kept
-   open; rigs and the rig editor with "identify"; loopback timing. At this
-   point the ranging page matches `ping_gui.py` on the ping itself.
+   open; rigs and the rig editor with "identify"; loopback timing;
+   instruments and the first bench measurements (pinout, DC offset, mic
+   bias, output level, output impedance). At this point the ranging page
+   matches `ping_gui.py` on the ping itself.
 3. **Beam patterns:** the page, the layout and scene editors, and
    rotate-and-measure.
 4. **Sound speed and propagation:** profiles, ray tracing for the page,
