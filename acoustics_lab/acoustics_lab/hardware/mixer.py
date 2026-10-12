@@ -1,26 +1,57 @@
-"""A sound card's ALSA mixer controls, through the `amixer` command.
+"""A sound card's ALSA mixer controls, through `libasound`.
 
-python3-alsaaudio is not installed, so this parses the text of
-`amixer -c N contents`, which looks like
+The controls are read and set with ALSA's own control API (`alsa_ctl`,
+ctypes on `libasound.so.2`): no command is run and no text is parsed. A
+control is a `MixerControl`: its type, range, dB scale, enumerated item
+names and values. The card can also say when something changes a control
+(`Watcher`), which is how a test reports that the desktop or another program
+touched the mixer while it ran.
+
+Everything goes through a backend, so tests use a fake:
+
+- `AlsaBackend` (the default) uses `libasound`;
+- `AmixerBackend(runner)` runs `amixer` and parses the text of
+  `amixer -c N contents`; it is the fallback, with a warning, when
+  `libasound` cannot be loaded, and what the sample-text fixtures exercise.
+
+Functions take `backend=` (a backend, or a function standing in for
+`amixer`, as before); the default is `default_backend()`.
+
+The controls that matter for the ranging tests are flagged by `role`:
+playback volume (sets how loud), capture volume and auto gain control
+(change the recorded level, and AGC changes it during a ping), and the
+microphone playback or monitor path (mixes the mic into the output, a
+second loopback nobody asked for).
+
+`amixer`'s text looks like
 
     numid=3,iface=MIXER,name='Speaker Playback Volume'
       ; type=INTEGER,access=rw---R--,values=2,min=0,max=151,step=0
       : values=100,100
       | dBminmax-min=-95.00dB,max=0.00dB
-
-The ones that matter for the ranging tests are flagged by `role`: playback
-volume (sets how loud), capture volume and auto gain control (change the
-recorded level, and AGC changes it during a ping), and the microphone
-playback or monitor path (mixes the mic into the output, a second loopback
-nobody asked for).
 """
+import logging
 import os
 import re
 import shutil
 import subprocess
-from dataclasses import dataclass, field
+import threading
+import time
+import warnings
+import threading
+import time
+import warnings
+from dataclasses import dataclass, field, replace
 
-_HEAD = re.compile(r"^numid=(\d+),iface=(\w+),name='(.*)'\s*$")
+from . import alsa_ctl
+
+log = logging.getLogger(__name__)
+
+from . import alsa_ctl
+
+log = logging.getLogger(__name__)
+
+_HEAD = re.compile(r"^numid=(\d+),iface=(\w+),name='(.*?)'(?:,(?:index|device|subdevice)=\d+)*\s*$")
 _FIELD = re.compile(r"(\w+)=([^,]*)")
 
 PLAYBACK_VOLUME = "playback volume"
@@ -41,7 +72,7 @@ ADVICE = {
 
 
 class MixerError(Exception):
-    """amixer is missing or refused."""
+    """The mixer could not be read or set (libasound or amixer refused)."""
 
 
 @dataclass
@@ -61,6 +92,12 @@ class MixerControl:
     db_max: float = None           # dB at `maximum`
     db_step: float = None          # dB per step, for "dBscale" cards
     db_mute_at_min: bool = False
+    db_table: list = None          # dB at each raw value minimum..maximum
+                                   # (None where the card says mute), from
+                                   # the card's own scale; set by libasound
+    db_table: list = None          # dB at each raw value minimum..maximum
+                                   # (None where the card says mute), from
+                                   # the card's own scale; set by libasound
 
     @property
     def writable(self):
@@ -72,6 +109,12 @@ class MixerControl:
 
     def to_db(self, value):
         """dB for a raw value, or None where the card gives no scale."""
+        if self.db_table is not None:
+            index = value - self.minimum
+            return self.db_table[index] if 0 <= index < len(self.db_table) else None
+        if self.db_table is not None:
+            index = value - self.minimum
+            return self.db_table[index] if 0 <= index < len(self.db_table) else None
         if self.db_min is None:
             return None
         if self.db_step is not None:
@@ -102,7 +145,8 @@ class MixerControl:
         text = f"{self.minimum}..{self.maximum}"
         if self.db_min is not None:
             top = self.to_db(self.maximum)
-            text += f" ({self.db_min:.1f}..{top:.1f} dB)"
+            if top is not None:
+                text += f" ({self.db_min:.1f}..{top:.1f} dB)"
         return text
 
 
@@ -219,9 +263,136 @@ def run_amixer(args):
     return result.stdout
 
 
-def read_controls(card, runner=run_amixer):
+# -- backends -----------------------------------------------------------------
+
+class AmixerBackend:
+    """The mixer through the `amixer` command; `runner(args)` returns its
+    text (tests pass a fake). It cannot report changes."""
+    name = "amixer"
+
+    def __init__(self, runner=run_amixer):
+        self.runner = runner
+
+    def read_controls(self, card):
+        return parse_contents(self.runner(["-c", str(card), "contents"]))
+
+    def write(self, card, control, values):
+        """Set a control to raw `values` (ints, one per channel)."""
+        if control.type == "BOOLEAN":
+            text = ",".join("on" if v else "off" for v in values)
+        else:
+            text = ",".join(str(v) for v in values)
+        self.runner(["-c", str(card), "cset", f"numid={control.numid}", text])
+
+    def open_events(self, card):
+        raise MixerError("amixer cannot report mixer changes")
+
+
+class AlsaBackend:
+    """The mixer through ALSA's control API in libasound (`alsa_ctl`)."""
+    name = "libasound"
+
+    def read_controls(self, card):
+        try:
+            with alsa_ctl.Ctl(card) as ctl:
+                controls = []
+                for element in ctl.elements():
+                    values = ctl.read(element) if element.readable else []
+                    controls.append(_control_from(element, values))
+                return controls
+        except alsa_ctl.AlsaError as error:
+            raise MixerError(str(error))
+
+    def write(self, card, control, values):
+        try:
+            with alsa_ctl.Ctl(card) as ctl:
+                ctl.write(ctl.element(control.numid, with_db=False), values)
+        except alsa_ctl.AlsaError as error:
+            raise MixerError(str(error))
+
+    def open_events(self, card):
+        try:
+            return AlsaEvents(card)
+        except alsa_ctl.AlsaError as error:
+            raise MixerError(str(error))
+
+
+class AlsaEvents:
+    """Mixer change events of one card: `wait(timeout)` returns the numids
+    of the controls whose value changed (empty on timeout)."""
+
+    def __init__(self, card):
+        self.ctl = alsa_ctl.Ctl(card, nonblock=True)
+        try:
+            self.ctl.subscribe()
+        except alsa_ctl.AlsaError:
+            self.ctl.close()
+            raise
+
+    def wait(self, timeout):
+        try:
+            if not self.ctl.wait(timeout):
+                return []
+            events = self.ctl.read_events()
+        except alsa_ctl.AlsaError as error:
+            raise MixerError(str(error))
+        return sorted({numid for numid, mask in events
+                       if mask & alsa_ctl.MASK_VALUE})
+
+    def close(self):
+        self.ctl.close()
+
+
+def _control_from(element, values):
+    """A MixerControl from an `alsa_ctl.Element` and its values."""
+    access = ("r" if element.readable else "-") + ("w" if element.writable else "-")
+    access += ("v" if element.volatile else "-") + ("i" if element.inactive else "-")
+    access += "-" + ("R" if element.tlv_readable else "-") + "--"
+    control = MixerControl(element.numid, element.iface, element.name,
+                           element.type, access, element.count, element.minimum,
+                           element.maximum, element.step, list(values),
+                           list(element.items))
+    if element.db:
+        control.db_table = list(element.db)
+        known = [d for d in element.db if d is not None]
+        control.db_min, control.db_max = min(known), max(known)
+        control.db_mute_at_min = element.db[0] is None
+    return control
+
+
+_fallback_reason = []
+
+
+def default_backend():
+    """libasound where it loads; else `amixer`, with a warning (once)."""
+    try:
+        alsa_ctl.load()
+        return AlsaBackend()
+    except alsa_ctl.AlsaError as error:
+        if not _fallback_reason:
+            _fallback_reason.append(str(error))
+            warnings.warn(f"{error}; using the amixer command for the mixer "
+                          "instead", RuntimeWarning, stacklevel=3)
+    return AmixerBackend()
+
+
+def fallback_reason():
+    """Why the mixer is using `amixer` instead of libasound, or ""."""
+    return _fallback_reason[0] if _fallback_reason else ""
+
+
+def _backend(backend):
+    """None: the default; a backend: itself; a function: an amixer stand-in."""
+    if backend is None:
+        return default_backend()
+    if hasattr(backend, "read_controls"):
+        return backend
+    return AmixerBackend(backend)
+
+
+def read_controls(card, backend=None):
     """All mixer controls of ALSA card number `card`."""
-    return parse_contents(runner(["-c", str(card), "contents"]))
+    return _backend(backend).read_controls(card)
 
 
 def find_control(controls, name):
@@ -249,23 +420,22 @@ class SetResult:
     note: str = ""
 
 
-def set_control(card, name, value, runner=run_amixer):
+def set_control(card, name, value, backend=None):
     """Set a control, read it back and say whether it took.
 
-    `value` is what `amixer cset` accepts: an integer, "on"/"off", a
-    percentage ("60%"), a dB figure ("-6dB"), an enumerated item number or
-    a comma list for several channels. The result's `verified` is True when
-    the read-back is what was asked for: exactly for integers and switches,
-    within one step for percentages and dB (the card rounds).
+    `value` is an integer, "on"/"off", a percentage ("60%"), a dB figure
+    ("-6dB"), an enumerated item number or name, or a comma list for several
+    channels. The result's `verified` is True when the read-back is what was
+    asked for: exactly for integers and switches, within one step for
+    percentages and dB (the card rounds).
     """
-    controls = read_controls(card, runner)
-    control = find_control(controls, name)
+    backend = _backend(backend)
+    control = find_control(backend.read_controls(card), name)
     if not control.writable:
         raise MixerError(f"'{control.name}' is read-only")
     before = list(control.values)
-    raw = db_to_raw(control, str(value).strip())
-    runner(["-c", str(card), "cset", f"numid={control.numid}", raw])
-    after = find_control(read_controls(card, runner), control.name)
+    backend.write(card, control, to_raw_values(control, str(value).strip()))
+    after = find_control(backend.read_controls(card), control.name)
     verified, note = _verify(after, str(value).strip())
     return SetResult(after, before, str(value), verified, note)
 
@@ -274,50 +444,222 @@ DB_VALUE = re.compile(r"^\s*([+-]?\d+(?:\.\d+)?)\s*dB\s*$", re.IGNORECASE)
 
 
 def db_to_raw(control, value):
-    """`value` as amixer should get it. A dB figure ("-25dB") becomes the
-    nearest raw step, from the control's own dB scale: amixer's `cset`
-    takes a leading minus for an option and does not convert dB reliably.
-    Anything else is passed through unchanged."""
+    """`value` as a raw number text. A dB figure ("-25dB") becomes the
+    nearest raw step, from the control's own dB scale. Anything else is
+    passed through unchanged."""
     match = DB_VALUE.match(value)
     if not match:
         return value
-    if control.type != "INTEGER" or control.to_db(control.minimum) is None:
+    if control.type != "INTEGER" or control.to_db(control.maximum) is None:
         raise MixerError(f"'{control.name}' has no dB scale; give a raw value "
                          f"({control.range_text()})")
     wanted = float(match.group(1))
-    steps = range(control.minimum, control.maximum + 1)
-    best = min(steps, key=lambda v: abs(control.to_db(v) - wanted))
-    return str(best)
+    steps = [v for v in range(control.minimum, control.maximum + 1)
+             if control.to_db(v) is not None]
+    return str(min(steps, key=lambda v: abs(control.to_db(v) - wanted)))
 
 
-def snapshot(card, runner=run_amixer):
+def to_raw_values(control, text):
+    """The raw values to write for `text` (see `set_control`): one int per
+    channel; a single figure is used for every channel."""
+    values = []
+    for part in (p.strip() for p in text.split(",")):
+        lower = part.lower()
+        try:
+            if lower in ("on", "off"):
+                values.append(1 if lower == "on" else 0)
+            elif lower.endswith("%"):
+                span = control.maximum - control.minimum
+                values.append(int(round(control.minimum
+                                        + float(lower[:-1]) / 100.0 * span)))
+            elif lower.endswith("db"):
+                values.append(int(db_to_raw(control, part)))
+            elif control.type == "ENUMERATED" and not lower.lstrip("-").isdigit():
+                names = [item.lower() for item in control.items]
+                if lower not in names:
+                    raise MixerError(f"'{part}' is not one of: "
+                                     + ", ".join(control.items))
+                values.append(names.index(lower))
+            else:
+                values.append(int(part))
+        except ValueError:
+            raise MixerError(f"cannot read '{part}' as a value for "
+                             f"'{control.name}' ({control.range_text()})")
+    if len(values) == 1:
+        values = values * max(control.count, 1)
+    if len(values) != control.count:
+        raise MixerError(f"asked for {len(values)} values, "
+                         f"'{control.name}' has {control.count}")
+    return values
+
+
+def snapshot(card, backend=None):
     """The values of every writable control of card `card`, to put back
     later with `restore`: {numid: (name, type, values)}."""
     return {c.numid: (c.name, c.type, list(c.values))
-            for c in read_controls(card, runner) if c.writable}
+            for c in read_controls(card, backend) if c.writable and c.values}
 
 
-def restore(card, saved, runner=run_amixer):
+def restore(card, saved, backend=None):
     """Put back the controls whose values differ from `saved` (from
     `snapshot`). Returns (restored, failed): lists of (name, value text)
     and (name, error text). A control that cannot be set is reported, not
     raised, so one bad control does not stop the others."""
+    backend = _backend(backend)
     restored, failed = [], []
-    current = {c.numid: c for c in read_controls(card, runner)}
+    current = {c.numid: c for c in backend.read_controls(card)}
     for numid, (name, kind, values) in saved.items():
         control = current.get(numid)
         if control is None or control.values == values:
             continue
-        if kind == "BOOLEAN":
-            text = ",".join("on" if v else "off" for v in values)
-        else:
-            text = ",".join(str(v) for v in values)
         try:
-            runner(["-c", str(card), "cset", f"numid={numid}", text])
-            restored.append((name, text))
+            backend.write(card, control, list(values))
+            restored.append((name, _values_text(kind, values)))
         except MixerError as error:
             failed.append((name, str(error)))
     return restored, failed
+
+
+@dataclass
+class Difference:
+    """A control that is not as saved."""
+    name: str
+    saved: str                # value text, as `MixerControl.value_text`
+    now: str
+    setting: str              # what to give --set to put it back
+
+
+def differences(card, saved, backend=None):
+    """Controls whose values are not those in `saved` (from `snapshot`), as
+    a list of `Difference`. Empty when all match."""
+    out = []
+    current = {c.numid: c for c in read_controls(card, backend)}
+    for numid, (name, kind, values) in saved.items():
+        control = current.get(numid)
+        if control is None:
+            out.append(Difference(name, _values_text(kind, values), "gone", ""))
+        elif control.values != values:
+            before = replace(control, values=list(values))
+            setting = (",".join(before.items[v] if v < len(before.items) else str(v)
+                                for v in values) if kind == "ENUMERATED"
+                       else _values_text(kind, values))
+            out.append(Difference(name, before.value_text(), control.value_text(),
+                                  setting))
+    return out
+
+
+def _values_text(kind, values):
+    if kind == "BOOLEAN":
+        return ",".join("on" if v else "off" for v in values)
+    return ",".join(str(v) for v in values)
+
+
+# -- watching for changes ------------------------------------------------------
+
+@dataclass
+class Change:
+    """A control that changed while watched."""
+    numid: int
+    name: str
+    old: str                  # value text before
+    new: str                  # value text after
+    seconds: float            # since the watch began
+
+    def text(self):
+        return f"{self.name}: {self.old} -> {self.new} (after {self.seconds:.1f} s)"
+
+
+class Watcher:
+    """Notices mixer controls that change while a test runs.
+
+    `start()` records the values; changes are picked up from the card's
+    events (libasound) or, where the backend has none, by reading the whole
+    mixer every `interval` s. `stop()` returns the list of `Change`s. A
+    thread of its own does the waiting; tests call `poll()` instead.
+
+    The values at `start()` are the baseline, so start after your own
+    settings are made, and stop before putting the mixer back, or those show
+    up as changes too.
+    """
+
+    def __init__(self, card, backend=None, interval=0.5, clock=time.monotonic):
+        self.card = card
+        self.backend = _backend(backend)
+        self.interval = interval
+        self.clock = clock
+        self.changes = []
+        self.error = ""
+        self.mode = ""               # "events" or "polling"
+        self._events = None
+        self._baseline = {}
+        self._began = 0.0
+        self._lock = threading.Lock()
+        self._stop = threading.Event()
+        self._thread = None
+
+    def start(self, thread=True):
+        self._baseline = {c.numid: c for c in self.backend.read_controls(self.card)}
+        self._began = self.clock()
+        try:
+            self._events = self.backend.open_events(self.card)
+            self.mode = "events"
+        except MixerError as error:
+            self._events = None
+            self.mode = "polling"
+            log.info("mixer events not available (%s); polling", error)
+        if thread:
+            self._thread = threading.Thread(target=self._run, daemon=True,
+                                            name="mixer-watch")
+            self._thread.start()
+        return self
+
+    def poll(self, timeout=0.0):
+        """Wait up to `timeout` s for a change; returns the new Changes."""
+        if self._events is not None:
+            if not self._events.wait(timeout):
+                return []
+        elif timeout:
+            time.sleep(timeout)
+        now = {c.numid: c for c in self.backend.read_controls(self.card)}
+        found = []
+        for numid, control in now.items():
+            before = self._baseline.get(numid)
+            if before is not None and before.values != control.values:
+                found.append(Change(numid, control.name, before.value_text(),
+                                    control.value_text(),
+                                    self.clock() - self._began))
+        self._baseline = now
+        with self._lock:
+            self.changes.extend(found)
+        return found
+
+    def _run(self):
+        while not self._stop.is_set():
+            try:
+                self.poll(self.interval if self._events is None else 0.2)
+            except MixerError as error:
+                self.error = str(error)
+                return
+
+    def seen(self):
+        """The changes seen so far, in order (the watch goes on)."""
+        with self._lock:
+            return list(self.changes)
+
+    def stop(self):
+        """Stop watching; the changes seen, in order."""
+        self._stop.set()
+        if self._thread is not None:
+            self._thread.join(timeout=5)
+        try:
+            self.poll(0)
+        except MixerError as error:
+            self.error = self.error or str(error)
+        if self._events is not None:
+            self._events.close()
+            self._events = None
+        with self._lock:
+            return list(self.changes)
 
 
 def _verify(control, requested):
