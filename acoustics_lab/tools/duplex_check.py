@@ -9,9 +9,13 @@
     duplex_check.py --fake --offset-test --minutes 5      # no hardware
 
 A device is only ever opened when it is named with --device (card number,
-ALSA card id or USB port path) together with a test. A card that is not on
-USB (the built-in sound, HDMI) gets a prominent warning, since the desktop
-uses it. The output level defaults to -20 dBFS; above -6 dBFS gets a
+ALSA card id or USB port path) together with a test. Before a test opens
+the card's hw: device, the card is borrowed from the desktop's sound server
+through the device-reservation protocol on the session bus, and given back
+afterwards, or at once if this program dies; nothing on the machine is
+changed (--no-borrow skips this). A card that is not on USB (the built-in
+sound, HDMI) gets a prominent warning, since the desktop uses it, and the
+built-in card's speakers and capture source are checked first. The output level defaults to -20 dBFS; above -6 dBFS gets a
 prominent warning, and above 0 dBFS is played clipped at full scale, with a
 warning, to show what clipping does. The plan, including how loud, is printed before anything
 is played.
@@ -29,7 +33,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ROOT)
 
-from acoustics_lab.hardware import checks, discovery, mixer      # noqa: E402
+from acoustics_lab.hardware import checks, discovery, mixer, reserve  # noqa: E402
 from acoustics_lab.hardware.stream import (DeviceError,          # noqa: E402
                                            PortAudioDuplex)
 
@@ -67,6 +71,9 @@ def parse_args(argv=None):
     p.add_argument("--block", type=int, default=512,
                    help="frames per callback (default 512)")
     p.add_argument("--runs", default=DEFAULT_RUNS, help="folder for results")
+    p.add_argument("--no-borrow", action="store_true",
+                   help="do not borrow the card from the desktop's sound server "
+                        "(for debugging; opening a card it holds then fails as busy)")
     p.add_argument("--no-wait", action="store_true",
                    help="skip the 3 s pause after printing the plan")
     return p.parse_args(argv)
@@ -82,11 +89,80 @@ def warn(text, out):
     print(bar, file=out)
 
 
-def warn_not_usb(card, out):
-    warn(f"{card.label()} is not a USB card. It is the desktop's (built-in "
-         "sound or HDMI): opening it may fail as busy, or stop the desktop's "
-         "sound on it while the test runs, and test signals go to its "
-         "speakers or screen.", out)
+def warn_not_usb(card, out, borrowing=True):
+    if borrowing:
+        warn(f"{card.label()} is not a USB card. It is the desktop's (built-in "
+             "sound or HDMI). It is borrowed from the desktop for the duration "
+             "of the test and returned afterwards; desktop sound on this card "
+             "stops meanwhile, and test signals go to its speakers or screen.",
+             out)
+    else:
+        warn(f"{card.label()} is not a USB card. It is the desktop's (built-in "
+             "sound or HDMI), and it is not being borrowed: opening it may "
+             "fail as busy, mixer changes are heard on the desktop at once, "
+             "and test signals go to its speakers or screen.", out)
+
+
+def borrow_card(card, args, out):
+    """Borrow the card from the desktop's sound server before its hw: device
+    is opened. Returns the Reservation (to give back afterwards), or None
+    with --no-borrow. A refusal or a missing session bus is a warning, not
+    a failure: the open is tried anyway."""
+    if args.no_borrow:
+        print(f"Not borrowing card {card.number} (--no-borrow).", file=out)
+        return None
+    reservation = reserve.Reservation(card.number)
+    reservation.acquire()
+    for line in reservation.describe():
+        if reservation.ok:
+            print(line, file=out)
+        else:
+            warn(line, out)
+    return reservation
+
+
+def give_back(reservation, out):
+    """Release a borrowed card and say what happened to it."""
+    if reservation is None:
+        return
+    reservation.release()
+    for line in reservation.describe_release():
+        print(line, file=out)
+
+
+def check_builtin(card, out):
+    """For a card that is not USB (the built-in sound): with direct hw:
+    access the desktop's port switching is not in charge, so test signals can
+    come out of the internal speakers as well as the jack, and the capture
+    source decides which mic is recorded. Say so, with the command to fix it."""
+    try:
+        controls = mixer.read_controls(card.number)
+    except mixer.MixerError as error:
+        print(f"Built-in card mixer not read ({error}).", file=out)
+        return
+    for c in controls:
+        if (c.role == mixer.PLAYBACK_SWITCH and "speaker" in c.name.lower()
+                and any(c.values)):
+            warn(f"The internal speakers are on ('{c.name}' is on). While the "
+                 "card is borrowed the desktop no longer switches them off when "
+                 "something is plugged in, so test signals may play through "
+                 "the laptop speakers as well as the jack. To mute them:\n"
+                 f"  python3 tools/duplex_check.py --device {card.number} --mixer "
+                 f"--set '{c.name}=off'", out)
+        if "auto-mute" in c.name.lower():
+            print(f"  {c.name}: {c.value_text()} (the driver's own muting of "
+                  "the speakers when a jack is plugged in)", file=out)
+    for c in controls:
+        if c.name.lower() == "capture source" and c.type == "ENUMERATED":
+            source = c.value_text()
+            print(f"Recording from: {source} (Capture Source; choices: "
+                  f"{', '.join(c.items)})", file=out)
+            if "internal" in source.lower():
+                warn(f"The capture source is '{source}', the laptop's own "
+                     "microphone, not the jack. For a loopback or a headset "
+                     "mic input:\n"
+                     f"  python3 tools/duplex_check.py --device {card.number} --mixer "
+                     "--set 'Capture Source=Headset Mic'", out)
 
 
 def do_list(out):
@@ -160,9 +236,11 @@ def make_fake(args):
                       out_latency=args.block + 240.6, name="fake")
 
 
-def make_real(args, out):
-    """The PortAudioDuplex for the named card, after the safety checks.
-    Returns (device, card) or (None, code)."""
+def make_real(args, out, holds):
+    """The PortAudioDuplex for the named card, after the safety checks, with
+    the card borrowed from the desktop first. The reservation is appended to
+    `holds` for the caller to give back. Returns (device, card) or
+    (None, code)."""
     cards = discovery.list_cards()
     try:
         card = discovery.find_card(cards, args.device)
@@ -170,7 +248,12 @@ def make_real(args, out):
         print(error, file=out)
         return None, 2
     if not card.usb:
-        warn_not_usb(card, out)
+        warn_not_usb(card, out, borrowing=not args.no_borrow)
+    # Borrow before PortAudio looks at the card: a card the sound server holds
+    # may not probe correctly.
+    holds.append(borrow_card(card, args, out))
+    if not card.usb:
+        check_builtin(card, out)
     error = discovery.attach_portaudio([card])
     if error:
         print(error, file=out)
@@ -229,6 +312,15 @@ def print_plan(args, device, card, out):
 def main(argv=None, out=None):
     args = parse_args(argv)
     out = out or sys.stdout
+    holds = []                  # borrowed cards, always given back
+    try:
+        return run(args, out, holds)
+    finally:
+        for reservation in holds:
+            give_back(reservation, out)
+
+
+def run(args, out, holds):
     if args.list:
         return do_list(out)
     if not (args.device or args.fake):
@@ -263,7 +355,8 @@ def main(argv=None, out=None):
                 print(error, file=out)
                 return 2
             if not card.usb:
-                warn_not_usb(card, out)
+                warn_not_usb(card, out, borrowing=bool(
+                    (args.offset_test or args.schedule_test) and not args.no_borrow))
             code = 0
             try:
                 if args.mixer or not args.set:
@@ -276,7 +369,7 @@ def main(argv=None, out=None):
                 return 1
             if not (args.offset_test or args.schedule_test):
                 return code
-        device, card = make_real(args, out)
+        device, card = make_real(args, out, holds)
         if device is None:
             return card
     if not (args.offset_test or args.schedule_test):
@@ -296,8 +389,9 @@ def main(argv=None, out=None):
         device.start()
     except DeviceError as error:
         print(f"\nCannot open the device: {error}", file=out)
-        print("If another program (the desktop's sound server) holds it, "
-              "close that program; hw: devices are exclusive.", file=out)
+        print("hw: devices are exclusive. If another program holds the card "
+              "(the desktop's sound server refused to give it up, or "
+              "--no-borrow), close that program.", file=out)
         return 1
     try:
         tests = []

@@ -24,6 +24,12 @@ pytestmark = pytest.mark.skipif(
     reason="needs dbus-daemon and python3-gi")
 
 
+@pytest.fixture(autouse=True)
+def never_the_real_session_bus(monkeypatch):
+    """Anything that forgets to name the private bus finds no bus at all."""
+    monkeypatch.setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/nonexistent/bus")
+
+
 @pytest.fixture
 def bus(tmp_path):
     """A private session bus; yields its address."""
@@ -247,3 +253,92 @@ def test_the_card_is_released_when_the_borrowing_process_dies(bus, spawn, holder
     # And it can be borrowed again straight away.
     with reserve.borrow(CARD, bus_address=bus) as again:
         assert again.status == reserve.FREE
+
+
+# -- the command-line tool -------------------------------------------------------
+
+BUILTIN_MIXER = """\
+numid=4,iface=MIXER,name='Speaker Playback Switch'
+  ; type=BOOLEAN,access=rw------,values=2
+  : values=on,on
+numid=5,iface=MIXER,name='Auto-Mute Mode'
+  ; type=ENUMERATED,access=rw------,values=1,items=2
+  ; Item #0 'Disabled'
+  ; Item #1 'Enabled'
+  : values=1
+numid=6,iface=MIXER,name='Capture Source'
+  ; type=ENUMERATED,access=rw------,values=1,items=3
+  ; Item #0 'Internal Mic'
+  ; Item #1 'Headset Mic'
+  ; Item #2 'Headphone Mic'
+  : values=0
+"""
+
+
+@pytest.fixture
+def tool(bus, monkeypatch):
+    """duplex_check.py, pointed at the private bus and a pretend built-in
+    card 7. Nothing real is opened: PortAudio probing is stubbed to fail."""
+    import importlib.util
+    import io
+    from acoustics_lab.hardware import discovery, mixer
+    monkeypatch.setenv("DBUS_SESSION_BUS_ADDRESS", bus)
+    card = discovery.Card(CARD, "PCH", "HDA-Intel", "HDA Intel PCH")
+    monkeypatch.setattr(discovery, "list_cards", lambda *a, **k: [card])
+    monkeypatch.setattr(discovery, "attach_portaudio",
+                        lambda cards, **k: "stub: no PortAudio in tests")
+    monkeypatch.setattr(mixer, "read_controls",
+                        lambda n, **k: mixer.parse_contents(BUILTIN_MIXER))
+    path = os.path.join(os.path.dirname(HERE), "tools", "duplex_check.py")
+    spec = importlib.util.spec_from_file_location("duplex_check", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    def run(*argv):
+        out = io.StringIO()
+        code = module.main(list(argv), out)
+        return code, out.getvalue()
+    return run
+
+
+def test_tool_borrows_warns_about_speakers_and_gives_back(bus, holder, tool):
+    holder("agree")
+    code, text = tool("--device", str(CARD), "--offset-test", "--no-wait")
+    assert code == 2 and "stub: no PortAudio" in text      # stopped at the stub
+    assert "borrowed from the desktop for the duration of the test" in text
+    assert f"Borrowed card {CARD} from FakeHolder" in text
+    assert "internal speakers are on" in text
+    assert f"--device {CARD} --mixer --set 'Speaker Playback Switch=off'" in text
+    assert "Recording from: Internal Mic" in text
+    assert "--set 'Capture Source=Headset Mic'" in text
+    assert f"Released card {CARD}" in text
+    assert owner(bus) is None
+
+
+def test_tool_carries_on_with_a_warning_when_the_card_is_refused(bus, holder, tool):
+    holder("refuse")
+    code, text = tool("--device", str(CARD), "--offset-test", "--no-wait")
+    assert "did not give it up" in text and "WARNING" in text
+    assert code == 2 and "stub: no PortAudio" in text
+
+
+def test_tool_without_a_bus_carries_on(monkeypatch, tool):
+    monkeypatch.setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/nonexistent/bus")
+    code, text = tool("--device", str(CARD), "--offset-test", "--no-wait")
+    assert "is not reserved" in text and "stub: no PortAudio" in text
+
+
+def test_tool_no_borrow_leaves_the_holder_alone(bus, holder, tool):
+    holder("agree")
+    before = owner(bus)
+    code, text = tool("--device", str(CARD), "--offset-test", "--no-wait",
+                      "--no-borrow")
+    assert "Not borrowing" in text and "it is not being borrowed" in text
+    assert owner(bus) == before
+
+
+def test_tool_mixer_only_borrows_nothing(bus, holder, tool):
+    holder("agree")
+    before = owner(bus)
+    code, text = tool("--device", str(CARD), "--mixer")
+    assert "Borrowed" not in text and owner(bus) == before

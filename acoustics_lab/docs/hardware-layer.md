@@ -14,6 +14,85 @@ design step 2 (`design.md`, "Backend interface"). It lives in
 | `fake` | `FakeDevice`: the same core with a simulated loopback. |
 | `mixer` | `amixer -c N contents` parsed; set a control, read it back, verify; dB ranges; the controls that matter are flagged. |
 | `checks` | The offset test and the schedule test as functions on any device. |
+| `reserve` | Borrow a card from the desktop's sound server (device reservation over D-Bus) and give it back; see "Borrowing a card". |
+
+## Borrowing a card from the desktop
+
+The desktop's sound server (PipeWire with WirePlumber, PulseAudio) keeps
+sound cards open, and a card opened as `hw:N` is exclusive. `reserve.py`
+takes a card over the way other audio programs do, through the freedesktop
+device-reservation protocol (`org.freedesktop.ReserveDevice1`) on the
+session bus, so no configuration changes and no sound server stops.
+
+**How it works.** The holder of card N owns the bus name
+`org.freedesktop.ReserveDevice1.AudioN` (ALSA card N is `AudioN`) and
+exports `RequestRelease(priority) -> bool` and the properties `Priority`,
+`ApplicationName`, `ApplicationDeviceName`. `acquire()`:
+
+1. tries to own the name; if free, the card is ours (a headless Pi, or a
+   USB dongle the server ignores);
+2. otherwise reads who holds it, calls `RequestRelease` with our priority
+   (100; WirePlumber holds at -20 and gives way to anything higher);
+3. if the answer is yes, takes the name over when the holder lets go of it;
+   if no, reports who refused and carries on (a warning: the open that
+   follows then fails as busy, with a message saying so);
+4. with no session bus (or no python3-gi) it says "not reserved" and
+   carries on.
+
+While we hold the card we answer `RequestRelease` from others from a thread
+of the program. The default policy refuses (a test must not lose its card
+halfway) and logs the request; `Reservation(release=...)` takes `"refuse"`,
+`"release"`, `"priority"` (give way to a higher priority than ours, as the
+spec suggests) or a function of the asker's priority.
+
+**If the program dies.** The reservation is the bus name, which belongs to
+this process's own D-Bus connection (GDBus from python3-gi, served by a
+thread). When the process ends, however it ends (exception, Ctrl-C,
+SIGTERM, SIGKILL), the bus closes the connection and drops the name, and
+the desktop takes the card back. There is no helper process to outlive us.
+A test starts a child that holds a card, SIGKILLs it, and checks the name is
+gone. (python3-dbus crashed when a connection was used from two threads, so
+GDBus is used instead.)
+
+```python
+from acoustics_lab.hardware import reserve
+with reserve.borrow(1) as card:        # ALSA card number
+    print(*card.describe())            # who had it, whether they gave it up
+    ...                                # open hw:1 here
+print(*card.describe_release())        # who has it back
+```
+
+**What `duplex_check.py` does with it.** For a test it borrows the card
+before PortAudio looks at it (built-in cards, USB dongles the server has
+grabbed, and cards nobody holds alike) and gives it back afterwards, on
+errors and Ctrl-C too. It prints who held the card and whether they let go,
+and after the test who has it back. `--no-borrow` skips all this, for
+debugging. `--mixer` on its own reads and sets the mixer without borrowing.
+
+For the built-in card, after borrowing and before playing, it also reads
+the mixer: it warns if the internal speakers are on (while borrowed the
+desktop's port switching is not in charge, so the test signal can come out
+of the laptop speakers as well as the jack), printing the exact `--mixer
+--set 'Speaker Playback Switch=off'` command, and says which `Capture
+Source` (Internal Mic, Headset Mic, Headphone Mic) is being recorded,
+warning when it is the internal one. Mixer settings stay changed afterwards;
+set them back by hand if wanted (the first line of `--mixer` shows them).
+
+**Checking by hand.**
+
+- `busctl --user list | grep ReserveDevice1` shows who owns each card's
+  name. Normally `wireplumber` owns `...Audio0`, `...Audio1`. During a test
+  `Audio1` is owned by the python process, and afterwards by `wireplumber`
+  again.
+- `busctl --user get-property org.freedesktop.ReserveDevice1.Audio1
+  /org/freedesktop/ReserveDevice1/Audio1 org.freedesktop.ReserveDevice1
+  ApplicationName` (also `Priority`, `ApplicationDeviceName`) says who it is
+  and at what priority; during a test it is `acoustics_lab`, 100.
+- `pw-reserve -n Audio1 -m` (from PipeWire) only monitors a name. Without
+  `-m` it tries to acquire it (`-r`: and asks the holder to release), which
+  takes the card from the desktop just as a test does; do not do that while
+  a test is running.
+- Desktop sound is back when `wpctl status` lists the card's sink again.
 
 ## The duplex stream
 
@@ -72,8 +151,9 @@ ppm fast). Comparing two devices needs a shared signal, as in the design's
 ## Running the checks when the dongles arrive
 
 All from `acoustics_lab/`. Nothing is opened unless a device is named. Close
-anything else using the dongle (it is exclusive); the desktop's sound server
-normally leaves a freshly plugged USB card alone.
+anything else using the dongle (it is exclusive). If the desktop's sound
+server has picked the card up, the tool borrows it first (see "Borrowing a
+card from the desktop") and returns it afterwards.
 
 1. `python3 tools/duplex_check.py --list`. Each dongle is marked `[USB]`
    with its vendor:product, port path, whether it has a serial number, and
@@ -94,7 +174,8 @@ normally leaves a freshly plugged USB card alone.
 6. Repeat 4 after unplugging and replugging, and on each dongle.
 
 Output level defaults to -20 dBFS; above -6 dBFS, and any card that is not
-on USB, get a prominent warning rather than a refusal. Above 0 dBFS the
+on USB (it is borrowed from the desktop, whose sound on it stops meanwhile),
+get a prominent warning rather than a refusal. Above 0 dBFS the
 output is clipped flat at full scale, as a sound card would, to show what
 clipping does. The plan,
 with the loudness and the mixer settings, is printed first and there is a
@@ -132,6 +213,11 @@ hardware, `--fake` runs the same tests on the simulated dongle in seconds.
 
 ## Only checkable on real hardware
 
+- Borrowing from the real WirePlumber: the protocol is tested against a fake
+  holder on a private bus. That WirePlumber agrees at priority 100, that the
+  desktop's sink comes back after release, and what the built-in card's
+  mixer looks like once borrowed, need the real session.
+
 - The ctypes PortAudio stream itself (open, start, rate/channel acceptance,
   the callback's thread and GIL behaviour at 512-frame blocks). Its callback
   is tested by calling it with C buffers; the PortAudio calls are not.
@@ -150,7 +236,7 @@ hardware, `--fake` runs the same tests on the simulated dongle in seconds.
 - Playback and capture share one stream, so one rate and one block size.
 - The ring holds one input channel (`input_channel`, default the first).
 - No resampling, no format other than int16, no sample-rate conversion.
-- One process per device: a second program on the same `hw:` card fails.
+- One process per device: a second program on the same `hw:` card fails (a borrowed card is also refused to others who ask: see the release policy).
 - A glitch in the callback (Python being slow) shows as an xrun, not hidden.
 - Two devices are two independent streams and clocks; starting them is
   not simultaneous.

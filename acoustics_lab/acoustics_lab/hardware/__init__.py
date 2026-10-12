@@ -10,4 +10,5 @@ imports it yet.
 - `fake`: `FakeDevice`, the same interface with no hardware.
 - `mixer`: ALSA mixer controls through `amixer`.
 - `checks`: the offset test and the schedule test, as library functions.
+- `reserve`: borrow a card from the desktop's sound server (device reservation) and give it back.
 """
