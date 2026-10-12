@@ -74,6 +74,7 @@ class RangingPage(QtWidgets.QWidget):
         self.folder = None              # where this run's recordings are saved
         self._filling = False
         self._zoomed = False
+        self._last_source = self._source()
         self._build()
         self.ws.changed.connect(self._changed)
         self.ws.reloaded.connect(lambda _: self._changed("*", ""))
@@ -192,7 +193,13 @@ class RangingPage(QtWidgets.QWidget):
         self.design_warnings.setWordWrap(True)
         self.design_warnings.setStyleSheet("color: #c0392b")
         box.addWidget(self.design_warnings)
-        return self._group("Ping design", panel)
+        self.design_group = self._group("Ping design", panel)
+        return self.design_group
+
+    def _update_design_title(self):
+        self.design_group.setTitle(
+            "Ping design  (not used in replay: each recording carries its own)"
+            if self.session.mode == REPLAY else "Ping design")
 
     def _build_centre(self):
         panel = QtWidgets.QWidget()
@@ -262,8 +269,18 @@ class RangingPage(QtWidgets.QWidget):
             self.fill_events()
         self._update_notes()
 
+    def _source(self):
+        s = self.session
+        return (s.mode, s.scene_id if s.mode != REPLAY else str(s.replay and s.replay.path))
+
     def _backend_changed(self):
         self.revision += 1
+        if self._source() != self._last_source:
+            # Another scene, or live to replay: the old pings are not comparable.
+            # (Editing the active scene keeps them, so a change shows up in the echogram.)
+            self._last_source = self._source()
+            self.clear()
+        self._update_design_title()
         self.fill_events()
         self._update_notes()
         self._check_design()
