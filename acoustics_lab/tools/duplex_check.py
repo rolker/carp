@@ -41,8 +41,7 @@ sys.path.insert(0, ROOT)
 
 import json                                                    # noqa: E402
 
-from acoustics_lab.hardware import (checks, desktop, discovery, mixer,  # noqa: E402
-                                    reserve)
+from acoustics_lab.hardware import checks, discovery, hold, mixer  # noqa: E402
 from acoustics_lab.models import detection_design                # noqa: E402
 from acoustics_lab.hardware.stream import (DeviceError,          # noqa: E402
                                            PortAudioDuplex)
@@ -126,6 +125,14 @@ def warn_not_usb(card, out, borrowing=True):
              "and test signals go to its speakers or screen.", out)
 
 
+def says(out):
+    """say and warn functions for hold.py that print to `out`."""
+    def say(text):
+        print(text, file=out)
+        out.flush()
+    return say, (lambda text: warn(text, out))
+
+
 def borrow_card(card, args, out):
     """Borrow the card from the desktop's sound server before its hw: device
     is opened. Returns the Reservation (to give back afterwards), or None
@@ -134,23 +141,12 @@ def borrow_card(card, args, out):
     if args.no_borrow:
         print(f"Not borrowing card {card.number} (--no-borrow).", file=out)
         return None
-    reservation = reserve.Reservation(card.number)
-    reservation.acquire()
-    for line in reservation.describe():
-        if reservation.ok:
-            print(line, file=out)
-        else:
-            warn(line, out)
-    return reservation
+    return hold.borrow(card, *says(out))
 
 
 def give_back(reservation, out):
     """Release a borrowed card and say what happened to it."""
-    if reservation is None:
-        return
-    reservation.release()
-    for line in reservation.describe_release():
-        print(line, file=out)
+    hold.give_back(reservation, says(out)[0])
 
 
 def check_builtin(card, out):
@@ -236,23 +232,14 @@ def print_mixer(card, out):
 
 
 def do_set(card, assignments, out):
-    code = 0
+    pairs = []
     for text in assignments:
         if "=" not in text:
             print(f"--set needs NAME=VALUE, got '{text}'", file=out)
             return 2
         name, value = text.rsplit("=", 1)
-        try:
-            result = mixer.set_control(card.number, name.strip(), value.strip())
-        except mixer.MixerError as error:
-            print(f"cannot set '{name}': {error}", file=out)
-            return 1
-        status = "ok" if result.verified else f"NOT AS ASKED ({result.note})"
-        print(f"set {result.control.name} = {value}: read back "
-              f"{result.control.value_text()} (was {result.before}): {status}",
-              file=out)
-        code = code or (0 if result.verified else 1)
-    return code
+        pairs.append((name, value))
+    return hold.apply_settings(card, pairs, says(out)[0])
 
 
 # -- device and plan ------------------------------------------------------------
@@ -376,108 +363,42 @@ def finish(session, out):
 
 def report_changes(card, changes, watcher, out):
     """Say what changed the mixer while the card was being tested."""
-    if watcher.error:
-        warn(f"Watching the mixer of {card.label()} stopped: {watcher.error}", out)
-    if changes:
-        warn(f"Something changed the mixer of {card.label()} during the test "
-             "(the desktop's sound server, or another program):\n"
-             + "\n".join("  " + c.text() for c in changes), out)
-    elif not watcher.error:
-        print(f"Nothing changed the mixer of card {card.number} during the "
-              f"test (watched through {watcher.mode}).", file=out)
+    hold.report_changes(card, changes, watcher, *says(out))
 
 
 def put_back_mixer(card, saved, out):
     """Restore the mixer settings saved before a test, so the desktop gets
     the card back as it was."""
-    try:
-        restored, failed = mixer.restore(card.number, saved)
-    except mixer.MixerError as error:
-        warn(f"Could not put the mixer of {card.label()} back: {error}", out)
-        return
-    if restored:
-        print(f"Mixer of card {card.number} put back as before the test: "
-              + "; ".join(f"{name} = {value}" for name, value in restored),
-              file=out)
-    for name, error in failed:
-        warn(f"Could not put back {name}: {error}", out)
+    hold.put_back_mixer(card, saved, *says(out))
 
 
 def put_back_desktop(card, saved, backend, out):
     """After the card is back with the desktop: wait for its sinks and
     sources to reappear, set the saved volumes and mute, and say whether they
     stayed."""
-    if saved.nodes:
-        print(f"Waiting for the desktop to take card {card.number} back, to "
-              "put its volumes back ...", file=out)
-        out.flush()
-    result = desktop.restore(saved, backend)
-    if not saved.nodes:
-        return
-    if result.ok:
-        print(f"Desktop volumes of card {card.number} are as before the test "
-              f"(the sound server had them again after {result.waited:.1f} s):",
-              file=out)
-        for line in result.lines():
-            print("  " + line, file=out)
-        return
-    warn(f"The desktop volumes of card {card.number} are NOT as before the "
-         "test:\n" + "\n".join("  " + line for line in result.lines())
-         + "\nTo set them by hand:\n"
-         + "\n".join("  " + c for c in result.fix_commands()), out)
+    hold.put_back_desktop(card, saved, backend, *says(out))
 
 
 def verify_mixer(card, saved, out):
     """Compare the hardware mixer with what was saved, after the desktop
     has taken the card back and put its volumes back (it may change the
     mixer too)."""
-    try:
-        different = mixer.differences(card.number, saved)
-    except mixer.MixerError as error:
-        warn(f"Could not check the mixer of {card.label()}: {error}", out)
-        return
-    if not different:
-        print(f"Mixer of card {card.number} is as before the test.", file=out)
-        return
-    commands = [f"  python3 tools/duplex_check.py --device {card.number} --mixer "
-                f"--set '{d.name}={d.setting}'" for d in different if d.setting]
-    warn(f"The mixer of {card.label()} is NOT as before the test, after the "
-         "desktop took the card back:\n"
-         + "\n".join(f"  {d.name}: was {d.saved}, is {d.now}" for d in different)
-         + "\nTo set them back:\n" + "\n".join(commands), out)
+    hold.verify_mixer(card, saved, *says(out))
 
 
 def save_desktop(card, args, session, out):
     """Save the desktop's volumes for the card, before anything touches it.
     A missing sound server or Python binding is a warning, not a failure."""
-    backend, note = desktop.default_backend()
-    if note:
-        warn(note, out)
-    if backend is None:
-        return
-    try:
-        saved = desktop.save(card.number, backend)
-    except desktop.DesktopError as error:
-        warn(f"Could not save the desktop's volumes, so they will not be put "
-             f"back: {error}", out)
-        return
-    for line in saved.lines():
-        print(line, file=out)
-    session.desktops.append((card, saved, backend))
+    found = hold.save_desktop(card, *says(out))
+    if found is not None:
+        session.desktops.append((card, *found))
 
 
 def start_watching(card, session, out):
     """Watch the card's mixer for changes made while the test runs."""
-    try:
-        watcher = mixer.Watcher(card.number).start()
-    except mixer.MixerError as error:
-        warn(f"Not watching the mixer for changes: {error}", out)
-        return
-    session.watchers.append((card, watcher))
-    if watcher.mode == "polling":
-        print("The mixer is watched by reading it every "
-              f"{watcher.interval:g} s (no change events from this backend).",
-              file=out)
+    watcher = hold.start_watching(card, *says(out))
+    if watcher is not None:
+        session.watchers.append((card, watcher))
 
 
 def detection_from_args(args, base=None):

@@ -163,6 +163,32 @@ def list_cards(proc_root=PROC_ASOUND, sys_root=SYSFS):
     return cards
 
 
+def pcm_directions(number, proc_root=PROC_ASOUND):
+    """Which ways a card can carry sound, from /proc/asound/cardN/pcm*:
+    a set of "playback" and "capture". Nothing is opened."""
+    found = set()
+    try:
+        for entry in os.listdir(os.path.join(proc_root, f"card{number}")):
+            if entry.startswith("pcm") and entry.endswith("p"):
+                found.add("playback")
+            elif entry.startswith("pcm") and entry.endswith("c"):
+                found.add("capture")
+    except OSError:
+        pass
+    return found
+
+
+def builtin_card(cards, proc_root=PROC_ASOUND):
+    """The built-in analog card: the first card that is not on USB and has
+    both a playback and a capture device (HDMI outputs only play). None if
+    there is none. Works from /proc/asound alone, so PortAudio does not
+    probe a card the desktop holds."""
+    for card in cards:
+        if not card.usb and pcm_directions(card.number, proc_root) >= {"playback", "capture"}:
+            return card
+    return None
+
+
 def _supports(pa, pyaudio, rate, index, channels, is_input):
     kwargs = (dict(input_device=index, input_channels=channels,
                    input_format=pyaudio.paInt16) if is_input else

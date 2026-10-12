@@ -1,7 +1,8 @@
 """The simulation backend: a ping is rendered from a scene.
 
 A scene holds a layout (point transducers), one medium, flat reflecting
-planes, noise, and the simulated rig: which transducers share a device, each
+planes, point reflectors (fixed, or moving back and forth between two points
+at a set speed), noise, and the simulated rig: which transducers share a device, each
 device's sample rate and clock, and which inputs carry an electrical
 loopback of which outputs. The recording a receiver gets has the same
 structure as hardware gives, so processing sees no difference.
@@ -17,6 +18,15 @@ How a recording is built (see docs/design.md, Scene):
   in `truth` ("unmodelled_stretch_s") rather than hidden.
 - Times are float64 throughout. No global delay is added and no filtering is
   applied: the truth matches the recording.
+
+A point reflector is a target of "strength": the path emitter - target -
+receiver is rendered like any other, with spreading over its whole length and
+the strength as the reflection factor. A mover's place depends on when the
+ping is made: ping n of a run is at time n * `period_s` (the ping's own meta,
+set by a page that pings at a rate; 0.1 s if it is not), however fast the
+simulation is run, so the target moves as it would at that rate. Its place
+during one ping is not followed (no Doppler, no stretching: design.md, Scene,
+"Motion (later)"); `truth` says where each mover was.
 
 Time zero of a recording is the start of its buffer. Each emission leaves
 `lead_in` seconds after that, plus its own start time, so there is silence
@@ -53,6 +63,23 @@ def noise_samples(rng, n, rms, slope_db_per_octave=0.0):
         spectrum *= (f / f[1]) ** (slope_db_per_octave / 6.0206)
         white = sfft.irfft(spectrum, n)
     return rms * white / max(float(np.std(white)), 1e-30)
+
+
+DEFAULT_PERIOD_S = 0.1      # time between pings of a run, if the ping does not say
+
+
+def mover_position(mover, clock):
+    """Where a mover is at `clock` seconds: it walks from `a` to `b` and back
+    again at `speed` m/s, starting at `a`."""
+    a = np.asarray(mover["a"], dtype=float)
+    b = np.asarray(mover["b"], dtype=float)
+    length = float(np.linalg.norm(b - a))
+    if length == 0 or mover.get("speed", 0.0) <= 0:
+        return a
+    along = (mover["speed"] * clock) % (2 * length)
+    if along > length:
+        along = 2 * length - along
+    return a + (b - a) * (along / length)
 
 
 def _resample(samples, from_rate, to_rate):
@@ -127,6 +154,7 @@ class SimulationBackend(Backend):
 
         index = self.count
         self.count += 1
+        clock = index * float(ping.meta.get("period_s", DEFAULT_PERIOD_S))
         last_end = max(e.start + e.samples.size / e.rate for e in ping.emissions)
         link_gain = scene.get("link_gain", 1.0)
         alpha = scene["medium"].get("absorption_db_per_m_per_khz2", 0.0)
@@ -149,7 +177,7 @@ class SimulationBackend(Backend):
                 # True time (s since the ping began) of the first sample leaving.
                 sent = sdev.get("start_delay", 0.0) + (lead_in + e.start) / (1 + drift_t)
                 to_local = lambda true: (true - rdev.get("start_delay", 0.0)) * (1 + drift_r)
-                routes = self._routes(e.transducer, rid)
+                routes = self._routes(e.transducer, rid, clock)
                 paths = []
                 for route, length, factor, history in routes:
                     local = to_local(sent + length / c)
@@ -191,7 +219,9 @@ class SimulationBackend(Backend):
             emitted.setdefault(e.transducer, self._started(self._device[e.transducer])
                                + lead_in + e.start)
         truth = dict(paths=paths_truth, sound_speed=c, lead_in=lead_in,
-                     unmodelled_stretch_s=stretch)
+                     unmodelled_stretch_s=stretch, time_s=clock,
+                     movers={m["name"]: [float(v) for v in mover_position(m, clock)]
+                             for m in self.scene.get("movers", [])})
         meta = dict(
             backend=self.name, scene_id=self.scene_id, scene_name=self.scene.get("name", ""),
             sound_speed=c, ping_index=index, lead_in=lead_in,
@@ -203,12 +233,23 @@ class SimulationBackend(Backend):
 
     # ---- paths ---------------------------------------------------------
 
-    def _routes(self, emitter, receiver):
+    def _routes(self, emitter, receiver, clock=0.0):
         """Paths from one transducer to another: (name, length in m,
         amplitude factor from reflections, names of planes hit). The direct
-        path, then one per plane that both ends are in front of."""
+        path, then one per plane that both ends are in front of, then one via
+        each point reflector and mover (where it is at `clock`, s)."""
         src, dst = self._position[emitter], self._position[receiver]
         routes = [("direct", channel.path_length(src, dst), 1.0, [])]
+        for target in self.scene.get("reflectors", []):
+            at = np.asarray(target["position"], dtype=float)
+            routes.append((f"reflector:{target['name']}",
+                           channel.path_length(src, at) + channel.path_length(at, dst),
+                           float(target.get("strength", 1.0)), [target["name"]]))
+        for target in self.scene.get("movers", []):
+            at = mover_position(target, clock)
+            routes.append((f"mover:{target['name']}",
+                           channel.path_length(src, at) + channel.path_length(at, dst),
+                           float(target.get("strength", 1.0)), [target["name"]]))
         for plane in self.scene.get("planes", []):
             image = channel.image_source(src, plane["point"], plane["normal"])
             if image is None:
