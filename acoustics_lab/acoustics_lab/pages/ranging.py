@@ -15,7 +15,7 @@ import numpy as np
 from .. import capture_io
 from ..experiments import ranging
 from ..models import media
-from ..objects import detections, schema, signals as signal_objects
+from ..objects import detections, rigs, schema, signals as signal_objects
 from ..objects.schema import InUseError, WorkspaceError
 from ..qtcompat import Qt, QtCore, QtGui, QtWidgets, Signal, pg
 from ..ui.session import REPLAY
@@ -418,7 +418,9 @@ class RangingPage(QtWidgets.QWidget):
         for did in self.ws.ids("ping_designs"):
             self.design_box.addItem(self.ws.name_of("ping_designs", did), did)
         at = self.design_box.findData(keep)
-        self.design_box.setCurrentIndex(at if at >= 0 else (0 if self.design_box.count() else -1))
+        if at < 0:          # the first time: the two-output design the workspace starts with
+            at = max(self.design_box.findData(rigs.LEFT_THEN_RIGHT), 0)
+        self.design_box.setCurrentIndex(at if self.design_box.count() else -1)
         self._filling = False
         self.design_id = self.design_box.currentData()
         self.fill_detection()

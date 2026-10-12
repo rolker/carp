@@ -112,8 +112,8 @@ a few seconds of pings at a time (see "Trying it on the laptop").
 - Declared need: one output near one input (within 0.5 m; `rigs.near_pairs`). If the
   active scene or rig has none the page says so, the run controls are greyed with the
   reason, and it offers the scenes that fit and the laptop template.
-- It sends the ping design's *first* signal from the chosen output (a room sonar
-  ping has one signal).
+- It sent only the ping design's first signal here; it now sends every event and
+  places targets with two speakers: see [step2-two-speakers.md](step2-two-speakers.md).
 
 ## Simplified or left out
 

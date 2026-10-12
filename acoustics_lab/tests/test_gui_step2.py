@@ -70,12 +70,12 @@ def test_the_page_says_what_it_needs_offers_a_template_and_the_run_controls_wait
     assert not page.needs_group.isHidden() and "no output within 0.5 m" in page.needs_text.text()
     assert not window.ping_action.isEnabled() and "no output within" in window.ping_action.toolTip()
     texts = [page.needs_buttons.itemAt(i).widget().text() for i in range(page.needs_buttons.count())]
-    assert any("laptop speaker and microphone" in t for t in texts)
+    assert any("laptop speakers and microphone" in t for t in texts)
     page.make_laptop()
     assert page.needs_group.isHidden() and window.ping_action.isEnabled()
     assert window.session.scene_id == rigs.LAPTOP_DEMO and window.session.rig_id == rigs.LAPTOP_RIG
-    assert page.design_box.currentData() == rigs.LAPTOP_DESIGN
-    assert page.output_box.currentData() == "speaker" and page.input_box.currentData() == "mic"
+    assert page.design_box.currentData() == rigs.LAPTOP_DEFAULT_DESIGN
+    assert page.input_box.currentData() == "mic"
 
 
 def test_a_scene_that_fits_is_offered_when_the_active_one_does_not(window):
@@ -98,13 +98,14 @@ def test_pings_make_an_a_scan_an_echogram_and_changes_and_the_mover_stands_out(w
     assert "direct sound" in page.headline.text() and page.last.heard
     assert page.echogram.image.image is not None and page.changes.image.image.shape[1] == 25
     # the last ping's changes peak where the mover really is
-    truth = dict(page.last.truth)["mover:person"]
-    diff = page.diffs[-1]
-    grid = page.last.range_m
-    assert grid[np.argmax(np.where(grid > 0.4, diff, 0.0))] == pytest.approx(truth, abs=0.1)
-    assert "Range resolution" in page.numbers.text() and "2.9 cm" in page.numbers.text()
+    channel = page.last.channels[0]
+    truth = [at for route, at in channel.truth if route in ("mover:person", "mover:trolley")]
+    diff = page.diffs[-1][0]
+    grid = channel.range_m
+    assert min(abs(grid[np.argmax(np.where(grid > 0.4, diff, 0.0))] - at) for at in truth) < 0.1
+    assert "Range resolution" in page.numbers.text() and "6.5 cm" in page.numbers.text()
     assert "the matched filter squeezes" in page.notes.toPlainText()
-    assert "30.6 ms" in page.notes.toPlainText()
+    assert "30.2 ms" in page.notes.toPlainText()
 
 
 def test_numbers_and_listening_follow_the_maximum_range(window):
@@ -112,7 +113,7 @@ def test_numbers_and_listening_follow_the_maximum_range(window):
     page.range_spin.setValue(10.0)
     assert "10 m, listening 59" in page.numbers.text().replace("<b>", "").replace("</b>", "")
     ping(window, page)
-    assert page.last.range_m[-1] == pytest.approx(10.0, abs=0.01)
+    assert page.last.channels[0].range_m[-1] == pytest.approx(10.0, abs=0.01)
     page.range_spin.setValue(3.0)                              # other bins: the old pings are dropped
     assert page.levels == [] and page.count == 0
 
@@ -134,7 +135,7 @@ def test_a_ping_design_with_no_signal_or_a_far_pair_is_a_warning_not_a_refusal(w
     page = laptop(window)
     window.session.set_scene("dongle_bench")
     page.needs_buttons.itemAt(0).widget().click()               # back to a scene that fits
-    window.ws.update("ping_designs", rigs.LAPTOP_DESIGN, events=[])
+    window.ws.update("ping_designs", page.design_id, events=[])
     window.ping_action.trigger()
     app.processEvents()
     assert "Check the ping design" in window.statusBar().currentMessage()
@@ -198,8 +199,8 @@ def test_recordings_carry_their_detection_design_and_replay_can_use_another(wind
     page.detection_box.setCurrentIndex(page.detection_box.findData(other))
     page.reanalyse()
     assert page.last.design_id == other and page.last.design.first_fraction == 0.05
-    assert page.last.baseline_m == pytest.approx(0.2)                 # from the recording's layout
-    assert not page.output_box.isEnabled()                            # replay: the recording decides
+    assert page.last.channels[0].baseline_m == pytest.approx(0.3064, abs=1e-3)   # from the recording's layout
+    assert not page.input_box.isEnabled()                             # replay: the recording decides
 
 
 def test_the_detection_design_editor_edits_with_undo_and_refuses(window):
@@ -321,7 +322,7 @@ def test_the_ranging_page_runs_on_hardware_too(window, world):
     sig = ws.ids("signals")[0]
     ws.create("ping_designs", "speaker to mic", dict(
         name="", roles=["bench"], receivers=["mic"], listen=0.1,
-        events=[dict(transducer="speaker", signal=rigs.LAPTOP_SIGNAL, time=0.0)],
+        events=[dict(transducer="left", signal=rigs.LAPTOP_SIGNAL, time=0.0)],
         detection_design=starter.DEFAULT_DETECTION))
     window.backend_box.setCurrentIndex(window.backend_box.findData("hardware"))
     window.page_list.setCurrentRow(window._row_of("Ranging & positioning"))
@@ -329,7 +330,7 @@ def test_the_ranging_page_runs_on_hardware_too(window, world):
     ranging.design_box.setCurrentIndex(ranging.design_box.findData("speaker_to_mic"))
     ping(window, ranging)
     rows = ranging.results["mic"].rows
-    assert rows[0]["heard"] and rows[0]["transducer"] == "speaker"
+    assert rows[0]["heard"] and rows[0]["transducer"] == "left"
     assert "all events heard" in ranging.headline.text()
     assert ranging.capture.meta["backend"] == "Hardware"
     assert ranging.capture.meta["detection_design"]["id"] == starter.DEFAULT_DETECTION
@@ -380,16 +381,16 @@ def test_the_rig_editor_changes_access_places_transducers_and_adds_loopbacks(win
     editor.add_device()
     assert [d["id"] for d in ws.get("rigs", rigs.LAPTOP_RIG)["devices"]] == ["laptop", "device2"]
     tt = editor.transducer_table
-    tt.item(1, 3).setText("device2")                                      # the microphone's device
-    tt.item(1, 3).setData(Qt.ItemDataRole.UserRole, "device2")
+    tt.item(2, 3).setText("device2")                                      # the microphone's device
+    tt.item(2, 3).setData(Qt.ItemDataRole.UserRole, "device2")
     placed = {p["id"]: p["device"] for p in ws.get("rigs", rigs.LAPTOP_RIG)["transducers"]}
-    assert placed == {"speaker": "laptop", "mic": "device2"}
+    assert placed == {"left": "laptop", "right": "laptop", "mic": "device2"}
     assert ws.get("scenes", ws.get("rigs", rigs.LAPTOP_RIG)["as_built"])["devices"][1]["transducers"] == ["mic"]
     editor.add_loopback()
     assert "same device" in editor.message.text()                         # refused, said so
-    tt.item(1, 3).setText("(not placed)")
-    tt.item(1, 3).setData(Qt.ItemDataRole.UserRole, None)
-    assert {p["id"] for p in ws.get("rigs", rigs.LAPTOP_RIG)["transducers"]} == {"speaker"}
+    tt.item(2, 3).setText("(not placed)")
+    tt.item(2, 3).setData(Qt.ItemDataRole.UserRole, None)
+    assert {p["id"] for p in ws.get("rigs", rigs.LAPTOP_RIG)["transducers"]} == {"left", "right"}
     assert "not placed" in editor.message.text()                         # the layout's mic is unplaced
     editor.delete_device()                                                # nothing selected: nothing
     t.selectRow(1)
@@ -406,10 +407,10 @@ def test_identify_plays_a_tone_on_the_selected_transducer_off_the_gui_thread(win
     editor.identify()
     assert not editor.identify_button.isEnabled()                         # busy while it plays
     wait(lambda: editor.worker is None)
-    assert "1000 Hz tone" in editor.identify_text.text() and "Speaker" in editor.identify_text.text()
+    assert "1000 Hz tone" in editor.identify_text.text() and "Left speaker" in editor.identify_text.text()
     assert editor.identify_button.isEnabled()
     assert world.log.count("borrow") == 1 and world.log.count("release") == 1
-    editor.transducer_table.selectRow(1)                                  # the microphone cannot play
+    editor.transducer_table.selectRow(2)                                  # the microphone cannot play
     editor.identify()
     wait(lambda: editor.worker is None)
     assert "Could not play" in editor.identify_text.text() and "not an output" in editor.identify_text.text()
