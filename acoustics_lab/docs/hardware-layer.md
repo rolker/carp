@@ -12,7 +12,9 @@ design step 2 (`design.md`, "Backend interface"). It lives in
 | `discovery` | ALSA cards from `/proc/asound/cards` and sysfs: card number, card id, USB vendor:product, USB port path (`1-2.3`), serial if any; the PortAudio `hw:` device for each, with its rates. Look a card up by number, id or port path. Never touches `default`, `pulse`, `pipewire` or `plughw`. |
 | `stream` | `DuplexDevice` (interface and core) and `PortAudioDuplex` (the real stream). |
 | `fake` | `FakeDevice`: the same core with a simulated loopback. |
-| `mixer` | `amixer -c N contents` parsed; set a control, read it back, verify; dB ranges; the controls that matter are flagged. |
+| `alsa_ctl` | ALSA's control API in `libasound.so.2` through `ctypes` (like `stream` does for PortAudio): open `hw:N`, list controls, read info, values and dB scales, write values, subscribe to change events. |
+| `mixer` | A card's mixer on top of `alsa_ctl`: `MixerControl`s; set a control, read it back, verify; dB ranges; save, restore and compare (`snapshot`, `restore`, `differences`); `Watcher` reports what changed while a test ran; the controls that matter are flagged. Falls back to the `amixer` command, with a warning, if `libasound` cannot be loaded. |
+| `desktop` | The desktop sound server's own volume and mute for a card's sinks and sources: save before borrowing, wait for the server to recreate them, restore and verify afterwards. Through `python3-pulsectl`, else `pactl`. |
 | `checks` | The offset test and the schedule test as functions on any device. |
 | `reserve` | Borrow a card from the desktop's sound server (device reservation over D-Bus) and give it back; see "Borrowing a card". |
 
@@ -88,6 +90,51 @@ test-only settings on the test command itself:
 `--keep-mixer` leaves them as the test left them. `--mixer --set` without a
 test changes the mixer and leaves it changed (that is what it is for); its
 output shows each control's previous value.
+
+**The desktop's own volumes are put back too.** Restoring the hardware mixer
+is not enough: WirePlumber keeps watching the ALSA mixer while a card is
+borrowed and, when it takes the card back, applies what it saw. On the
+built-in card (ALC289) that took the speaker from 0.13 to 0.56 and the
+microphone from 0.70 to 0.15. So the tool also saves, before anything
+touches the card (before `--set` too), the volume and mute of the sinks and
+sources the sound server has on that card (found by their `alsa.card`
+property), and the server's default sink and source. The order is:
+
+1. save the desktop volumes, then the mixer;
+2. `--set`, then start watching the mixer (change events);
+3. borrow the card, run the test;
+4. stop watching and report what changed; put the mixer back;
+5. give the card back;
+6. wait up to 15 s for the server to make the sinks and sources again (it may
+   rename them: `...analog-stereo.14` becomes `.15`), wait 1 s for it to
+   finish its own setup, set the saved volumes and mute, read them back
+   after another second, and again if the server changed them once more;
+7. compare the hardware mixer with the snapshot and say so.
+
+It prints what it did ("sink 'Built-in Audio Analog Stereo': put back to 0.13
+(was 0.56)") and ends with "Mixer of card N is as before the test." If the
+desktop volumes did not stay, or the mixer differs after the desktop took
+the card back, that is a warning in the bars, with the `pactl set-sink-volume
+...` or `duplex_check.py --mixer --set ...` commands to put them right. The
+default sink or source changing is mentioned, not undone. `--keep-mixer` and
+`--no-borrow` skip the desktop part.
+
+**Watching the mixer.** From after `--set` until the test is over the tool
+reads the card's mixer events (`snd_ctl_subscribe_events`, waited on by a
+thread of its own). Any control that changed is printed and saved in
+`summary.json` (`mixer_changes`): "Something changed the mixer ... Master
+Playback Volume: 17 (-52.5 dB) -> 50 (-27.8 dB)". It sees changes by any
+program, the sound server included, and the jack-detection controls too
+(read-only; they change when something is plugged in).
+
+**APIs, not commands.** The mixer uses `libasound` directly (no `amixer`
+text, which once turned `-25dB` into an option, and whose headers with a
+`device=` field were not parsed). The desktop volumes use the PulseAudio
+protocol that PipeWire serves, through `python3-pulsectl`
+(`sudo apt install python3-pulsectl`). Without it the tool says so and uses
+`pactl`'s JSON output, which reads and sets the same values. Without both, it
+warns that the desktop volumes are not protected and goes on. Volumes are
+fractions of 100 % (what `wpctl get-volume` shows).
 
 **Checking by hand.**
 
@@ -228,6 +275,11 @@ hardware, `--fake` runs the same tests on the simulated dongle in seconds.
   holder on a private bus. That WirePlumber agrees at priority 100, that the
   desktop's sink comes back after release, and what the built-in card's
   mixer looks like once borrowed, need the real session.
+- Writing mixer controls through `libasound` and setting desktop volumes
+  through the sound server: tested against fakes only (reading is checked
+  against the real card and server). That the desktop volumes stay put after
+  the restore, how long WirePlumber takes to recreate the sinks, and whether
+  it changes the hardware mixer again afterwards, need a real borrowed run.
 
 - The ctypes PortAudio stream itself (open, start, rate/channel acceptance,
   the callback's thread and GIL behaviour at 512-frame blocks). Its callback
@@ -235,8 +287,8 @@ hardware, `--fake` runs the same tests on the simulated dongle in seconds.
 - That a dongle accepts a duplex hw: stream with 1 in / 2 out at 48 kHz.
 - Real xrun behaviour and start-up flags (ALSA often flags the first blocks;
   those are separated from flags during the test).
-- The real amixer text of the dongle (parsed from written samples only), and
-  what the chipset's controls are called.
+- What a dongle's controls are called and whether they have dB scales (the
+  built-in card has been read through libasound; no dongle has).
 - The size of real jitter and drift.
 - Naming the cards: a udev rule setting `ATTR{id}` by `KERNELS` (the
   interface path `1-2.3:1.0` shown by `--list`) would give stable ids such

@@ -281,14 +281,20 @@ def tool(bus, monkeypatch):
     card 7. Nothing real is opened: PortAudio probing is stubbed to fail."""
     import importlib.util
     import io
-    from acoustics_lab.hardware import discovery, mixer
+    from acoustics_lab.hardware import desktop, discovery, mixer
+    from fake_audio import FakeAlsaBackend, FakeDesktop
     monkeypatch.setenv("DBUS_SESSION_BUS_ADDRESS", bus)
+    # No real card is read and no real sound server is asked.
+    monkeypatch.setattr(mixer, "default_backend",
+                        lambda: FakeAlsaBackend(BUILTIN_MIXER))
+    monkeypatch.setattr(desktop, "default_backend",
+                        lambda: (FakeDesktop([]), ""))
     card = discovery.Card(CARD, "PCH", "HDA-Intel", "HDA Intel PCH")
     monkeypatch.setattr(discovery, "list_cards", lambda *a, **k: [card])
     monkeypatch.setattr(discovery, "attach_portaudio",
                         lambda cards, **k: "stub: no PortAudio in tests")
     monkeypatch.setattr(mixer, "read_controls",
-                        lambda n, **k: mixer.parse_contents(BUILTIN_MIXER))
+                        lambda n, *a, **k: mixer.parse_contents(BUILTIN_MIXER))
     path = os.path.join(os.path.dirname(HERE), "tools", "duplex_check.py")
     spec = importlib.util.spec_from_file_location("duplex_check", path)
     module = importlib.util.module_from_spec(spec)
