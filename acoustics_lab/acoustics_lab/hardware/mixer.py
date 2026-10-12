@@ -263,10 +263,31 @@ def set_control(card, name, value, runner=run_amixer):
     if not control.writable:
         raise MixerError(f"'{control.name}' is read-only")
     before = list(control.values)
-    runner(["-c", str(card), "cset", f"numid={control.numid}", str(value)])
+    raw = db_to_raw(control, str(value).strip())
+    runner(["-c", str(card), "cset", f"numid={control.numid}", raw])
     after = find_control(read_controls(card, runner), control.name)
     verified, note = _verify(after, str(value).strip())
     return SetResult(after, before, str(value), verified, note)
+
+
+DB_VALUE = re.compile(r"^\s*([+-]?\d+(?:\.\d+)?)\s*dB\s*$", re.IGNORECASE)
+
+
+def db_to_raw(control, value):
+    """`value` as amixer should get it. A dB figure ("-25dB") becomes the
+    nearest raw step, from the control's own dB scale: amixer's `cset`
+    takes a leading minus for an option and does not convert dB reliably.
+    Anything else is passed through unchanged."""
+    match = DB_VALUE.match(value)
+    if not match:
+        return value
+    if control.type != "INTEGER" or control.to_db(control.minimum) is None:
+        raise MixerError(f"'{control.name}' has no dB scale; give a raw value "
+                         f"({control.range_text()})")
+    wanted = float(match.group(1))
+    steps = range(control.minimum, control.maximum + 1)
+    best = min(steps, key=lambda v: abs(control.to_db(v) - wanted))
+    return str(best)
 
 
 def snapshot(card, runner=run_amixer):

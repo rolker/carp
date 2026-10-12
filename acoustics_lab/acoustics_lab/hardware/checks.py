@@ -113,11 +113,31 @@ def _level_dbfs(peak, template):
     return 20 * np.log10(max(amplitude, 1e-12))
 
 
+FIRST_FRACTION = 0.3         # an earlier peak this fraction of the strongest
+                             # (-10.5 dB) or more counts as the first arrival
+SETTLE_S = 2.0               # s of input to let go by after the stream opens
+
+
+def leading(env, i, length, floor):
+    """Index of the first arrival belonging to the peak at `i`: the earliest
+    peak in the template length before `i` that reaches FIRST_FRACTION of
+    env[i] (and `floor`), else `i` itself. On an acoustic path a reflection
+    (off a screen, a table) can be stronger than the direct sound; the
+    direct sound is the one that arrives first."""
+    lo = max(0, i - length)
+    if i - lo < 3:
+        return i
+    earlier, _ = signal.find_peaks(env[lo:i], height=max(floor, FIRST_FRACTION * env[i]))
+    return lo + int(earlier[0]) if len(earlier) else i
+
+
 @dataclass
 class Arrival:
     position: float          # input sample (float) where the template starts
     level_dbfs: float        # peak amplitude, dB re full scale
     snr_db: float            # peak over typical noise level
+    to_strongest: float = 0.0    # samples from this (first) arrival to the
+                                 # strongest one, if a later copy was stronger
 
 
 class ArrivalDetector:
@@ -152,7 +172,8 @@ class ArrivalDetector:
         threshold = self.snr * _noise(env, self.template)
         peaks, _ = signal.find_peaks(env, height=threshold, distance=self.length)
         found = []
-        for i in peaks:
+        for strongest in peaks:
+            i = leading(env, int(strongest), self.length, threshold)
             absolute = first + int(i)
             if not self.cursor <= absolute <= final:
                 continue
@@ -162,9 +183,58 @@ class ArrivalDetector:
             self.last = position
             found.append(Arrival(
                 position, _level_dbfs(env[i], self.template),
-                20 * np.log10(env[i] / _noise(env, self.template))))
+                20 * np.log10(env[i] / _noise(env, self.template)),
+                float(strongest - i)))
         self.cursor = final + 1
         return found
+
+
+# -- input check ----------------------------------------------------------------
+
+def input_check(samples):
+    """What the input sounds like with nothing played: a dict of DC offset,
+    noise level and clipping, with plain-language warnings. A built-in
+    laptop mic left at the desktop's gain can sit at full scale with a large
+    DC offset, which hides every chirp."""
+    x = np.asarray(samples, dtype=np.float64)
+    if len(x) == 0:
+        return dict(seconds=0.0, warnings=["No input to check."])
+    dc = float(x.mean())
+    ac = x - dc
+    rms_db = 20 * np.log10(max(float(np.sqrt(np.mean(ac ** 2))), 1e-9) / 32768.0)
+    clipped = float(np.mean(np.abs(x) >= 32767))
+    warnings = []
+    if clipped > 0.001:
+        warnings.append(f"The input is clipping ({100 * clipped:.1f} % of samples "
+                        "at full scale) with nothing playing: lower the capture "
+                        "gain or mic boost, or chirps will not be found.")
+    if abs(dc) > 0.02 * 32768:
+        warnings.append(f"The input has a large DC offset ({100 * dc / 32768:+.0f} % "
+                        "of full scale), usually too much capture gain or a mic "
+                        "input still settling.")
+    if rms_db > -30 and clipped <= 0.001:
+        warnings.append(f"The input is noisy with nothing playing ({rms_db:.0f} dBFS "
+                        "rms): too much capture gain, or a loud room.")
+    return dict(dc_fraction=dc / 32768.0, noise_rms_dbfs=rms_db,
+                clipped_fraction=clipped, warnings=warnings)
+
+
+def settle_and_check(device, settle=SETTLE_S, check_s=1.0):
+    """Let the first `settle` s of input go by (inputs often start with a
+    thump or a DC offset that takes a moment to die away), then check the
+    last `check_s` of it. Returns the input_check dict."""
+    rate = device.rate
+    want = max(int(settle * rate), 4 * device.frames_per_buffer)
+    device.wait_input(want, timeout=settle + 5)
+    end = device.in_position
+    start = max(0, end - int(check_s * rate))
+    try:
+        quiet = device.read_input(start, end)
+    except Exception:            # older than the ring holds: skip the check
+        quiet = []
+    result = input_check(quiet)
+    result["seconds"] = (end - start) / rate
+    return result
 
 
 # -- statistics ---------------------------------------------------------------
@@ -225,7 +295,7 @@ class TestResult:
 
 def run_offset_test(device, seconds, level_db=-20.0, channel="left",
                     interval=0.5, ping="chirp", progress=None,
-                    should_stop=lambda: False):
+                    should_stop=lambda: False, settle=SETTLE_S):
     """Ping every `interval` s for `seconds`, find each loopback copy and
     measure the offset from its scheduled output sample.
 
@@ -237,7 +307,7 @@ def run_offset_test(device, seconds, level_db=-20.0, channel="left",
     gain = 10 ** (level_db / 20)
     total = max(1, int(seconds / interval))
     step = max(1, int(round(interval * rate)))
-    device.wait_input(4 * device.frames_per_buffer, timeout=5)
+    check = settle_and_check(device, settle)
     first = device.out_position + int(0.5 * rate)
     plan = [first + k * step for k in range(total)]
     rows = [PingRow(k, s) for k, s in enumerate(plan)]
@@ -272,7 +342,7 @@ def run_offset_test(device, seconds, level_db=-20.0, channel="left",
         if device.xruns_between(row.scheduled - device.frames_per_buffer, stop):
             row.xrun = True
     return _offset_result(device, rows, template, level_db, channel, interval,
-                          ping, stray, time.monotonic() - wall0)
+                          ping, stray, time.monotonic() - wall0, check)
 
 
 def _xruns_since(device, sample):
@@ -294,10 +364,23 @@ def _owner(plan, position):
     return k if k >= 0 else None
 
 
+GROUP_SAMPLES = 5.0          # offsets this close to the median are one group
+
+
 def _offset_result(device, rows, template, level_db, channel, interval, ping,
-                   stray, wall_seconds):
+                   stray, wall_seconds, check=None):
     rate = device.rate
-    good = [r for r in rows if r.valid]
+    valid = [r for r in rows if r.valid]
+    # The steady offset is the main group of measurements. A few may land
+    # elsewhere: an echo found when the direct sound was too weak, or noise
+    # taken for a ping. Those are counted and shown, not averaged in.
+    centre = float(np.median([r.offset for r in valid])) if valid else 0.0
+    good = [r for r in valid if abs(r.offset - centre) <= GROUP_SAMPLES]
+    outliers = [r for r in valid if abs(r.offset - centre) > GROUP_SAMPLES]
+    for r in outliers:
+        r.note = (r.note + "; " if r.note else "") + "outside the main group"
+    if len(good) < 3:
+        good, outliers = valid, []
     found = [r for r in rows if r.offset == r.offset]
     times = [(r.scheduled - rows[0].scheduled) / rate for r in good]
     offsets = [r.offset for r in good]
@@ -324,6 +407,9 @@ def _offset_result(device, rows, template, level_db, channel, interval, ping,
         xruns=counts, startup_xruns=device.xrun_count - len(events),
         xrun_events=[dict(sample=e.sample, kinds=e.kinds) for e in events[:200]],
         level_seen_dbfs=float(np.mean([r.level_dbfs for r in good])) if good else None,
+        outliers=len(outliers),
+        outlier_offsets_samples=[round(r.offset - centre, 1) for r in outliers[:50]],
+        input_check=check or {},
         python=platform.python_version())
     summary["verdict_ok"], summary["verdict_lines"] = offset_verdict(summary)
     return TestResult("offset", rows, summary, summary["verdict_lines"])
@@ -340,10 +426,15 @@ def offset_verdict(s):
     lines = []
     problems = 0
     span = _minutes_text(s["duration_s"])
+    for warning in s.get("input_check", {}).get("warnings", []):
+        lines.append("Before the test: " + warning)
+        problems += 1
     if s["used"] < 3:
         lines.append(f"Only {s['used']} of {s['pings']} pings gave a usable "
-                     "measurement. Is the loopback resistor connected, and is "
-                     "the output channel the one wired to it?")
+                     "measurement. With a loopback: is the resistor connected, "
+                     "and is the output channel the one wired to it? Through the "
+                     "air (speaker to mic): is the output loud enough and the "
+                     "capture gain sensible?")
         return False, lines
     dev = s["offset_max_dev_samples"]
     rate = s["rate"]
@@ -377,6 +468,10 @@ def offset_verdict(s):
     if s["missed"]:
         lines.append(f"{s['missed']} of {s['pings']} pings were not found.")
         problems += 1
+    if s.get("outliers"):
+        lines.append(f"{s['outliers']} pings were found away from the main group "
+                     "(an echo found when the direct sound was too weak, or noise "
+                     "taken for a ping) and are left out of the figures above.")
     if s["stray"]:
         lines.append(f"{s['stray']} extra detections that belong to no ping "
                      "(noise, or an echo from the speaker side).")
@@ -394,8 +489,9 @@ def offset_verdict(s):
                      "close to clipping the input. Lower the output level or "
                      "the capture gain.")
     elif s["level_seen_dbfs"] is not None and s["level_seen_dbfs"] < -60:
-        lines.append(f"The loopback arrives weak ({s['level_seen_dbfs']:.0f} dBFS); "
-                     "timing is less exact. Raise the level or the capture gain.")
+        lines.append(f"The ping arrives weak ({s['level_seen_dbfs']:.0f} dBFS); "
+                     "timing is less exact and pings are missed. Raise the level "
+                     "or the capture gain.")
     return problems == 0, lines
 
 
@@ -414,7 +510,8 @@ class ReplyRow:
 
 
 def run_schedule_test(device, tat, pulses=40, level_db=-20.0, channel="left",
-                      ping="chirp", progress=None, should_stop=lambda: False):
+                      ping="chirp", progress=None, should_stop=lambda: False,
+                      settle=SETTLE_S):
     """Chain `pulses` replies: each loopback arrival schedules the next
     pulse at arrival + N samples, N = tat * rate rounded.
 
@@ -426,7 +523,7 @@ def run_schedule_test(device, tat, pulses=40, level_db=-20.0, channel="left",
     gain = 10 ** (level_db / 20)
     n_tat = int(round(tat * rate))
     block = device.frames_per_buffer
-    device.wait_input(4 * block, timeout=5)
+    check = settle_and_check(device, settle)
     detector = ArrivalDetector(device, template)
     started = device.in_position
     rows = []
@@ -480,11 +577,11 @@ def run_schedule_test(device, tat, pulses=40, level_db=-20.0, channel="left",
             waited_from = device.in_position
     return _schedule_result(device, rows, template, level_db, channel, tat,
                             n_tat, ping, seeds, late, lost,
-                            time.monotonic() - wall0, started)
+                            time.monotonic() - wall0, started, check)
 
 
 def _schedule_result(device, rows, template, level_db, channel, tat, n_tat,
-                     ping, seeds, late, lost, wall_seconds, started):
+                     ping, seeds, late, lost, wall_seconds, started, check=None):
     rate = device.rate
     # Turnaround as seen through the loopback: the reply's arrival minus the
     # arrival that triggered it, against N plus the device's own offset.
@@ -517,13 +614,15 @@ def _schedule_result(device, rows, template, level_db, channel, tat, n_tat,
         margin_min_samples=int(min(margins)) if margins else 0,
         margin_min_ms=1000 * min(margins) / rate if margins else 0.0,
         xruns=counts, startup_xruns=device.xrun_count - len(events),
-        wall_s=wall_seconds, python=platform.python_version())
+        wall_s=wall_seconds, input_check=check or {},
+        python=platform.python_version())
     summary["verdict_ok"], summary["verdict_lines"] = schedule_verdict(summary)
     return TestResult("schedule", rows, summary, summary["verdict_lines"])
 
 
 def schedule_verdict(s):
-    lines = []
+    lines = ["Before the test: " + w
+             for w in s.get("input_check", {}).get("warnings", [])]
     if s["replies"] < 3:
         lines.append(f"Only {s['replies']} replies landed ({s['late']} scheduled "
                      f"too late, {s['lost']} never heard). A turnaround of "
@@ -547,7 +646,8 @@ def schedule_verdict(s):
                  f"({s['margin_min_ms']:.1f} ms) between deciding and the output "
                  "reaching that sample.")
     dropouts = any(s["xruns"].values())
-    ok = worst <= 1.0 and not s["late"] and not s["lost"] and not dropouts
+    ok = (worst <= 1.0 and not s["late"] and not s["lost"] and not dropouts
+          and not s.get("input_check", {}).get("warnings"))
     if worst > 1.0:
         lines.append("Worse than one sample: something other than rounding "
                      "is adding jitter (scheduling latency, dropouts).")

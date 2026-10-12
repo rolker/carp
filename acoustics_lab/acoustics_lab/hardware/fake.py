@@ -42,7 +42,10 @@ class FakeDevice(DuplexDevice):
     and its input (overflow, underflow on input) or its output (underflow,
     overflow on output) is lost. pa_error: samples by which the
     PortAudio-style time stamps are wrong, so a test can show the claim is
-    not trusted. seed: for the noise.
+    not trusted. seed: for the noise. echoes: extra copies of the loopback
+    as (extra delay in samples, gain relative to the loopback), as an
+    acoustic path has: a reflection off a screen or table, possibly stronger
+    than the direct sound.
     """
 
     def __init__(self, rate=48000.0, frames_per_buffer=256, in_latency=120.0,
@@ -50,7 +53,7 @@ class FakeDevice(DuplexDevice):
                  loopback_gain=0.5, noise_rms=2.0, offset_drift=0.0,
                  clock_ppm=0.0, xruns=(), pa_error=0.0, realtime=False,
                  speed=1.0, in_channels=1, out_channels=2, ring_seconds=30.0,
-                 seed=0, name="fake"):
+                 seed=0, name="fake", echoes=()):
         super().__init__(name, rate, frames_per_buffer, in_channels,
                          out_channels, 0, ring_seconds)
         self.in_latency = float(in_latency)
@@ -58,6 +61,7 @@ class FakeDevice(DuplexDevice):
         self.loopback = loopback
         self.loopback_channel = loopback_channel
         self.loopback_gain = loopback_gain
+        self.echoes = [(float(d), float(g)) for d, g in echoes]
         self.noise_rms = noise_rms
         self.offset_drift = offset_drift
         self.clock_ppm = clock_ppm
@@ -91,11 +95,12 @@ class FakeDevice(DuplexDevice):
     def _clock_time(self, sample):
         return 1000.0 + sample / (self.rate * (1.0 + self.clock_ppm * 1e-6))
 
-    def _loopback_block(self, start, n):
+    def _loopback_block(self, start, n, extra=0.0):
         """Loopback signal for input samples start..start+n, from the output
-        history, with a windowed-sinc fractional delay."""
+        history, with a windowed-sinc fractional delay (plus `extra`
+        samples, for an echo)."""
         positions = (start + np.arange(n)) - (
-            self.in_latency + self.out_latency +
+            self.in_latency + self.out_latency + extra +
             self.offset_drift * (start + np.arange(n)) / self.rate)
         base = np.floor(positions).astype(np.int64)
         frac = positions - base
@@ -120,6 +125,9 @@ class FakeDevice(DuplexDevice):
         indata = np.zeros((n, max(self.in_channels, 1)))
         if self.loopback:
             indata[:, 0] += self.loopback_gain * self._loopback_block(start, n)
+            for delay, gain in self.echoes:
+                indata[:, 0] += (self.loopback_gain * gain *
+                                 self._loopback_block(start, n, delay))
         if self.noise_rms:
             indata += self._rng.normal(0.0, self.noise_rms, indata.shape)
         indata = np.clip(np.rint(indata), -32768, 32767).astype(np.int16)

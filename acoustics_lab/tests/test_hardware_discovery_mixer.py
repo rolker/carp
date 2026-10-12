@@ -232,3 +232,18 @@ def test_restore_reports_a_control_it_cannot_set():
         return original(args)
     restored, failed = mixer.restore(1, saved, refusing)
     assert restored == [] and failed and "busy" in failed[0][1]
+
+
+def test_db_values_are_sent_as_raw_steps():
+    runner = FakeAmixer(fixture("amixer_usb_dongle.txt"))
+    controls = mixer.read_controls(1, runner)
+    speaker = mixer.find_control(controls, "Speaker Playback Volume")
+    raw = mixer.db_to_raw(speaker, "-10dB")
+    assert raw.lstrip("-").isdigit() and not raw.startswith("-")
+    assert abs(speaker.to_db(int(raw)) - (-10.0)) <= abs(speaker.db_step or 1.0)
+    result = mixer.set_control(1, "Speaker Playback Volume", "-10dB", runner)
+    assert result.verified, result.note
+    assert all(not a.endswith("dB") for call in runner.calls for a in call)
+    agc = mixer.find_control(controls, "Auto Gain Control")
+    with pytest.raises(mixer.MixerError):
+        mixer.db_to_raw(agc, "-3dB")

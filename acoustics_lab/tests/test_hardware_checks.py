@@ -3,6 +3,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 
 import numpy as np
 import pytest
@@ -74,7 +75,7 @@ def test_pings_in_an_xrun_are_left_out_and_reported():
     during = first + 24000 * 5 + 560           # as the 6th ping's copy arrives
     before = first + 24000 * 9 + 10            # just as the 10th is played
     with dongle(xruns=[(during, flags), (before, flags)]) as dev:
-        result = checks.run_offset_test(dev, 15)
+        result = checks.run_offset_test(dev, 15, settle=0.0)
     s = result.summary
     flagged = [r for r in result.rows if r.xrun]
     assert {r.k for r in flagged} >= {5, 9}
@@ -98,7 +99,9 @@ def test_the_claimed_offset_is_reported_beside_the_measured_one():
     with dongle(pa_error=20.0) as dev:
         result = checks.run_offset_test(dev, 8)
     line = [l for l in result.verdict if l.startswith("PortAudio claimed")][0]
-    assert "550.8" in line and "530.8" in line
+    claimed, measured = [float(x) for x in re.findall(r"\d+\.\d", line)[:2]]
+    assert claimed == pytest.approx(550.8, abs=0.1)
+    assert measured == pytest.approx(530.75, abs=0.1)
 
 
 def test_schedule_test_lands_replies_exactly_n_samples_after_the_arrival():
@@ -129,7 +132,7 @@ def test_schedule_test_notices_a_turnaround_that_is_too_short():
 
 def test_schedule_test_flags_replies_that_overlap_a_dropout():
     with dongle(xruns=[(51344, stream.INPUT_OVERFLOW)]) as dev:
-        result = checks.run_schedule_test(dev, 0.2, pulses=12)
+        result = checks.run_schedule_test(dev, 0.2, pulses=12, settle=0.0)
     assert result.summary["in_xrun"] >= 1
     assert not result.summary["verdict_ok"]
 
@@ -234,3 +237,47 @@ def test_tool_lists_cards_and_marks_usb(monkeypatch):
     assert "1b3f:2008 port 1-2.3" in text
     assert "no serial number" in text
     assert "in 44.1/48 kHz" in text and "--device 1-2.3" in text
+
+
+def test_the_direct_sound_is_found_when_an_echo_is_stronger():
+    # As on a laptop: the reflection off the screen beats the direct sound.
+    with dongle(echoes=[(60.0, 2.0)], noise_rms=2.0) as dev:
+        result = checks.run_offset_test(dev, 6)
+    s = result.summary
+    assert s["used"] >= 10
+    assert s["offset_mean_samples"] == pytest.approx(530.75, abs=0.1)
+    assert all(abs(r.offset - 530.75) < 0.3 for r in result.rows if r.valid)
+
+
+def test_offsets_away_from_the_main_group_are_counted_not_averaged():
+    rows = [checks.PingRow(k, 1000 + 24000 * k) for k in range(12)]
+    for r in rows:
+        r.arrival, r.level_dbfs, r.snr_db = r.scheduled + 500.0, -30.0, 40.0
+        r.offset = 500.0
+    rows[3].offset, rows[7].offset = 560.0, 4000.0      # an echo, a false hit
+    with dongle() as dev:
+        result = checks._offset_result(dev, rows, checks.make_ping(48000),
+                                       -20.0, "left", 0.5, "chirp", 0, 6.0)
+    s = result.summary
+    assert s["used"] == 10 and s["outliers"] == 2
+    assert s["offset_max_dev_samples"] == 0.0
+    assert any("away from the main group" in line for line in result.verdict)
+
+
+def test_input_check_warns_about_clipping_dc_and_noise():
+    rng = np.random.default_rng(1)
+    clipped = np.clip(rng.normal(-8000, 20000, 48000), -32768, 32767)
+    check = checks.input_check(clipped)
+    text = " ".join(check["warnings"])
+    assert "clipping" in text and "DC offset" in text
+    quiet = rng.normal(0, 3, 48000)
+    assert checks.input_check(quiet)["warnings"] == []
+    noisy = rng.normal(0, 2000, 48000)
+    assert "noisy" in " ".join(checks.input_check(noisy)["warnings"])
+
+
+def test_the_offset_test_waits_for_the_input_to_settle_first():
+    with dongle() as dev:
+        result = checks.run_offset_test(dev, 2, settle=2.0)
+    assert result.rows[0].scheduled > 2.0 * 48000
+    assert result.summary["input_check"]["warnings"] == []

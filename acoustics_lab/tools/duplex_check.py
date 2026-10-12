@@ -254,7 +254,7 @@ def make_real(args, out, holds):
     except LookupError as error:
         print(error, file=out)
         return None, 2
-    if not card.usb:
+    if not card.usb and not getattr(args, "warned_not_usb", False):
         warn_not_usb(card, out, borrowing=not args.no_borrow)
     # Borrow before PortAudio looks at the card: a card the sound server holds
     # may not probe correctly.
@@ -383,6 +383,7 @@ def run(args, out, holds, restores):
             if not card.usb:
                 warn_not_usb(card, out, borrowing=bool(
                     (args.offset_test or args.schedule_test) and not args.no_borrow))
+                args.warned_not_usb = True
             testing = args.offset_test or args.schedule_test
             if testing and not args.keep_mixer:
                 try:
