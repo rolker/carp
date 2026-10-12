@@ -71,6 +71,36 @@ def _template(emission, rate):
     return x / max(float(np.max(np.abs(x))), 1e-12)
 
 
+def events_from_ping(ping, rate):
+    """The ping's emissions as EventSpecs for the detector, with templates
+    at the recording's sample rate."""
+    specs = ping.meta.get("signals", {})
+    events = []
+    for i, e in enumerate(ping.emissions):
+        name = specs.get(e.signal, {}).get("name", e.signal or "signal")
+        events.append(detection.EventSpec(
+            label=f"{i + 1}: {e.transducer} {name} @ {e.start * 1e3:g} ms",
+            key=e.signal or f"#{i}", template=_template(e, rate), time=e.start))
+    return events
+
+
+def ping_warnings(ping):
+    """Problems a ping design has before it is even sent: events that cannot
+    be told apart, or that leak into each other's filters. A list of plain
+    sentences."""
+    rate = ping.emissions[0].rate
+    events = events_from_ping(ping, rate)
+    out = []
+    for group in detection.inseparable(events):
+        out.append("events " + " and ".join(str(i + 1) for i in group)
+                   + " use the same signal at nearly the same time and cannot "
+                     "be told apart")
+    for i, j, isolation in detection.leaking(events, rate):
+        out.append(f"events {i + 1} and {j + 1} overlap in time and band and leak "
+                   f"into each other's filters ({isolation:.0f} dB)")
+    return out
+
+
 @dataclass
 class RangingResult:
     receiver: str
@@ -96,13 +126,7 @@ def analyse_capture(capture, receiver, first_threshold=FIRST_THRESHOLD):
     recording, ping = capture.recordings[receiver], capture.ping
     speed = capture.meta.get("sound_speed") or DEFAULT_SOUND_SPEED
     specs = ping.meta.get("signals", {})
-    events = []
-    for i, e in enumerate(ping.emissions):
-        name = specs.get(e.signal, {}).get("name", e.signal or "signal")
-        events.append(detection.EventSpec(
-            label=f"{i + 1}: {e.transducer} {name} @ {e.start * 1e3:g} ms",
-            key=e.signal or f"#{i}", template=_template(e, recording.rate),
-            time=e.start))
+    events = events_from_ping(ping, recording.rate)
     analysis = detection.analyse_events(recording.samples, recording.rate, events,
                                         first_threshold)
     result = RangingResult(receiver=receiver, analysis=analysis,

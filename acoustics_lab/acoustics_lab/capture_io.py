@@ -36,7 +36,7 @@ def find_recordings(path):
     path = Path(path)
     if path.is_dir():
         return sorted(path.rglob("*.wav"))
-    return [path]
+    return [path] if path.exists() else []
 
 
 def _chirp(rate, spec):
