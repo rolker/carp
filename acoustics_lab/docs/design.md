@@ -152,6 +152,20 @@ the Qt 6 replacements for removed calls (`QScreen`, `QRegularExpression`,
 5. **Simulation knows the truth.** A simulated capture carries the real path
    delays and levels, so processing can be checked against them, not just
    eyeballed.
+6. **Demonstrate, don't block; no flags for normal use.** This is a lab:
+   a setting that goes wrong is a chance to see what wrong looks like.
+   Risky settings (a loud output level, a card the desktop is using, a
+   value outside a model's valid range) get a prominent warning where the
+   setting is made and again before a run, not a refusal that needs an
+   override. Settings that cannot be produced exactly are produced the way
+   real equipment would: a level above full scale is clipped flat, in
+   hardware and in simulation alike, and the page shows the consequence
+   (harmonics in the spectrum, a blunter matched-filter peak, timing
+   error). When the hardware itself rejects something (a sample rate the
+   device does not support), the tool reports what the device said and
+   what it does support. Everything in normal use is reachable from the
+   window; command-line options are for scripting and testing, not
+   required to use the tool.
 
 ## Architecture
 
@@ -290,6 +304,44 @@ through a `Positioner`: *manual* asks the user to set the angle and press a
 button; *simulated* changes the scene; a motorised stage could be added
 later.
 
+### Taking hold of the hardware
+
+The tool must work on an ordinary desktop without changing the machine's
+configuration, and leave the desktop's own sound alone. Each rig chooses
+one of two access modes per device.
+
+- **Exclusive (borrowed), for measurement.** The tool asks the sound
+  server for the card through the standard device-reservation protocol
+  (D-Bus `org.freedesktop.ReserveDevice1`; WirePlumber holds each card at a
+  low priority so that it gives it up on request). It then opens the
+  card's `hw:` device directly in one duplex stream: no resampling, no
+  software volume, no mixing with other sounds. When the tool stops, or
+  crashes, the reservation lapses and the desktop takes the card back.
+  Nothing on disk changes. While borrowed, desktop sound through that card
+  stops; other cards (HDMI, Bluetooth) carry on.
+- **Shared (through the sound server), for demos and WSL.** The tool is an
+  ordinary audio client at the server's rate, so nothing is resampled on
+  the way, and the desktop keeps working. The device volume still applies
+  and other sounds can mix in, so the tool reads the volume, records it
+  with each capture and warns when it is not 100 %. Timing comes from a
+  loopback or the first arrival only, and when output and input are on
+  different cards the server adjusts their rates to keep them together;
+  captures say so.
+
+Exclusive access also works for USB dongles, so changing the machine's
+configuration is optional, not required. What configuration still adds,
+for a dedicated bench or the vehicle: a udev rule naming each identical
+dongle by its USB port (the only way to tell them apart), and keeping the
+sound server from ever offering a newly plugged dongle as the desktop's
+output. On a headless Pi without a sound server, only the naming rule and
+the `audio` group are needed. Those rule files are written when the
+dongles' IDs are known.
+
+The device-stream layer (`hardware/`, see `docs/hardware-layer.md`) opens
+`hw:` devices directly. Reservation and the shared mode go on top of it.
+Until then its check tool warns prominently before opening a built-in
+card, because that competes with the desktop.
+
 ### Rigs and layouts
 
 Ping designs and pages refer to transducers by ID, never to devices. Two
@@ -410,9 +462,9 @@ the page grows from.
 | Beam patterns | Elements and arrays, steering, grating lobes; polar slices and 3D surface | Rotate and measure, plotted over the model | GeoZui4D beam-pattern code and the 2007 lab |
 | Sound speed | Water: TEOS-10, with Mackenzie (salinity 25–40, 2–30 °C, to 8000 m), Chen–Millero (UNESCO; salinity 0–40, so fresh water too), Del Grosso, and pure-water formulas (Marczak; Bilaniuk–Wong) to compare; air: temperature and humidity. Profiles: from a CTD (temperature and salinity probe) cast, typed in, or built (mixed layer, thermocline, a lake through the seasons). Derived: gradients, mean speed to a depth. Refraction: ray fans through a layered profile, shadow zones, ducts. Consequences: range error from a wrong sound speed; multibeam "smile" and "frown" from a wrong profile; how fast sounding uncertainty grows as profiles age (after Beaudoin's uncertainty wedge) | Measure sound speed in air over a known distance and compare with a thermometer reading (about 0.6 m/s per °C, 0.4 mm of range per °C at 230 mm) | new |
 | Propagation | Spreading; absorption (water: Francois–Garrison, Thorp for a quick estimate; fresh water: Francois–Garrison with salinity 0, which leaves only its pure-water term, flagged as an estimate since the model was not fitted to fresh water; air: ISO 9613-1, specified to 10 kHz and marked extrapolated above it); reflections; travel time | Distance series | new |
-| Echo sounding & backscatter | Single-beam echo sounding: bottom detection, seafloor backscatter against angle, water-column echograms and volume backscatter strength, target strength and calibration with a standard sphere; the echo roles above on one transducer before an array | On the bench, in air: sound a board, tilt it for angle, hang a small ball as a target and a cloud of small objects as a "water column" | echogram view of `ping_gui.py` |
+| Echo sounding & backscatter | Single-beam echo sounding: bottom detection, seafloor backscatter against angle, water-column echograms and volume backscatter strength, target strength and calibration with a standard sphere; the echo roles above on one transducer before an array | On the bench, in air: sound a board, tilt it for angle, hang a small ball as a target and a cloud of small objects as a "water column". With no dongle: the laptop's own speaker and microphone, borrowed exclusively, share one clock, so the fixed output-to-input delay is measured once at a known distance from a wall and later echoes give absolute distances | echogram view of `ping_gui.py` |
 | Noise | Background spectrum and over time | Record noise | noise tab of `ping_gui.py` |
-| Receiver chain | Gain staging, clipping, automatic gain, ADC bits and dynamic range; time-varying gain (TVG): 40 log R for a point target, 30 log R for seafloor reverberation, 20 log R for volume reverberation, each plus 2αR for absorption | Stepped-level loopback test | new |
+| Receiver chain | Gain staging; clipping at the output (DAC) and the input (ADC), simulated as real equipment clips so it can be driven into deliberately; automatic gain; ADC bits and dynamic range; time-varying gain (TVG): 40 log R for a point target, 30 log R for seafloor reverberation, 20 log R for volume reverberation, each plus 2αR for absorption | Stepped-level loopback test | new |
 | Ranging & positioning | Ping designs and event timing; layout geometry to position error; one-way with sync vs two-way (timestamps at both ends, fixed reply delay, clock offset and drift estimated from the exchange); how long a sync stays good for a given clock drift | Ping, continuous, echogram | `ping_gui.py`, `docs/navigation.md` |
 | Comms | Chirp spread spectrum link; theory for it as non-coherent near-orthogonal M-ary signalling, with coherent BPSK as a familiar baseline; later frequency-hopping FSK as a slower, more robust alternative; simulated link as sonar-equation SNR, then detection against a false-alarm rate, then a measured error-rate curve, with optional fading; a known-data test mode for counting bit errors | Send and decode a message | `chirp_data.py`, data tab of `ping_gui.py` |
 | Doppler | Shift for one-way and two-way paths (about 2v/c for an echo); what motion does to each kind of signal: a CW pulse shifts in frequency, a linear chirp shifts in apparent time (range–Doppler coupling), a hyperbolic chirp hardly changes (Doppler-tolerant); the ambiguity function of each signal design; Doppler in comms (time compression, why modems estimate and resample); range error from a moving vehicle; velocity measurement: DVL bottom track and water track with four slanted beams, ADCP current profiles, pulse-pair and broadband estimation and their ambiguity velocity | A reflector or transducer moving on the bench (a pendulum, or a board on a slide), with speeds scaled as above | new |
@@ -764,8 +816,9 @@ until the new tool does everything it does; then its programs retire, and
    backend with a minimal scene (point transducers, one medium, noise,
    loopback); replay; the ranging page with one ping, continuous and the
    echogram. No hardware yet.
-2. **Hardware:** the hardware backend from `audio_io.py`, with streams kept
-   open; rigs and the rig editor with "identify"; loopback timing;
+2. **Hardware:** the hardware backend on the device-stream layer (duplex
+   streams kept open; built 2026-10-12, not yet run on a real device);
+   exclusive access by reservation and the shared mode; rigs and the rig editor with "identify"; loopback timing;
    instruments and the first bench measurements (pinout, DC offset, mic
    bias, output level, output impedance). At this point the ranging page
    matches `ping_gui.py` on the ping itself.
