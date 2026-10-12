@@ -55,13 +55,15 @@ def test_the_laptop_template_makes_a_rig_its_as_built_scene_and_a_demo(ws):
     assert rig["layout"] == "laptop" and rig["as_built"] == ids["as_built"]
     assert ws.get("rigs", ids["rig"])["devices"][0]["access"] == "exclusive"
     built = ws.get("scenes", ids["as_built"])
-    assert built["layout"] == "laptop" and built["devices"][0]["transducers"] == ["speaker", "mic"]
+    assert built["layout"] == "laptop" and built["devices"][0]["transducers"] == ["left", "right", "mic"]
     assert not built["movers"] and not built["reflectors"]
     demo = ws.get("scenes", ids["demo"])
     assert demo["movers"][0]["name"] == "person" and demo["planes"] and demo["reflectors"]
     assert ws.get("ping_designs", ids["design"])["detection_design"] == starter.DEFAULT_DETECTION
     assert rigs.laptop_template(ws) == ids                     # safe to repeat
-    assert rigs.near_pairs(ws.get("layouts", "laptop")) == [("speaker", "mic", pytest.approx(0.2))]
+    near = rigs.near_pairs(ws.get("layouts", "laptop"))
+    assert [(a, b) for a, b, _ in near] == [("left", "mic"), ("right", "mic")]
+    assert near[0][2] == pytest.approx(0.3064, abs=1e-3)
     assert rigs.near_pairs(ws.get("layouts", "stereo_dongle")) == []
 
 
@@ -87,7 +89,7 @@ def test_a_rig_is_checked_and_what_it_uses_cannot_be_deleted(ws):
         ws.delete("scenes", rig["as_built"])
     with pytest.raises(InUseError):
         ws.delete("layouts", "laptop")
-    bad = dict(rig, transducers=[dict(id="speaker", device="nowhere", channel="left")])
+    bad = dict(rig, transducers=[dict(id="left", device="nowhere", channel="left")])
     with pytest.raises(WorkspaceError, match="no device 'nowhere'"):
         ws.replace("rigs", rigs.LAPTOP_RIG, bad)
     twice = dict(rig, devices=rig["devices"] * 2)
@@ -95,7 +97,7 @@ def test_a_rig_is_checked_and_what_it_uses_cannot_be_deleted(ws):
         ws.replace("rigs", rigs.LAPTOP_RIG, twice)
     loop = dict(rig, devices=rig["devices"] + [s.device_config("b")],
                 transducers=rig["transducers"][:1] + [dict(id="mic", device="b", channel=0)],
-                loopbacks=[dict(receiver="mic", emitter="speaker")])
+                loopbacks=[dict(receiver="mic", emitter="left")])
     with pytest.raises(WorkspaceError, match="same device"):
         ws.replace("rigs", rigs.LAPTOP_RIG, loop)
     assert rigs.problems(dict(rig, transducers=rig["transducers"][:1]), ws.get("layouts", "laptop"))
@@ -124,7 +126,7 @@ def test_a_ping_borrows_the_card_sets_the_mixer_and_close_puts_everything_back(w
     assert info["card"].startswith("card 1 [PCH]")
     assert info["desktop_volumes_saved"] and info["input_check"]["warnings"] == []
     assert capture.meta["backend"] == "Hardware" and capture.meta["rig_id"] == rigs.LAPTOP_RIG
-    assert capture.meta["layout"]["transducers"][0]["id"] == "speaker"
+    assert capture.meta["layout"]["transducers"][0]["id"] == "left"
     assert "release" not in log                      # kept open between pings
     backend.close()
     assert log.index("release") > log.index("mixer write Master Playback Volume")
@@ -173,10 +175,10 @@ def test_pings_keep_the_streams_open_and_a_capture_has_the_structure_of_hardware
     assert rec.clock == "laptop" and rec.rate == 48000 and rec.loopback_of == []
     assert rec.samples.dtype == np.float64 and np.max(np.abs(rec.samples)) < 1.0
     assert second.recordings["mic"].started > rec.started          # the same clock, later
-    assert first.emitted["speaker"] == pytest.approx(
+    assert first.emitted["left"] == pytest.approx(
         first.meta["devices"]["laptop"]["started_output_sample"] / 48000)
     assert first.truth is None and first.meta["ping_index"] == 0 and second.meta["ping_index"] == 1
-    assert first.ping.emissions[0].transducer == "speaker"
+    assert first.ping.emissions[0].transducer == "left"
     # long enough for the sound, the listening time and the latency allowance
     assert len(rec.samples) >= (0.01 + 0.04 + 0.15) * 48000
     backend.close()
@@ -194,13 +196,13 @@ def test_a_hardware_capture_saves_with_what_made_it_and_replays(ws, world, tmp_p
     assert side["backend"] == "Hardware" and side["rig"]["name"] == "Laptop speaker and mic"
     assert side["devices"]["laptop"]["access"] == "exclusive"
     assert side["devices"]["laptop"]["mixer_applied"]["Capture Volume"] == "5dB"
-    assert side["layout"]["transducers"][0]["id"] == "speaker"
+    assert side["layout"]["transducers"][0]["id"] == "left"
     assert side["ping"]["design_id"] == rigs.LAPTOP_DESIGN
     loaded = capture_io.load_capture(path)
     assert loaded.meta["sound_speed"] == pytest.approx(capture.meta["sound_speed"])
     assert loaded.ping.meta["design_id"] == rigs.LAPTOP_DESIGN
-    result = room.analyse(loaded, "speaker", "mic")
-    assert result.heard and result.baseline_m == pytest.approx(0.2)
+    result = room.analyse(loaded, "left", "mic")
+    assert result.heard and result.baseline_m == pytest.approx(0.3064, abs=1e-3)
     assert result.direct_sample == pytest.approx(DIRECT, abs=1.0)    # 16-bit rounding of the WAV
 
 
@@ -301,11 +303,12 @@ def test_transducers_a_rig_cannot_use_are_explained(ws, world):
     with pytest.raises(ValueError, match="'mic' cannot send"):
         backend.fire(ping)
     ping = ping_of(ws, backend)
-    ping.receivers = ["speaker"]
-    with pytest.raises(ValueError, match="'speaker' cannot receive"):
+    ping.receivers = ["left"]
+    with pytest.raises(ValueError, match="'left' cannot receive"):
         backend.fire(ping)
     assert [(t.id, t.can_send, t.can_receive, t.rate) for t in backend.transducers()] == [
-        ("speaker", True, False, 48000.0), ("mic", False, True, 48000.0)]
+        ("left", True, False, 48000.0), ("right", True, False, 48000.0),
+        ("mic", False, True, 48000.0)]
 
 
 # ---- shared access ------------------------------------------------------------
@@ -390,8 +393,8 @@ def test_loopbacks_are_part_of_the_recording_structure(ws, world):
 
 def test_identify_plays_a_short_tone_on_one_transducer_and_gives_the_card_back(ws, world):
     backend = backend_for(ws, world)
-    sentence = backend.identify("speaker", seconds=0.3)
-    assert "1000 Hz tone" in sentence and "Speaker" in sentence
+    sentence = backend.identify("left", seconds=0.3)
+    assert "1000 Hz tone" in sentence and "Left speaker" in sentence
     stream = backend.env.made[0]
     assert stream.out_position > 0.3 * 48000
     assert world.log.count("borrow") == 1 and world.log.count("release") == 1
@@ -400,7 +403,7 @@ def test_identify_plays_a_short_tone_on_one_transducer_and_gives_the_card_back(w
         backend.identify("mic")
     # a device already open for pings stays open
     backend.fire(ping_of(ws, backend))
-    backend.identify("speaker", seconds=0.2)
+    backend.identify("left", seconds=0.2)
     assert backend.is_open()
     backend.close()
 

@@ -220,7 +220,8 @@ def device_config(device_id, card="", access="exclusive", rate=48000, **more):
     return data
 
 
-def new_rig(name, layout, devices, transducers, loopbacks=(), as_built=None):
+def new_rig(name, layout, devices, transducers, loopbacks=(), as_built=None,
+            machine=None):
     """A rig's data. `transducers` are dicts with id, device and channel:
     an output channel ("left", "right" or an index) for a sender, an input
     channel index for a receiver. `loopbacks` are dicts with receiver and
@@ -230,6 +231,8 @@ def new_rig(name, layout, devices, transducers, loopbacks=(), as_built=None):
                 loopbacks=[dict(lb) for lb in loopbacks])
     if as_built:
         data["as_built"] = as_built
+    if machine:
+        data["machine"] = machine       # the computer whose devices it names
     return data
 
 
@@ -246,8 +249,10 @@ def transducer(tid, name, position, can_send=False, can_receive=False,
                 can_send=can_send, can_receive=can_receive)
 
 
-def new_layout(name, transducers):
-    return dict(name=name, transducers=list(transducers))
+def new_layout(name, transducers, **more):
+    """A layout's data. `more` adds fields of the layout itself, such as
+    measured (False: the positions are a guess) and note."""
+    return dict(name=name, transducers=list(transducers), **more)
 
 
 def new_scene(name, layout, devices, loopbacks=(), planes=(), temperature_c=20.0,

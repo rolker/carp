@@ -1,6 +1,7 @@
 """The stereo-dongle bench, as a layout and simulated scenes, and the
 objects a new workspace starts with."""
 from ..models import detection_design
+from . import rigs
 from . import schema as s
 
 DEFAULT_DETECTION = "default_arrival_detection"
@@ -53,7 +54,9 @@ def ensure_default_detection(workspace):
 def populate(workspace):
     """What a new workspace starts with: the default detection design, the
     dongle bench, a few signals (one of them derived) and two ping designs
-    that name the default detection design."""
+    that name the default detection design, and the ping designs for two
+    speakers and a microphone (they name transducers "left", "right" and "mic",
+    which the dongle bench and the laptop both have)."""
     ws = workspace
     with ws.macro("start the workspace"):
         ensure_default_detection(ws)
@@ -72,4 +75,5 @@ def populate(workspace):
             dict(transducer="left", signal=low, time=0.0),
             dict(transducer="right", signal=high, time=0.0)],
             detection_design=DEFAULT_DETECTION))
+        rigs.ensure_stereo_designs(ws)
     ws.undo_stack.clear()

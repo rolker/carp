@@ -21,10 +21,10 @@ def ws(tmp_path):
     return w
 
 
-def sim(ws, scene=rigs.LAPTOP_DEMO):
+def sim(ws, scene=rigs.LAPTOP_DEMO, design=rigs.LAPTOP_DESIGN):
     backend = SimulationBackend.from_workspace(ws, scene)
-    ping = room.build_ping(ws, rigs.LAPTOP_DESIGN, "speaker", "mic", backend.transducers(),
-                           5.0, backend.sound_speed(), 0.2)
+    ping = room.build_ping(ws, design, "mic", backend.transducers(), 5.0,
+                           backend.sound_speed(), ws.get("layouts", "laptop"))
     return backend, ping
 
 
@@ -77,13 +77,14 @@ def test_the_as_built_scene_has_nothing_that_moves_and_no_made_up_reflectors(ws)
 def test_the_direct_sound_is_time_zero_and_echoes_come_out_at_their_true_ranges(ws):
     backend, ping = sim(ws)
     capture = backend.fire(ping)
-    result = room.analyse(capture, "speaker", "mic", max_range_m=5.0)
+    result = room.analyse(capture, "left", "mic", max_range_m=5.0)
     assert result.heard and not result.warnings
-    assert result.baseline_m == pytest.approx(0.2)
-    assert result.level_db[np.searchsorted(result.range_m, 0.1)] == pytest.approx(0.0, abs=0.6)
+    d = np.linalg.norm(np.array([0.17, 0.05, 0.25]))          # left speaker to the microphone
+    assert result.baseline_m == pytest.approx(d, abs=1e-6)
+    assert result.level_db[np.searchsorted(result.range_m, d / 2)] == pytest.approx(0.0, abs=0.6)
     found = peaks(result)
-    assert near(found, 0.1, 0.01)                                # the direct sound: d / 2
-    assert result.truth and len(result.truth) == 7
+    assert near(found, d / 2, 0.01)                              # the direct sound: d / 2
+    assert result.truth and len(result.truth) == 8
     for route, true_range in result.truth:
         assert near(found, true_range), (route, true_range, found[:12])
     assert result.range_m[1] - result.range_m[0] == pytest.approx(backend.sound_speed() / 2 / 48000)
@@ -94,17 +95,17 @@ def test_two_devices_with_different_clocks_and_rates_give_the_same_picture(ws):
     # The speaker on one card, the microphone on another: a different rate, a
     # clock offset and drift, and a start delay. Time zero is the direct sound.
     demo = ws.get("scenes", rigs.LAPTOP_DEMO)
-    demo["devices"] = [s.device("out", ["speaker"], rate=48000, start_delay=0.013),
+    demo["devices"] = [s.device("out", ["left"], rate=48000, start_delay=0.013),
                        s.device("in", ["mic"], rate=44100, clock_offset=7.0,
                                 clock_drift_ppm=30.0, start_delay=0.002)]
     ws.replace("scenes", rigs.LAPTOP_DEMO, demo)
     backend, ping = sim(ws)
     capture = backend.fire(ping)
     assert capture.recordings["mic"].rate == 44100 and capture.recordings["mic"].clock == "in"
-    result = room.analyse(capture, "speaker", "mic", max_range_m=5.0)
+    result = room.analyse(capture, "left", "mic", max_range_m=5.0)
     found = peaks(result, -40.0)
     strong = [(r, at) for r, at in result.truth if r != "plane:front wall"]   # that one is -46 dB
-    assert len(strong) == 6
+    assert len(strong) == 7
     for route, true_range in strong:
         assert near(found, true_range, 0.03), (route, true_range)
 
@@ -171,28 +172,31 @@ def test_clipping_and_a_loopback_in_the_recording_are_warned_about(ws):
     backend, ping = sim(ws)
     capture = backend.fire(ping)
     capture.recordings["mic"].samples = np.clip(capture.recordings["mic"].samples * 40, -1, 1)
-    assert any("clipping" in w for w in room.analyse(capture, "speaker", "mic").warnings)
+    assert any("clipping" in w for w in room.analyse(capture, "left", "mic").warnings)
     capture = backend.fire(ping)
-    capture.recordings["mic"].loopback_of = ["speaker"]
-    assert any("electrical loopback" in w for w in room.analyse(capture, "speaker", "mic").warnings)
+    capture.recordings["mic"].loopback_of = ["left"]
+    assert any("electrical loopback" in w for w in room.analyse(capture, "left", "mic").warnings)
 
 
 def test_the_range_asked_for_sets_the_listening_time_and_the_ping(ws):
     backend, _ = sim(ws)
     infos = backend.transducers()
-    a = room.build_ping(ws, rigs.LAPTOP_DESIGN, "speaker", "mic", infos, 5.0, SPEED, 0.2)
-    b = room.build_ping(ws, rigs.LAPTOP_DESIGN, "speaker", "mic", infos, 10.0, SPEED, 0.2)
-    assert a.listen == pytest.approx((2 * 5.0 - 0.2) / SPEED + 0.002)
+    layout = ws.get("layouts", "laptop")
+    a = room.build_ping(ws, rigs.LAPTOP_DESIGN, "mic", infos, 5.0, SPEED, layout)
+    b = room.build_ping(ws, rigs.LAPTOP_DESIGN, "mic", infos, 10.0, SPEED, layout)
+    d = room.separation(layout, "left", "mic")
+    assert a.listen == pytest.approx((2 * 5.0 - d) / SPEED + 0.002)
     assert b.listen > a.listen and a.meta["room"] and a.meta["max_range_m"] == 5.0
-    assert len(a.emissions) == 1 and a.emissions[0].transducer == "speaker"
+    assert len(a.emissions) == 1 and a.emissions[0].transducer == "left"
     assert a.receivers == ["mic"] and a.emissions[0].start == 0.0
+    with pytest.raises(ValueError, match="'left' cannot receive"):
+        room.build_ping(ws, rigs.LAPTOP_DESIGN, "left", infos, 5.0, SPEED)
+    ws.update("ping_designs", rigs.LAPTOP_DESIGN, events=[dict(transducer="mic", signal=rigs.LAPTOP_SIGNAL, time=0)])
     with pytest.raises(ValueError, match="'mic' cannot send"):
-        room.build_ping(ws, rigs.LAPTOP_DESIGN, "mic", "mic", infos, 5.0, SPEED)
-    with pytest.raises(ValueError, match="'speaker' cannot receive"):
-        room.build_ping(ws, rigs.LAPTOP_DESIGN, "speaker", "speaker", infos, 5.0, SPEED)
+        room.build_ping(ws, rigs.LAPTOP_DESIGN, "mic", infos, 5.0, SPEED)
     ws.update("ping_designs", rigs.LAPTOP_DESIGN, events=[])
     with pytest.raises(ValueError, match="has no events"):
-        room.build_ping(ws, rigs.LAPTOP_DESIGN, "speaker", "mic", infos, 5.0, SPEED)
+        room.build_ping(ws, rigs.LAPTOP_DESIGN, "mic", infos, 5.0, SPEED)
 
 
 def test_the_numbers_come_from_the_signal_and_the_settings():
@@ -220,7 +224,7 @@ def test_the_steady_part_cancels_and_the_mover_stands_out(ws):
     history, last = [], None
     for _ in range(30):
         capture = backend.fire(ping)
-        last = room.analyse(capture, "speaker", "mic", max_range_m=5.0)
+        last = room.analyse(capture, "left", "mic", max_range_m=5.0)
         mean = room.background(history, 20)
         diff = room.difference(last.level, mean)
         history.append(last.level)

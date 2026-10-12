@@ -70,6 +70,36 @@ SETTINGS = (
             "Peaks closer than this are one arrival"),
     Setting("max_arrivals", "Most arrivals listed", 8, "", 1, 100,
             "The tallest this many peaks of an event's window are kept"),
+    Setting("echo_snr", "Echo detection threshold", 8.0, "x noise", 1.0, 1e6,
+            "Room sonar: a peak of a return counts as an echo (and is placed in the "
+            "room) when it is this many times the typical (median) level of the "
+            "return"),
+    Setting("nearest_m", "Nearest echo placed", 0.3, "m", 0.0, 100.0,
+            "Room sonar: echoes closer than this range (half the path) are not "
+            "placed: the direct sound, its tail and reflections off the laptop's "
+            "own screen or table are there"),
+    Setting("echo_separation_s", "Echo separation", 0.0002, "s", 0.00001, 1.0,
+            "Room sonar: echoes of one return closer than this are one echo (about "
+            "the merging spacing of a 2-20 kHz chirp)"),
+    Setting("max_echoes", "Most echoes placed", 20, "", 1, 1000,
+            "Room sonar: the tallest this many echoes of each speaker's return are "
+            "kept"),
+    Setting("pair_tolerance_m", "Pairing tolerance", 0.03, "m", 0.0, 10.0,
+            "Room sonar: echoes from the two speakers can be the same target only "
+            "if their path lengths differ by no more than the speakers' spacing "
+            "plus this (a target cannot be further from one speaker than the other "
+            "by more than the spacing between them; the extra covers timing error)"),
+    Setting("pair_level_db", "Pairing level difference", 12.0, "dB", 0.0, 120.0,
+            "Room sonar: echoes from the two speakers whose levels differ by more "
+            "than this are not taken for the same target"),
+    Setting("direct_window_s", "Direct-sound window", 0.004, "s", 0.0001, 1.0,
+            "Room sonar: once the first sound is found, each other speaker's direct "
+            "sound is looked for this far either side of where the layout and the "
+            "ping design put it"),
+    Setting("combine_s", "Same-sound window", 0.002, "s", 0.0, 1.0,
+            "Room sonar: events of one signal that start within this of each other "
+            "are one combined sound from several speakers (it cannot be told which "
+            "speaker an echo came from); further apart they are separate"),
     Setting("leak_db", "Leak warning", -25.0, "dB", -120.0, 0.0,
             "Two signals that overlap in time and leak into each other's filter "
             "less than this far down are warned about"),
@@ -125,6 +155,14 @@ class DetectionDesign:
     listed_fraction: float = 0.05
     min_separation_s: float = 0.0005
     max_arrivals: int = 8
+    echo_snr: float = 8.0
+    nearest_m: float = 0.3
+    echo_separation_s: float = 0.0002
+    max_echoes: int = 20
+    pair_tolerance_m: float = 0.03
+    pair_level_db: float = 12.0
+    direct_window_s: float = 0.004
+    combine_s: float = 0.002
     leak_db: float = -25.0
     hit_snr: float = 10.0
     same_arrival: float = 1.0

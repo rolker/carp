@@ -364,6 +364,18 @@ def inseparable(events, design=DEFAULT):
     return groups
 
 
+def isolation_db(own, other):
+    """How far below its own peak `other` shows up in the matched filter of
+    `own`, in dB (negative: -17 means 17 dB down). Two signals that share
+    time and band leak into each other's filters: an up-chirp and a down-chirp
+    of one band only about 17 dB down, two separate bands 100 dB or more."""
+    own, other = np.asarray(own, dtype=np.float64), np.asarray(other, dtype=np.float64)
+    pad = np.zeros(max(own.size, other.size))
+    cross = matched_filter(np.concatenate([pad, other, pad]), own).max()
+    peak = matched_filter(np.concatenate([pad, own, pad]), own).max()
+    return float(20 * np.log10(max(cross, 1e-12) / peak))
+
+
 def leaking(events, rate, design=DEFAULT, worse_than_db=None):
     """Pairs of events with different signals that overlap in time and are
     poorly separated by their filters.
@@ -388,12 +400,7 @@ def leaking(events, rate, design=DEFAULT, worse_than_db=None):
             da, db_ = a.template.size / rate, b.template.size / rate
             if abs(a.time - b.time) > max(da, db_) + design.search_s:
                 continue
-            pad = np.zeros(max(a.template.size, b.template.size))
-            cross = matched_filter(
-                np.concatenate([pad, b.template, pad]), a.template).max()
-            own = matched_filter(
-                np.concatenate([pad, a.template, pad]), a.template).max()
-            isolation = 20 * np.log10(max(cross, 1e-12) / own)
+            isolation = isolation_db(a.template, b.template)
             if isolation > worse_than_db:
                 pairs.append((i, j, float(isolation)))
     return pairs

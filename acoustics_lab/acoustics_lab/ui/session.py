@@ -49,8 +49,24 @@ class Session(QtCore.QObject):
         return "dongle_bench" if "dongle_bench" in ids else (ids[0] if ids else None)
 
     def _first_rig(self):
+        """The rig to start with: one made on this machine if there is one (a
+        workspace shared between machines holds the others' rigs, whose
+        devices are not here), else the first."""
         ids = self.workspace.ids("rigs")
-        return ids[0] if ids else None
+        mine = [i for i in ids if self.workspace.get("rigs", i).get("machine") == rigs.machine_name()]
+        return (mine or ids)[0] if ids else None
+
+    def machine_note(self):
+        """A sentence about whose machine the active rig is for, or ''."""
+        rig = self.workspace.get("rigs", self.rig_id or "")
+        if not rig or not rig.get("machine"):
+            return ""
+        here = rigs.machine_name()
+        if rig["machine"] == here:
+            return f"Rig '{rig['name']}' was made on this machine ({here})."
+        return (f"Rig '{rig['name']}' was made on {rig['machine']}, not on this machine "
+                f"({here}): the devices it names may not be here. Make this machine's own "
+                "rig (the laptop template).")
 
     def _workspace_changed(self, kind, object_id):
         if kind in ("scenes", "layouts", "rigs"):
@@ -215,6 +231,16 @@ class Session(QtCore.QObject):
             return self.workspace.get("layouts", rig["layout"]) if rig else None
         scene = self.workspace.get("scenes", self.scene_id or "")
         return self.workspace.get("layouts", scene["layout"]) if scene else None
+
+    def active_layout_id(self):
+        """The ID of the layout `active_layout` gives, or None."""
+        if self.mode == REPLAY:
+            return None
+        if self.mode == HARDWARE:
+            rig = self.workspace.get("rigs", self.rig_id or "")
+            return rig["layout"] if rig else None
+        scene = self.workspace.get("scenes", self.scene_id or "")
+        return scene["layout"] if scene else None
 
     def scenes_that_fit(self, fits):
         """IDs of the scenes whose layout satisfies `fits(layout)`."""

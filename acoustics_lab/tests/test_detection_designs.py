@@ -110,7 +110,8 @@ def test_a_detection_design_a_ping_design_names_cannot_be_deleted(ws):
     assert "detection design" in str(error.value)
     other = ws.create("detection_designs", "other", s.new_detection_design(""))
     ws.update("ping_designs", "left_then_right", detection_design=other)
-    ws.update("ping_designs", "two_bands_at_once", detection_design=other)
+    for did in ws.ids("ping_designs"):
+        ws.update("ping_designs", did, detection_design=other)
     ws.delete("detection_designs", starter.DEFAULT_DETECTION)       # now nobody names it
     with pytest.raises(WorkspaceError, match="no detection design with ID 'gone'"):
         ws.update("ping_designs", "left_then_right", detection_design="gone")
