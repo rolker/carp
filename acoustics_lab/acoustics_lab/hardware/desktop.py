@@ -464,7 +464,9 @@ def _default_notes(saved, backend):
         return notes
     for kind, before, after in ((SINK, saved.default_sink, sink),
                                 (SOURCE, saved.default_source, source)):
-        if before and after and before != after:
+        # The same device re-created by the server keeps its name apart from
+        # a numeric suffix (...analog-stereo.21 -> .22): not a change.
+        if before and after and _strip(before) != _strip(after):
             notes.append(f"The default {kind} is now {after}; it was {before}. "
                          f"To change it back: pactl set-default-{kind} {before}")
     return notes

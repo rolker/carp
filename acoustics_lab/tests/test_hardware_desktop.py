@@ -160,6 +160,15 @@ def test_a_changed_default_is_mentioned_not_changed():
     assert any("pactl set-default-sink sink-a" in line for line in result.lines())
 
 
+def test_a_default_recreated_with_a_new_suffix_is_not_a_change():
+    server = FakeDesktop([speaker()], "out.analog-stereo.21", "in.analog-stereo.21")
+    saved = desktop.save(CARD, server)
+    server.sink_default = "out.analog-stereo.22"
+    result = run_restore(saved, server)
+    assert result.ok
+    assert not any("set-default" in line for line in result.lines())
+
+
 def test_matching_survives_a_renamed_node():
     saved = [speaker(name="alsa_output.x.analog-stereo.14"), microphone(name="in.1")]
     now = [microphone(name="in.2"), speaker(name="alsa_output.x.analog-stereo.15")]
