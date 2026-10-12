@@ -43,6 +43,29 @@ class Optics:
     _theta_w: np.ndarray            # table: medium-side angle ...
     _ppr: np.ndarray                # ... and local pixels per radian there
     warnings: tuple = ()
+    _theta_a: np.ndarray = None     # table: camera-side angle for _theta_w
+    _extent_mm: tuple = (0.0, 0.0)  # sensor width, height (physical, mm)
+
+    def rays(self, x_mm, y_mm):
+        """Unit direction vectors (N x 3: right, down, ahead) in the medium
+        of the rays seen at sensor points (x right, y down, mm from the
+        centre). Points the lens cannot see give NaN."""
+        x, y = np.asarray(x_mm, float), np.asarray(y_mm, float)
+        r = np.hypot(x, y)
+        ta = projection.ray_angle_rad(r, self.focal_mm, self.projection)
+        tw = np.interp(ta, self._theta_a, self._theta_w, right=np.nan)
+        phi = np.arctan2(y, x)
+        return np.column_stack([np.sin(tw) * np.cos(phi), np.sin(tw) * np.sin(phi), np.cos(tw)])
+
+    def boundary_rays(self, per_edge=24):
+        """Rays along the edge of the image, going round the sensor
+        rectangle, closed (first point repeated); and the four corners."""
+        hw, hh = self._extent_mm[0] / 2, self._extent_mm[1] / 2
+        t = np.linspace(0, 1, per_edge, endpoint=False)
+        xs = np.concatenate([-hw + 2 * hw * t, np.full(per_edge, hw), hw - 2 * hw * t, np.full(per_edge, -hw)])
+        ys = np.concatenate([np.full(per_edge, -hh), -hh + 2 * hh * t, np.full(per_edge, hh), hh - 2 * hh * t])
+        loop = self.rays(xs, ys)
+        return np.vstack([loop, loop[:1]]), self.rays([-hw, hw, hw, -hw], [-hh, -hh, hh, hh])
 
     @property
     def f_px(self):
@@ -110,7 +133,7 @@ def optics(sensor, lens, port, medium, image_scale=1.0, n_table=181):
         pitch_mm=pitch, focal_mm=f, projection=model, n_medium=n_med, port_kind=kind,
         fov_air_deg=tuple(float(np.degrees(2 * a)) for a in half_a), fov_deg=fov_w,
         px_per_rad_axis=float(ppr_w[0]), _theta_w=theta_w, _ppr=ppr_w,
-        warnings=tuple(warnings))
+        warnings=tuple(warnings), _theta_a=theta_a, _extent_mm=(w_mm, h_mm))
 
 
 def stereo_summary(optics_, rig, scene):
