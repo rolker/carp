@@ -146,7 +146,7 @@ back and saves an image. A zoom on the top plot is kept from ping to ping;
 
 ## Bench hardware (2026-10-11)
 
-Nothing built yet. Drawings:
+Built so far: the 20 mm transducer holder (below). Drawings:
 [twelve-pocket ring](https://claude.ai/artifact/99bWLWpf5B9tmFNcdqrJaM),
 [flat cross with 45° receivers](https://claude.ai/artifact/PXHUPA8RArRitkF7W4AGMo)
 (private pages on Roland's account).
@@ -170,6 +170,38 @@ lower. 9.1 in from the edge is 0.9 short of the centre, so the solder runs
 nearly a full radius. The wire leaves at one edge of the 5 mm width, not
 from its middle. Not measured yet: capacitance.
 
+**Built: 20 mm transducer holder (Roland, 2026-10-11):**
+
+Roland's Onshape part (Transducer Holder, document `carp`), printed three
+times on the Centauri Carbon 2 in Elegoo PLA+, 0.16 mm layers, flat with
+the clips up, no supports, about 6 minutes and 1.5 g each. The third print
+**fits the disc "pretty good"**. Dimensions read from the STL exports:
+
+| | mm |
+|---|---|
+| Outer diameter | 26 |
+| Thickness | 4 (3 body + 1 clips) |
+| Pocket diameter | 20.04 |
+| Recess depth | 0.32 |
+| Through hole | 17 |
+| Retention clips | three, 4 wide, 1 thick, overhanging the pocket by 1; one at the wire side and one 90° either side of it |
+| Solder relief | 1 deep below the pocket floor; 6 wide as test-fitted, **8 wide from here on** |
+| Wire hole through the wall | 2 wide, 1 tall, rounded, under the wire-side clip |
+| Access groove into the wire hole | 1.4 |
+
+- The disc goes in past the clips and the pocket is not too tight at
+  20.04: 0.02 a side was enough on this printer and filament. The earlier
+  agent proposal of Ø20.4 with glue dots was not needed.
+- Print 1 had a 0.56 recess and a 1.0 access groove; the disc fitted but
+  the wires would not go into the groove. Print 2 (0.32 recess, 1.4
+  groove) is the one that fits.
+- The 8 mm solder relief is in the model and in
+  `cad/prints/transducer_holder_20mm.stl`, but has **not been printed
+  yet**; the tested print had 6.
+- Ø17 clears the 15 ceramic by 1 all round and leaves 1.5 of brass rim on
+  the ledge. The ceramic (0.46 total) is thicker than the recess but sits
+  inside the clips' reach.
+
 **Decided (Roland):**
 
 - Air-scale the mounts: sound is ~4.3 times faster in water, so divide the
@@ -187,19 +219,6 @@ from its middle. Not measured yet: capacitance.
   transmit pairs at 90° or 60° on one print — Roland: "looks good".
 - The topside ring at **220 mm**, not 230: a 230 ring is 256 across and
   cannot fit the 256 bed. Alternative: print 230 in two halves. Open.
-- Pocket for a 20 mm disc: Ø20.4 recess 1 mm deep in a 3 mm plate, Ø17
-  through, 26 mm ring width; disc held by its rim with glue dots. Lead
-  groove 3 wide x 1.5 deep on the back face, and a 6 mm notch through
-  the ledge for the solder joint on the brass. Checked against the
-  measured disc: Ø17 clears the 15 ceramic by 1 all round and leaves 1.5
-  of brass rim on the ledge; Ø20.4 gives 0.2 clearance. The 1 mm recess is
-  twice the 0.46 disc — it sits 0.54 below the face. Solder at 1.14
-  total stays inside the 2 mm ledge, so nothing stands proud of the back
-  face. The two 0.8 wires side by side are 1.6 wide and 0.8 deep,
-  so the 3 x 1.5 groove has room to spare. The notch is 6 for the 5 mm
-  solder, 0.5 clear each side. The wires leave about 2.5 off the notch
-  centre line, on one side; a centred groove means a small jog inside
-  the notch.
 - Stand: cross or ring on a post and base, centre about 300 mm above the
   table so the table reflection separates from the direct sound.
 - A short boom for a third axis was discussed and left out for now.

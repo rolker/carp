@@ -19,7 +19,10 @@ into a printable stereo camera carrier. Trim it as the steps get done.
   `coupon_a_c1.stl` and `coupon_b1.stl`: the 2026-09-28 tolerance
   coupons, §4;
   `stereo_cameras_assembly.stl` and `sled_assembly.stl`: the 2026-10-10
-  stereo bracket and sled part, results under "Next bench print")
+  stereo bracket and sled part, results under "Next bench print";
+  `transducer_holder_20mm.stl`: the 2026-10-11 holder for the 20 mm piezo
+  discs, with the 8 mm solder relief — the tested print had 6; see
+  `acoustic/README.md`, "Bench hardware")
 - `onshape-notes.md` — Onshape plans, API limits, AI/MCP options and 2026
   changes, for agents (researched 2026-09-27)
 
