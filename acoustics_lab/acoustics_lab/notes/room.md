@@ -16,8 +16,11 @@ apart, its range is (c t + d) / 2, taking them as one place: at $speed m/s one
 millisecond is $mm_per_ms mm of path, which is half that in range.
 
 **Resolution and reach.** $resolution_line The chirp is $pulse ms long, which
-looks like $pulse_m m of range, but the matched filter squeezes it to about
-3 / bandwidth: that is the spacing below which two echoes merge. The range bin
+looks like $pulse_m m of range, but the matched filter squeezes it into a
+narrow peak; the merging spacing above is read off that peak by the
+detection design's *resolution measure* (the first null either side by
+default, about 3 / bandwidth for a fully tapered chirp; or the width at -3
+or -6 dB, about 1.9 or 2.6 / bandwidth). The range bin
 on screen is one sample of travel, $bin mm. The maximum range is the one
 you set, $max_range m; the listening time follows from it. $ambiguity_line
 

@@ -15,8 +15,11 @@ the path is a distance.
 
 **Selected signal: $signal.** $details
 
-**Two arrivals closer than the resolution merge.** For a tapered chirp that
-is about 3 / bandwidth. $resolution_line
+**Two arrivals closer than the resolution merge.** The figure is read off
+this signal's own matched-filter peak, by the detection design's
+*resolution measure*: the first null either side by default (about 3 /
+bandwidth for a fully tapered chirp, 1 / bandwidth with no taper), or the
+peak's width at -3 or -6 dB. $resolution_line
 
 **Processing gain.** The matched filter lifts a signal above white noise by
 about 10 log10(length x bandwidth): $gain_line

@@ -134,9 +134,10 @@ class DetectionDesignDialog(QtWidgets.QDialog):
             t.insertRow(row)
             value = getattr(design, s.key)
             cells = {KEY: s.key, LABEL: s.label,
-                     VALUE: value if s.key == "method" else f"{value:g}",
-                     UNIT: s.unit,
-                     DEFAULT_COLUMN: s.default if s.key == "method" else f"{s.default:g}",
+                     VALUE: value if s.key in dd.CHOICES else f"{value:g}",
+                     UNIT: (" / ".join(dd.CHOICES[s.key]) if s.key in dd.CHOICES
+                            else s.unit),
+                     DEFAULT_COLUMN: s.default if s.key in dd.CHOICES else f"{s.default:g}",
                      TEXT: s.text}
             for column, text in cells.items():
                 item = QtWidgets.QTableWidgetItem(str(text))
@@ -159,7 +160,7 @@ class DetectionDesignDialog(QtWidgets.QDialog):
         setting = dd.SETTING[key]
         text = item.text().strip()
         try:
-            if key == "method":
+            if key in dd.CHOICES:
                 value = text
             else:
                 try:

@@ -45,13 +45,23 @@ def level(get, signal_id):
     return data["amplitude"]
 
 
-def worth(get, signal_id):
+def worth(get, signal_id, rate=48000.0, measure="first_null"):
     """What a signal is worth, for the read-only columns: a dict with
     duration_ms, bandwidth_hz, gain_db (processing gain against white noise)
-    and resolution_ms (arrivals closer than this merge)."""
+    and resolution_ms (arrivals closer than this merge, read off the signal's
+    own matched-filter peak by `measure`, a detection design's resolution
+    setting)."""
     f0, f1, duration = band(get, signal_id)
     width = sig.bandwidth(f0, f1)
+    resolution = None
+    if width > 0:
+        try:
+            resolution = detection.resolution(
+                f0, f1, template=samples(get, signal_id, rate), rate=rate,
+                measure=measure) * 1e3
+        except ValueError:                     # a band the rate cannot carry
+            resolution = None
     return dict(
         duration_ms=duration * 1e3, bandwidth_hz=width,
         gain_db=sig.processing_gain_db(f0, f1, duration),
-        resolution_ms=(detection.resolution(f0, f1) * 1e3 if width > 0 else None))
+        resolution_ms=resolution, resolution_measure=measure)

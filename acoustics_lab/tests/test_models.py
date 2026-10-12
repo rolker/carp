@@ -2,6 +2,7 @@
 chirps, the matched filter, arrival times, and finding the events of a ping.
 """
 import numpy as np
+import pytest
 
 from acoustics_lab import wav_io
 from acoustics_lab.models import detection as det
@@ -219,3 +220,31 @@ def test_noise_spectrum_finds_a_tone_and_the_quiet_bands():
     assert bands[0.0] > bands[10000.0] + 10         # the rumble
     # White noise of rms 0.003 over 24 kHz: -50.5 dBFS in all, 1/24 of it per band.
     assert abs(bands[10000.0] - (20 * np.log10(0.003) - 10 * np.log10(24))) < 1.5
+
+
+def test_resolution_is_read_off_the_signals_own_peak():
+    from acoustics_lab.models import detection
+    from acoustics_lab.models.signals import make_chirp
+    fs, f0, f1, d = 48000, 16000.0, 20000.0, 0.040
+    bw = f1 - f0
+    tapered = {m: detection.resolution(f0, f1, d, fs, 1.0, m) * bw
+               for m in ("first_null", "minus3db", "minus6db")}
+    assert tapered["first_null"] == pytest.approx(3.0, abs=0.1)
+    assert tapered["minus3db"] == pytest.approx(1.85, abs=0.1)
+    assert tapered["minus6db"] == pytest.approx(2.6, abs=0.1)
+    # Without a taper the peak is a sinc: first null at 1 / bandwidth.
+    plain = detection.resolution(f0, f1, d, fs, 0.0, "first_null") * bw
+    assert plain == pytest.approx(1.0, abs=0.1)
+    same = detection.resolution(f0, f1, rate=fs, measure="first_null",
+                                template=make_chirp(fs, f0, f1, d, 1.0)) * bw
+    assert same == pytest.approx(tapered["first_null"], abs=1e-9)
+    with pytest.raises(ValueError):
+        detection.resolution(f0, f1, d, fs, 1.0, "rayleigh")
+
+
+def test_detection_design_resolution_measure_is_a_checked_choice():
+    from acoustics_lab.models import detection_design as dd
+    assert dd.DEFAULT.resolution == "first_null"
+    assert dd.from_dict({"resolution": "minus3db"}).resolution == "minus3db"
+    with pytest.raises(ValueError):
+        dd.from_dict({"resolution": "wide"})

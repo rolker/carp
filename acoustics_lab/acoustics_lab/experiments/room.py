@@ -83,17 +83,25 @@ def build_ping(workspace, design_id, output, input_, infos, max_range_m,
                   max_range_m=max_range_m, output=output, input=input_))
 
 
-def numbers(spec, speed, rate, baseline_m, max_range_m, ping_interval_s):
+def numbers(spec, speed, rate, baseline_m, max_range_m, ping_interval_s,
+            measure="first_null"):
     """What the ping design and the settings make of the room sonar, as a
-    dict of plain numbers: range resolution, range bin, listening time, the
-    unambiguous range of the ping rate. `spec` is the signal's f0, f1,
-    duration."""
+    dict of plain numbers: range resolution (read off the signal's own
+    matched-filter peak by `measure`, the detection design's resolution
+    setting), range bin, listening time, the unambiguous range of the ping
+    rate. `spec` is the signal's f0, f1, duration and, optionally, taper or
+    its samples ("template")."""
     f0, f1, duration = spec["f0"], spec["f1"], spec["duration"]
     bandwidth = abs(f1 - f0)
-    resolution_s = detection.resolution(f0, f1) if bandwidth > 0 else duration
+    resolution_s = (detection.resolution(f0, f1, duration,
+                                         spec.get("template_rate", rate),
+                                         spec.get("taper", 1.0), measure,
+                                         spec.get("template"))
+                    if bandwidth > 0 else duration)
     return dict(
         bandwidth_hz=bandwidth, duration_s=duration,
         resolution_s=resolution_s, resolution_m=speed * resolution_s / 2.0,
+        resolution_measure=measure,
         bin_m=speed / (2.0 * rate), listen_s=listen_for(max_range_m, speed, baseline_m),
         max_range_m=max_range_m,
         pulse_m=speed * duration / 2.0,

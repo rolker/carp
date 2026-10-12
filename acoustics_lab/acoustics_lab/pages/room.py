@@ -691,12 +691,14 @@ class RoomSonarPage(QtWidgets.QWidget):
         if not design or not design["events"]:
             return None
         from ..objects import signals as signal_objects
+        sid = design["events"][0]["signal"]
         try:
-            f0, f1, duration = signal_objects.band(self.ws.get_signal,
-                                                   design["events"][0]["signal"])
+            f0, f1, duration = signal_objects.band(self.ws.get_signal, sid)
+            template = signal_objects.samples(self.ws.get_signal, sid, 48000)
         except Exception:                       # noqa: a broken signal: say nothing
             return None
-        return dict(f0=f0, f1=f1, duration=duration)
+        return dict(f0=f0, f1=f1, duration=duration, template=template,
+                    template_rate=48000)
 
     def _numbers_text(self, achieved=None):
         spec = self._signal_spec()
@@ -710,8 +712,9 @@ class RoomSonarPage(QtWidgets.QWidget):
         if spec is None:
             return "Choose a ping design."
         rate = next((i.rate for i in self._infos() if i.rate), 48000.0)
+        measure = self.detection()[1].resolution
         n = room.numbers(spec, speed, rate, baseline, self.range_spin.value(),
-                         self.session.interval)
+                         self.session.interval, measure)
         lines = [
             f"<b>Range resolution</b>: {100 * n['resolution_m']:.1f} cm "
             f"({1e3 * n['resolution_s']:.2f} ms; chirp {spec['f0']:g}-{spec['f1']:g} Hz, "
@@ -750,7 +753,8 @@ class RoomSonarPage(QtWidgets.QWidget):
         rate = next((i.rate for i in self._infos() if i.rate), 48000.0)
         max_range = self.range_spin.value()
         did, design = self.detection()
-        n = (room.numbers(spec, speed, rate, baseline, max_range, self.session.interval)
+        n = (room.numbers(spec, speed, rate, baseline, max_range, self.session.interval,
+                          design.resolution)
              if spec else None)
         direct = ("No ping yet." if self.last is None else
                   ("The last direct sound was not found." if not self.last.heard else

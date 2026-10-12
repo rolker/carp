@@ -25,6 +25,8 @@ KIND_TEXT = {
     "decoding": "decoding: data pings",
     "level": "level measurement: measurement and calibration pings"}
 METHODS = ("matched", "envelope")
+RESOLUTIONS = ("first_null", "minus3db", "minus6db")
+CHOICES = {"method": METHODS, "resolution": RESOLUTIONS}   # settings that are words
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,12 @@ SETTINGS = (
             "signal); envelope: rectify and smooth over the signal's length, no "
             "template (any loud sound counts, and arrivals are as wide as the "
             "signal is long)"),
+    Setting("resolution", "Resolution measure", "first_null", "", 0, 0,
+            "How the spacing below which two arrivals merge is read off the "
+            "signal's own matched-filter peak: first_null, the first null either "
+            "side (equal echoes this far apart do not overlap at all; the "
+            "careful figure); minus3db or minus6db, the peak's full width that "
+            "far down (the figures usually quoted)"),
     Setting("detect_snr", "Event detection threshold", 8.0, "x noise", 1.0, 1e6,
             "A ping's event counts as heard when its strongest peak is this many "
             "times the typical (median) level of the filter output"),
@@ -110,6 +118,7 @@ class DetectionDesign:
     kind: str = "arrival"
     description: str = ""
     method: str = "matched"
+    resolution: str = "first_null"
     detect_snr: float = 8.0
     search_s: float = 0.03
     first_fraction: float = 0.3
@@ -147,10 +156,13 @@ class DetectionDesign:
     def summary(self):
         """One line: the method and what differs from the defaults."""
         diff = self.differences()
-        diff.pop("method", None)
+        for key in CHOICES:
+            diff.pop(key, None)
         text = f"{self.name} ({self.method}"
         if diff:
             text += "; " + ", ".join(f"{k} {getattr(self, k):g}" for k in diff)
+        if self.resolution != DEFAULT_RESOLUTION:
+            text += f"; resolution {self.resolution}"
         return text + ")"
 
 
@@ -159,10 +171,11 @@ def check_values(data):
     dict of settings) holds a value outside what makes sense."""
     if data.get("kind", "arrival") not in KINDS:
         raise ValueError(f"kind must be one of {', '.join(KINDS)}")
-    if data.get("method", "matched") not in METHODS:
-        raise ValueError(f"method must be one of {', '.join(METHODS)}")
+    for key, allowed in CHOICES.items():
+        if key in data and data[key] not in allowed:
+            raise ValueError(f"{key} must be one of {', '.join(allowed)}")
     for s in SETTINGS:
-        if s.key == "method" or s.key not in data:
+        if s.key in CHOICES or s.key not in data:
             continue
         value = data[s.key]
         if isinstance(value, bool) or not isinstance(value, (int, float)):
@@ -179,7 +192,7 @@ def from_dict(data):
     names = {f.name for f in dataclasses.fields(DetectionDesign)}
     kwargs = {k: v for k, v in data.items() if k in names}
     for s in SETTINGS:
-        if s.key not in kwargs or s.key == "method":
+        if s.key not in kwargs or s.key in CHOICES:
             continue
         kwargs[s.key] = int(round(kwargs[s.key])) if isinstance(s.default, int) \
             else float(kwargs[s.key])
@@ -187,6 +200,7 @@ def from_dict(data):
 
 
 DEFAULT = DetectionDesign()
+DEFAULT_RESOLUTION = DEFAULT.resolution
 
 
 def new_default(name="Default arrival detection"):

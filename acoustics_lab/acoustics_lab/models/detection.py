@@ -173,12 +173,49 @@ def input_check(samples, design=DEFAULT, unit=INT16_STEP):
                 clipped_fraction=clipped, warnings=warnings)
 
 
-def resolution(f0, f1):
-    """Rough spacing, in seconds, below which two arrivals merge into one.
+def resolution(f0, f1, duration=None, rate=48000.0, taper=1.0,
+               measure="first_null", template=None):
+    """Spacing, in seconds, below which two arrivals merge into one, read off
+    the signal's own matched-filter peak (its autocorrelation envelope), so
+    it follows the taper and band of the actual signal.
 
-    About 3 / bandwidth for the default fully tapered chirp.
+    `measure` (a detection design's "resolution" setting): "first_null", the
+    first null either side of the peak (equal echoes this far apart do not
+    overlap at all); "minus3db" / "minus6db", the peak's full width that far
+    down. For the lab's default fully tapered chirp these come to about
+    3.0, 1.9 and 2.6 / bandwidth; for an untapered chirp to about 1.0, 0.9
+    and 1.2. Pass `template` (samples at `rate`) for a signal that is not a
+    plain chirp. Without a duration, falls back to 3 / bandwidth.
     """
-    return 3.0 / abs(f1 - f0)
+    if template is None:
+        if duration is None:
+            return 3.0 / abs(f1 - f0)
+        from .signals import make_chirp
+        template = make_chirp(rate, f0, f1, duration, taper)
+    return _peak_width(np.asarray(template, dtype=np.float64), rate, measure)
+
+
+def _peak_width(template, rate, measure, upsample=16):
+    """Seconds: see `resolution`. The envelope of the autocorrelation is
+    interpolated `upsample` times, then read either side of its peak."""
+    corr = signal.correlate(template, template, mode="full", method="fft")
+    env = np.abs(signal.hilbert(corr))
+    centre = int(np.argmax(env))
+    half = min(centre, len(env) - 1 - centre, 4 * len(template))
+    piece = signal.resample(env[centre - half:centre + half + 1], (2 * half + 1) * upsample)
+    piece = np.abs(piece) / np.max(np.abs(piece))
+    top = int(np.argmax(piece))
+    right = piece[top:]
+    if measure == "first_null":
+        rising = np.nonzero(np.diff(right) > 0)[0]
+        i = int(rising[0]) if len(rising) else len(right) - 1
+        return i / upsample / rate
+    level = {"minus3db": 10 ** (-3 / 20), "minus6db": 0.5}.get(measure)
+    if level is None:
+        raise ValueError(f"unknown resolution measure {measure!r}")
+    below = np.nonzero(right < level)[0]
+    i = int(below[0]) if len(below) else len(right) - 1
+    return 2 * i / upsample / rate
 
 
 @dataclass

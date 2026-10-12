@@ -198,8 +198,11 @@ def test_the_range_asked_for_sets_the_listening_time_and_the_ping(ws):
 def test_the_numbers_come_from_the_signal_and_the_settings():
     spec = dict(f0=2000.0, f1=20000.0, duration=0.01)
     n = room.numbers(spec, SPEED, 48000.0, 0.2, 5.0, 0.2)
-    assert n["resolution_s"] == pytest.approx(3.0 / 18000)
-    assert n["resolution_m"] == pytest.approx(SPEED * 3.0 / 18000 / 2)          # 2.9 cm
+    # First null of the fully tapered chirp's own peak: about 3 / bandwidth.
+    assert n["resolution_s"] == pytest.approx(3.0 / 18000, rel=0.03)
+    assert n["resolution_m"] == pytest.approx(SPEED * n["resolution_s"] / 2)    # 2.9 cm
+    narrow = room.numbers(spec, SPEED, 48000.0, 0.2, 5.0, 0.2, "minus3db")
+    assert narrow["resolution_s"] == pytest.approx(1.88 / 18000, rel=0.05)
     assert n["bin_m"] == pytest.approx(SPEED / 2 / 48000)                        # 3.6 mm
     assert n["listen_s"] == pytest.approx((10 - 0.2) / SPEED + 0.002)
     assert n["ambiguity_m"] == pytest.approx(SPEED * 0.2 / 2)

@@ -326,7 +326,8 @@ class RangingPage(QtWidgets.QWidget):
         for sid in ws.ids("signals"):
             data = ws.get("signals", sid)
             f0, f1, duration = signal_objects.band(ws.get_signal, sid)
-            worth = signal_objects.worth(ws.get_signal, sid)
+            worth = signal_objects.worth(ws.get_signal, sid,
+                                         measure=self.detection()[1].resolution)
             derived = data["type"] == "derived"
             row = t.rowCount()
             t.insertRow(row)
@@ -934,7 +935,8 @@ class RangingPage(QtWidgets.QWidget):
         resolution_line = gain_line = ""
         if sid:
             f0, f1, duration = signal_objects.band(self.ws.get_signal, sid)
-            worth = signal_objects.worth(self.ws.get_signal, sid)
+            worth = signal_objects.worth(self.ws.get_signal, sid, rate,
+                                         self.detection()[1].resolution)
             wavelength = media.wavelength(speed, max((f0 + f1) / 2, 1.0)) * 1e3
             details = (f"{f0:g} to {f1:g} Hz over {duration * 1e3:g} ms: bandwidth "
                        f"{worth['bandwidth_hz']:g} Hz, wavelength at the middle "

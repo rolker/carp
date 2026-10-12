@@ -124,7 +124,8 @@ def test_derived_samples_follow_their_source(ws):
     assert signal_objects.band(ws.get_signal, rev) == (18000.0, 14000, 0.05)
     worth = signal_objects.worth(ws.get_signal, up)
     assert abs(worth["bandwidth_hz"] - 4000) < 1e-9
-    assert abs(worth["resolution_ms"] - 0.75) < 1e-9
+    # First null of the tapered chirp's own peak, about 3 / bandwidth.
+    assert abs(worth["resolution_ms"] - 0.75) < 0.02
 
 
 # ---- undo --------------------------------------------------------------
