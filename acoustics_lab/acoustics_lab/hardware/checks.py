@@ -571,8 +571,15 @@ def save(result, runs_dir, label):
     `<runs_dir>/<date time>_<label>/` and return its path."""
     stamp = time.strftime("%Y%m%d_%H%M%S")
     safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in label)
-    folder = os.path.join(runs_dir, f"{stamp}_{safe}_{result.kind}")
-    os.makedirs(folder, exist_ok=False)
+    base = os.path.join(runs_dir, f"{stamp}_{safe}_{result.kind}")
+    folder, n = base, 1
+    while True:                 # two runs in the same second get _2, _3, ...
+        try:
+            os.makedirs(folder, exist_ok=False)
+            break
+        except FileExistsError:
+            n += 1
+            folder = f"{base}_{n}"
     rows = result.rows
     with open(os.path.join(folder, f"{result.kind}.csv"), "w", newline="") as handle:
         writer = csv.writer(handle)

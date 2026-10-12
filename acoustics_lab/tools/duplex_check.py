@@ -9,9 +9,12 @@
     duplex_check.py --fake --offset-test --minutes 5      # no hardware
 
 A device is only ever opened when it is named with --device (card number,
-ALSA card id or USB port path) together with a test. Without --allow-non-usb
-only USB cards are accepted. The output level defaults to -20 dBFS and the
-plan, including how loud, is printed before anything is played.
+ALSA card id or USB port path) together with a test. A card that is not on
+USB (the built-in sound, HDMI) gets a prominent warning, since the desktop
+uses it. The output level defaults to -20 dBFS; above -6 dBFS gets a
+prominent warning, and above 0 dBFS is played clipped at full scale, with a
+warning, to show what clipping does. The plan, including how loud, is printed before anything
+is played.
 
 Results go to <acoustics_lab>/runs/hardware/<date time>_<device>_<test>/
 (a CSV of every ping and summary.json), git-ignored.
@@ -42,8 +45,6 @@ def parse_args(argv=None):
                    help="card number, ALSA card id (donglea) or USB port path (1-2.3)")
     p.add_argument("--fake", action="store_true",
                    help="use a simulated dongle instead of hardware")
-    p.add_argument("--allow-non-usb", action="store_true",
-                   help="accept a card that is not on USB")
     p.add_argument("--mixer", action="store_true", help="show the mixer controls")
     p.add_argument("--set", action="append", default=[], metavar="NAME=VALUE",
                    help="set a mixer control (with --mixer); repeatable")
@@ -55,8 +56,6 @@ def parse_args(argv=None):
                    help="s between pings in the offset test (default 0.5)")
     p.add_argument("--level", type=float, default=-20.0,
                    help="output peak level in dBFS (default -20)")
-    p.add_argument("--allow-loud", action="store_true",
-                   help="allow a level above -6 dBFS")
     p.add_argument("--channel", default="left", choices=["left", "right", "both"],
                    help="output channel wired to the loopback (default left)")
     p.add_argument("--tat", type=float, default=0.2,
@@ -75,14 +74,29 @@ def parse_args(argv=None):
 
 # -- listing and mixer --------------------------------------------------------
 
+def warn(text, out):
+    """A warning that stands out from the rest of the output."""
+    bar = "!" * 72
+    print(bar, file=out)
+    print("WARNING: " + text, file=out)
+    print(bar, file=out)
+
+
+def warn_not_usb(card, out):
+    warn(f"{card.label()} is not a USB card. It is the desktop's (built-in "
+         "sound or HDMI): opening it may fail as busy, or stop the desktop's "
+         "sound on it while the test runs, and test signals go to its "
+         "speakers or screen.", out)
+
+
 def do_list(out):
     cards = discovery.list_cards()
     if not cards:
         print("No ALSA sound cards found in /proc/asound/cards.", file=out)
         return 0
     error = discovery.attach_portaudio(cards)
-    print(f"{len(cards)} sound cards. USB cards are marked [USB]; only those "
-          "are used without --allow-non-usb.", file=out)
+    print(f"{len(cards)} sound cards. USB cards are marked [USB]; the others "
+          "belong to the desktop.", file=out)
     for card in cards:
         lines = discovery.describe(card)
         print(("[USB]     " if card.usb else "[not USB] ") + lines[0], file=out)
@@ -155,11 +169,8 @@ def make_real(args, out):
     except LookupError as error:
         print(error, file=out)
         return None, 2
-    if not card.usb and not args.allow_non_usb:
-        print(f"Refusing {card.label()}: it is not a USB card. The built-in "
-              "cards belong to the desktop's sound server. Use "
-              "--allow-non-usb if you really mean it.", file=out)
-        return None, 2
+    if not card.usb:
+        warn_not_usb(card, out)
     error = discovery.attach_portaudio([card])
     if error:
         print(error, file=out)
@@ -229,11 +240,14 @@ def main(argv=None, out=None):
               file=out)
         return 2
     if args.level > 0:
-        print("A level above 0 dBFS would clip.", file=out)
-        return 2
-    if args.level > -6 and not args.allow_loud:
-        print(f"{args.level:g} dBFS is loud; add --allow-loud to use it.", file=out)
-        return 2
+        warn(f"{args.level:g} dBFS is above full scale: the output is clipped "
+             "flat at full scale, as a sound card would, so the test shows "
+             "what clipping does (harmonics, a blunter matched-filter peak, "
+             "timing errors) rather than a clean result.", out)
+    elif args.level > -6:
+        warn(f"{args.level:g} dBFS is loud. Near full scale cheap outputs can "
+             "distort and the loopback can clip the input, which spoils the "
+             "timing; keep ears and headphones away.", out)
 
     card = None
     if args.fake:
@@ -248,9 +262,8 @@ def main(argv=None, out=None):
             except LookupError as error:
                 print(error, file=out)
                 return 2
-            if not card.usb and not args.allow_non_usb:
-                print(f"Refusing {card.label()}: not a USB card.", file=out)
-                return 2
+            if not card.usb:
+                warn_not_usb(card, out)
             code = 0
             try:
                 if args.mixer or not args.set:

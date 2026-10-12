@@ -190,28 +190,24 @@ def test_tool_never_opens_anything_unless_a_device_is_named():
     assert code == 2 and "Nothing to do" in text
 
 
-def test_tool_refuses_loud_levels_without_a_flag():
-    code, text = run_tool("--fake", "--offset-test", "--level", "-3")
-    assert code == 2 and "--allow-loud" in text
-    code, text = run_tool("--fake", "--offset-test", "--level", "3", "--allow-loud")
-    assert code == 2 and "clip" in text
+def test_tool_warns_about_loud_and_clipped_levels(tmp_path):
+    code, text = run_tool("--fake", "--offset-test", "--level", "3",
+                          "--minutes", "0.05", "--no-wait", "--runs", str(tmp_path))
+    assert "WARNING" in text and "clipped" in text
+    code, text = run_tool("--fake", "--offset-test", "--level", "-3",
+                          "--minutes", "0.05", "--no-wait", "--runs", str(tmp_path))
+    assert "WARNING" in text and "loud" in text
 
 
-def test_tool_refuses_a_card_that_is_not_usb(monkeypatch):
+def test_tool_warns_about_a_card_that_is_not_usb(monkeypatch):
     tool = load_tool()
     builtin = discovery.Card(1, "PCH", "HDA-Intel", "HDA Intel PCH")
     monkeypatch.setattr(discovery, "list_cards", lambda *a, **k: [builtin])
-
-    def explode(*a, **k):
-        raise AssertionError("must not look at or open the device")
-    monkeypatch.setattr(discovery, "attach_portaudio", explode)
-    monkeypatch.setattr(tool, "PortAudioDuplex", explode)
+    monkeypatch.setattr(discovery, "attach_portaudio",
+                        lambda *a, **k: "no PortAudio device (test)")
     out = io.StringIO()
-    code = tool.main(["--device", "PCH", "--offset-test"], out)
-    assert code == 2 and "not a USB card" in out.getvalue()
-    out = io.StringIO()
-    code = tool.main(["--device", "PCH", "--mixer"], out)
-    assert code == 2 and "not a USB card" in out.getvalue()
+    tool.main(["--device", "PCH", "--offset-test"], out)
+    assert "WARNING" in out.getvalue() and "not a USB card" in out.getvalue()
 
 
 def test_tool_does_not_guess_which_card_is_meant(monkeypatch):

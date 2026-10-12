@@ -93,7 +93,10 @@ normally leaves a freshly plugged USB card alone.
 5. `python3 tools/duplex_check.py --device <...> --schedule-test --tat 0.2`.
 6. Repeat 4 after unplugging and replugging, and on each dongle.
 
-Output level defaults to -20 dBFS; above -6 needs `--allow-loud`. The plan,
+Output level defaults to -20 dBFS; above -6 dBFS, and any card that is not
+on USB, get a prominent warning rather than a refusal. Above 0 dBFS the
+output is clipped flat at full scale, as a sound card would, to show what
+clipping does. The plan,
 with the loudness and the mixer settings, is printed first and there is a
 3 s pause (`--no-wait` skips it).
 
