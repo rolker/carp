@@ -61,6 +61,9 @@ is the likely choice.
 - **Ping design:** a stored recipe for one transmission: which signals go
   out of which transducers, at what times, and what the ping is for (its
   roles, below).
+- **Detection design:** a stored recipe for reading what came back: how
+  returns are found and measured (see *Ping designs and detection
+  designs*). The counterpart of a ping design on the receiving side.
 - **Ping:** one transmission and the reception that follows, made from a
   ping design on a backend, as echosounder users mean it ("ping 12").
   A ping produces a capture.
@@ -470,7 +473,7 @@ the page grows from.
 | Page | Model | Experiment | Starts from |
 |---|---|---|---|
 | Signals | Chirps and tones; spectrum; processing gain against white noise (duration × bandwidth, less for tapered signals); peak width (first nulls of the matched-filter envelope at ±1/bandwidth, about 0.89/bandwidth wide at −3 dB without tapering); how strongly each signal correlates with each other one (which can share a ping) | Ping a signal, compare received and sent spectrum | `pinger.py`, `ranging_dsp.py` |
-| Detection | How a return is found, with every choice exposed: matched filter and its envelope; noise estimate and detection threshold (and the false alarms and misses that follow from it); first arrival against strongest, and how much weaker an earlier peak may be to count as first; sidelobes; grouping repeated measurements and setting aside echoes and stray hits; input checks (clipping, DC, noise) and settle time. The settings form a *detection setup* saved in the workspace; the defaults are one such setup | Re-run detection on any saved recording with other settings and compare: which peak is chosen and why, offset histograms, missed and extra detections | the offset-test analysis of 2026-10-12 |
+| Detection | How a return is found, with every choice exposed: matched filter and its envelope; noise estimate and detection threshold (and the false alarms and misses that follow from it); first arrival against strongest, and how much weaker an earlier peak may be to count as first; sidelobes; grouping repeated measurements and setting aside echoes and stray hits; input checks (clipping, DC, noise) and settle time. The settings form a *detection design* saved in the workspace; the defaults are one such design | Re-run detection on any saved recording with other settings and compare: which peak is chosen and why, offset histograms, missed and extra detections | the offset-test analysis of 2026-10-12 |
 | Transducers | Resonance from an equivalent circuit; bandwidth; ringing | Frequency sweep through a transducer | sweep tab of `ping_gui.py` |
 | Beam patterns | Elements and arrays, steering, grating lobes; polar slices and 3D surface | Rotate and measure, plotted over the model | GeoZui4D beam-pattern code and the 2007 lab |
 | Sound speed | Water: TEOS-10, with Mackenzie (salinity 25–40, 2–30 °C, to 8000 m), Chen–Millero (UNESCO; salinity 0–40, so fresh water too), Del Grosso, and pure-water formulas (Marczak; Bilaniuk–Wong) to compare; air: temperature and humidity. Profiles: from a CTD (temperature and salinity probe) cast, typed in, or built (mixed layer, thermocline, a lake through the seasons). Derived: gradients, mean speed to a depth. Refraction: ray fans through a layered profile, shadow zones, ducts. Consequences: range error from a wrong sound speed; multibeam "smile" and "frown" from a wrong profile; how fast sounding uncertainty grows as profiles age (after Beaudoin's uncertainty wedge) | Measure sound speed in air over a known distance and compare with a thermometer reading (about 0.6 m/s per °C, 0.4 mm of range per °C at 230 mm) | new |
@@ -478,7 +481,7 @@ the page grows from.
 | Echo sounding & backscatter | Single-beam echo sounding: bottom detection, seafloor backscatter against angle, water-column echograms and volume backscatter strength, target strength and calibration with a standard sphere; the echo roles above on one transducer before an array | On the bench, in air: sound a board, tilt it for angle, hang a small ball as a target and a cloud of small objects as a "water column". With no dongle: the laptop's own speaker and microphone, borrowed exclusively, share one clock, so the fixed output-to-input delay is measured once at a known distance from a wall and later echoes give absolute distances | echogram view of `ping_gui.py` |
 | Noise | Background spectrum and over time | Record noise | noise tab of `ping_gui.py` |
 | Receiver chain | Gain staging; clipping at the output (DAC) and the input (ADC), simulated as real equipment clips so it can be driven into deliberately; automatic gain; ADC bits and dynamic range; time-varying gain (TVG): 40 log R for a point target, 30 log R for seafloor reverberation, 20 log R for volume reverberation, each plus 2αR for absorption | Stepped-level loopback test | new |
-| Room sonar | An in-air sonar from whatever the computer has: the laptop's own speaker and microphone, or any output and input. Pings a chosen ping design and listens long enough for echoes from about 5 m (about 30 ms of travel, more for the room's reverberation), at a chosen rate. Time zero is the direct sound from speaker to microphone on every ping, so output and input need not share a clock, and the shared (through the desktop) mode works without borrowing the card. Views: the current ping's return against range; an echogram of recent pings against range; the same with the steady background (the room) subtracted, so that what moves (a hand, a person, a door) stands out; range resolution and maximum range from the ping design, shown as numbers. Detection setup as on the Detection page | Ping the room and watch the echogram; walk towards and away from the laptop; compare chirps, bands and ping rates | the speaker-to-mic tests of 2026-10-12 |
+| Room sonar | An in-air sonar from whatever the computer has: the laptop's own speaker and microphone, or any output and input. Pings a chosen ping design and listens long enough for echoes from about 5 m (about 30 ms of travel, more for the room's reverberation), at a chosen rate. Time zero is the direct sound from speaker to microphone on every ping, so output and input need not share a clock, and the shared (through the desktop) mode works without borrowing the card. Views: the current ping's return against range; an echogram of recent pings against range; the same with the steady background (the room) subtracted, so that what moves (a hand, a person, a door) stands out; range resolution and maximum range from the ping design, shown as numbers. Detection design as on the Detection page | Ping the room and watch the echogram; walk towards and away from the laptop; compare chirps, bands and ping rates | the speaker-to-mic tests of 2026-10-12 |
 | Ranging & positioning | Ping designs and event timing; layout geometry to position error; one-way with sync vs two-way (timestamps at both ends, fixed reply delay, clock offset and drift estimated from the exchange); how long a sync stays good for a given clock drift | Ping, continuous, echogram | `ping_gui.py`, `docs/navigation.md` |
 | Comms | Chirp spread spectrum link; theory for it as non-coherent near-orthogonal M-ary signalling, with coherent BPSK as a familiar baseline; later frequency-hopping FSK as a slower, more robust alternative; simulated link as sonar-equation SNR, then detection against a false-alarm rate, then a measured error-rate curve, with optional fading; a known-data test mode for counting bit errors | Send and decode a message | `chirp_data.py`, data tab of `ping_gui.py` |
 | Doppler | Shift for one-way and two-way paths (about 2v/c for an echo); what motion does to each kind of signal: a CW pulse shifts in frequency, a linear chirp shifts in apparent time (range–Doppler coupling), a hyperbolic chirp hardly changes (Doppler-tolerant); the ambiguity function of each signal design; Doppler in comms (time compression, why modems estimate and resample); range error from a moving vehicle; velocity measurement: DVL bottom track and water track with four slanted beams, ADCP current profiles, pulse-pair and broadband estimation and their ambiguity velocity | A reflector or transducer moving on the bench (a pendulum, or a board on a slide), with speeds scaled as above | new |
@@ -497,14 +500,14 @@ a lab exercise later.
 my_workspace/
   workspace.json         # name, settings shared by its pages
   signals/<id>.json
-  designs/<id>.json      # ping designs
+  ping_designs/<id>.json
   layouts/<id>.json
   scenes/<id>.json
   rigs/<id>.json
   profiles/<id>.json     # sound-speed profiles: casts, typed in, or built
   instruments/<id>.json  # bench meters and their limits
   runs/<date>/...        # captures: WAV per recording + JSON sidecar
-  detection/<id>.json    # detection setups (thresholds, first-arrival rule, ...)
+  detection_designs/<id>.json
   .gitignore             # runs/ by default
 ```
 
@@ -556,6 +559,8 @@ timestamps that change on every write.
   transducers `left` and `right` in a "stereo dongle" layout and rig,
   which the user can then rename.
 - `runs/` recordings open in replay.
+- Workspaces from before the two kinds of design were named keep their
+  ping designs in `designs/`; opening one moves them to `ping_designs/`.
 
 ## Signals and ping designs
 
@@ -623,6 +628,26 @@ a multibeam ping does.
 A ping design can combine roles across groups: a data ping whose preamble
 is timed is also a beacon; a multibeam ping is sounding, seafloor
 backscatter and water-column backscatter at once.
+
+**Ping designs and detection designs.** Two kinds of recipe, kept and
+handled alike: listed in the workspace, edited with undo, referred to by
+ID, copied into every result, versioned with the rest. A ping design says
+what to send; a detection design says how to read what comes back. The
+line between them:
+
+- If changing it changes **what is recorded**, it belongs to the ping
+  design (or the rig): signals, transducers, timing, how long to listen.
+- If it can be **changed afterwards on a saved recording**, it belongs to
+  the detection design: matched filter, threshold, first-arrival rule,
+  grouping, input checks.
+
+So replay can swap detection designs freely and never changes a ping
+design, which is what makes "analyse the old recording again with other
+settings" an honest comparison. Detection designs come in kinds that follow
+the ping roles: arrival detection (interrogation, reply, beacon,
+measurement timing), bottom detection (sounding), decoding (data), level
+measurement (measurement, calibration). A ping design names its default
+detection design; a page or a replay can choose another.
 
 **Later: sequences.** Positioning runs in cycles (interrogate A, then B,
 then C, repeat; an echosounder calls this sequencing). A third list of
@@ -837,7 +862,7 @@ until the new tool does everything it does; then its programs retire, and
    instruments and the first bench measurements (pinout, DC offset, mic
    bias, output level, output impedance). At this point the ranging page
    matches `ping_gui.py` on the ping itself. Detection settings move out of
-   the code into detection setups, and hardware checks keep their raw
+   the code into detection designs, and hardware checks keep their raw
    recordings for re-analysis. The **room sonar** page comes with this
    step: it needs no dongles, so it is the first page that runs on real
    hardware anywhere.
