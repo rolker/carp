@@ -277,9 +277,15 @@ class Workspace(QtCore.QObject):
         self._timer.setSingleShot(True)
         self._timer.setInterval(delay_ms)
         self._timer.timeout.connect(self.rescan)
-        self._watcher.directoryChanged.connect(lambda _: self._timer.start())
-        self._watcher.fileChanged.connect(lambda _: self._timer.start())
+        self._watcher.directoryChanged.connect(self._poke)
+        self._watcher.fileChanged.connect(self._poke)
         self._watch_files()
+
+    def _poke(self, _path=""):
+        """A watched folder or file changed: look again shortly (unless
+        watching has stopped meanwhile)."""
+        if self._timer is not None:
+            self._timer.start()
 
     def _watch_files(self):
         if self._watcher is None:

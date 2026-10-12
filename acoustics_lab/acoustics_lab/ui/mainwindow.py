@@ -6,16 +6,21 @@ from .. import importers
 from ..backends.simulation import sound_speed
 from ..pages.placeholder import PlaceholderPage
 from ..pages.ranging import RangingPage
+from ..pages.room import RoomSonarPage
 from ..qtcompat import Qt, QAction, QtCore, QtGui, QtWidgets, Signal
+from .detection_dialog import DetectionDesignDialog
+from .rig_editor import RigEditor
 from .session import HARDWARE, REPLAY, SIMULATION, Session
 
 GROUPS = [
     ("Foundations", ["Signals", "Transducers", "Beam patterns", "Sound speed",
                      "Propagation", "Echo sounding & backscatter", "Doppler", "Noise",
                      "Receiver chain"]),
-    ("Systems", ["Ranging & positioning", "Comms", "Multibeam design", "Sonar equation"]),
+    ("Systems", ["Room sonar", "Ranging & positioning", "Comms", "Multibeam design",
+                 "Sonar equation"]),
 ]
 FIRST_PAGE = "Ranging & positioning"
+PAGES = {"Ranging & positioning": RangingPage, "Room sonar": RoomSonarPage}
 MAX_RECENT = 8
 
 
@@ -25,12 +30,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     workspace_requested = Signal(str)
 
-    def __init__(self, workspace, settings, replay=None):
+    def __init__(self, workspace, settings, replay=None, environment=None):
         super().__init__()
         self.ws = workspace
         self.settings = settings
-        self.session = Session(workspace, self)
+        self.session = Session(workspace, self, environment)
         self.pages = {}
+        self.dialogs = {}
+        self.closer = None
         self.setWindowTitle(f"acoustics_lab - {workspace.name}  ({workspace.path})")
         self.resize(1500, 880)
 
@@ -39,6 +46,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self._build_toolbar()
         self._build_status()
         self.session.backend_changed.connect(self._backend_changed)
+        self.session.interval_changed.connect(self._interval_changed)
+        self.session.hardware_message.connect(self._hardware_message)
         self.ws.changed.connect(self._workspace_changed)
         self.ws.reloaded.connect(self._reloaded)
         self.ws.start_watching()
@@ -89,8 +98,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def page(self, title):
         """The page with this title, built the first time it is wanted."""
         if title not in self.pages:
-            if title == "Ranging & positioning":
-                page = RangingPage(self.session)
+            if title in PAGES:
+                page = PAGES[title](self.session)
                 page.status.connect(self.statusBar().showMessage)
                 page.progress.connect(self._progress)
                 page.running_changed.connect(lambda _: self._sync_run())
@@ -118,6 +127,10 @@ class MainWindow(QtWidgets.QMainWindow):
         bar = self.menuBar()
         file = bar.addMenu("&File")
         file.addAction(self._action("Open workspace...", self.choose_workspace, "Ctrl+O"))
+        file.addAction(self._action("Rigs...", self.edit_rigs,
+                                    tip="Which device and channel each transducer is on"))
+        file.addAction(self._action("Detection designs...", self.edit_detection,
+                                    tip="How returns are found and measured"))
         self.recent_menu = file.addMenu("Recent workspaces")
         self._fill_recent()
         file.addSeparator()
@@ -146,6 +159,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.history)
         self.history.hide()
         view.addAction(self.history.toggleViewAction())
+        self.hardware_dock = QtWidgets.QDockWidget("Hardware messages", self)
+        self.hardware_log = QtWidgets.QPlainTextEdit()
+        self.hardware_log.setReadOnly(True)
+        self.hardware_dock.setWidget(self.hardware_log)
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.hardware_dock)
+        self.hardware_dock.hide()
+        view.addAction(self.hardware_dock.toggleViewAction())
         self.notes_action = self._action("Notes", self._toggle_notes, tip="Show or hide the notes")
         self.notes_action.setCheckable(True)
         self.notes_action.setChecked(True)
@@ -182,16 +202,27 @@ class MainWindow(QtWidgets.QMainWindow):
         tb.addWidget(QtWidgets.QLabel(" Backend "))
         self.backend_box = QtWidgets.QComboBox()
         for label, mode in (("Simulation", SIMULATION), ("Replay", REPLAY),
-                            ("Hardware (step 2)", HARDWARE)):
+                            ("Hardware", HARDWARE)):
             self.backend_box.addItem(label, mode)
-        self.backend_box.model().item(2).setEnabled(False)
         self.backend_box.currentIndexChanged.connect(self._backend_picked)
         tb.addWidget(self.backend_box)
 
+        self.rig_label = QtWidgets.QLabel("  Rig ")
+        self.rig_box = QtWidgets.QComboBox()
+        self.rig_box.setMinimumWidth(150)
+        self.rig_box.currentIndexChanged.connect(self._rig_picked)
+        self.rigs_button = QtWidgets.QPushButton("Rigs...")
+        self.rigs_button.setToolTip("Edit rigs: devices, channels, loopbacks, Identify")
+        self.rigs_button.clicked.connect(lambda: self.edit_rigs())
         self.scene_label = QtWidgets.QLabel("  Scene ")
         self.scene_box = QtWidgets.QComboBox()
         self.scene_box.setMinimumWidth(170)
         self.scene_box.currentIndexChanged.connect(self._scene_picked)
+        self.as_built_button = QtWidgets.QPushButton("As built")
+        self.as_built_button.setToolTip(
+            "Make the rig's as-built scene the active one: the bench as it is")
+        self.as_built_button.clicked.connect(lambda: self.session.use_as_built())
+        self.built_label = QtWidgets.QLabel()
         self.temp_label = QtWidgets.QLabel("  Air ")
         self.temp = QtWidgets.QDoubleSpinBox()
         self.temp.setRange(-40.0, 60.0)
@@ -204,8 +235,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.replay_label = QtWidgets.QLabel()
         self.replay_button = QtWidgets.QPushButton("Open recordings...")
         self.replay_button.clicked.connect(lambda: self.choose_replay(folder=True))
-        self.sim_widgets = [tb.addWidget(w) for w in (
-            self.scene_label, self.scene_box, self.temp_label, self.temp, self.speed_label)]
+        self.rig_widgets = [tb.addWidget(w) for w in (self.rig_label, self.rig_box,
+                                                       self.rigs_button)]
+        self.sim_widgets = [tb.addWidget(w) for w in (self.scene_label, self.scene_box)]
+        self.scene_widgets = [tb.addWidget(w) for w in (self.temp_label, self.temp,
+                                                         self.speed_label)]
+        self.built_widgets = [tb.addWidget(w) for w in (self.as_built_button, self.built_label)]
         self.replay_widgets = [tb.addWidget(w) for w in (self.replay_button, self.replay_label)]
         tb.addSeparator()
 
@@ -219,9 +254,10 @@ class MainWindow(QtWidgets.QMainWindow):
         tb.addWidget(QtWidgets.QLabel(" every "))
         self.interval = QtWidgets.QDoubleSpinBox()
         self.interval.setRange(0.0, 60.0)
+        self.interval.setDecimals(3)
         self.interval.setValue(self.session.interval)
         self.interval.setSuffix(" s")
-        self.interval.valueChanged.connect(lambda v: setattr(self.session, "interval", v))
+        self.interval.valueChanged.connect(self.session.set_interval)
         tb.addWidget(self.interval)
         for action in (self.ping_action, self.continuous_action):
             widget = tb.widgetForAction(action)
@@ -235,6 +271,15 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.scene_box.currentData():
             self.session.set_scene(self.scene_box.currentData())
 
+    def _rig_picked(self, _):
+        self.session.set_rig(self.rig_box.currentData())
+
+    def _interval_changed(self, seconds):
+        if self.interval.value() != seconds:
+            self.interval.blockSignals(True)
+            self.interval.setValue(seconds)
+            self.interval.blockSignals(False)
+
     def _temperature_edited(self, value):
         scene = self.ws.get("scenes", self.session.scene_id or "")
         if scene and scene["medium"]["temperature_c"] != value:
@@ -246,25 +291,42 @@ class MainWindow(QtWidgets.QMainWindow):
     def _sync_toolbar(self):
         """Bring the toolbar in line with the session and the workspace."""
         s = self.session
-        for box in (self.backend_box, self.scene_box, self.temp):
+        boxes = (self.backend_box, self.scene_box, self.temp, self.rig_box)
+        for box in boxes:
             box.blockSignals(True)
         self.backend_box.setCurrentIndex(self.backend_box.findData(s.mode))
         self.scene_box.clear()
         for sid in self.ws.ids("scenes"):
             self.scene_box.addItem(self.ws.name_of("scenes", sid), sid)
         self.scene_box.setCurrentIndex(self.scene_box.findData(s.scene_id))
+        self.rig_box.clear()
+        for rid in self.ws.ids("rigs"):
+            self.rig_box.addItem(self.ws.name_of("rigs", rid), rid)
+        if not self.rig_box.count():
+            self.rig_box.addItem("(none)", None)
+        self.rig_box.setCurrentIndex(max(self.rig_box.findData(s.rig_id), 0))
         scene = self.ws.get("scenes", s.scene_id or "")
         if scene:
             self.temp.setValue(scene["medium"]["temperature_c"])
             self.speed_label.setText(f"  {sound_speed(scene['medium']):.1f} m/s")
-        for box in (self.backend_box, self.scene_box, self.temp):
+        for box in boxes:
             box.blockSignals(False)
-        simulating = s.mode == SIMULATION
+        replaying = s.mode == REPLAY
         for action in self.sim_widgets:
-            action.setVisible(simulating)
+            action.setVisible(s.mode == SIMULATION)
+        for action in self.scene_widgets:
+            action.setVisible(not replaying)
+        for action in self.rig_widgets:
+            action.setVisible(not replaying)
         for action in self.replay_widgets:
-            action.setVisible(s.mode == REPLAY)
-        self.replay_label.setText("  " + s.describe() if s.mode == REPLAY else "")
+            action.setVisible(replaying)
+        text, warning = s.built_text()
+        for action in self.built_widgets:
+            action.setVisible(not replaying and bool(self.ws.ids("rigs")))
+        self.as_built_button.setEnabled(s.mode == SIMULATION and not s.is_as_built())
+        self.built_label.setText("  " + text if text else "")
+        self.built_label.setStyleSheet("color: #d35400; font-weight: bold" if warning else "")
+        self.replay_label.setText("  " + s.describe() if replaying else "")
         self.backend_label.setText(s.describe())
         self._sync_run()
 
@@ -272,7 +334,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._sync_toolbar()
 
     def _workspace_changed(self, kind, object_id):
-        if kind in ("scenes", "layouts"):
+        if kind in ("scenes", "layouts", "rigs"):
             self._sync_toolbar()
         elif kind == "ping_designs":
             self._sync_run()
@@ -284,6 +346,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def _sync_run(self):
         """Grey out the run controls, with the reason, where the page or
         backend cannot run an experiment."""
+        self.backend_label.setText(self.session.describe())
         page = self.current_page()
         if page is None:
             return
@@ -310,6 +373,28 @@ class MainWindow(QtWidgets.QMainWindow):
             page.set_continuous(on)
         elif on:
             self.continuous_action.setChecked(False)
+
+    # ---- editors and the hardware's messages -----------------------------
+
+    def _hardware_message(self, level, text):
+        self.hardware_log.appendPlainText(("WARNING: " if level == "warning" else "") + text)
+        if level == "warning":
+            self.hardware_dock.show()
+            self.statusBar().showMessage("Hardware: " + text.splitlines()[0])
+
+    def edit_rigs(self):
+        dialog = RigEditor(self.session, self)
+        dialog.setModal(False)
+        dialog.show()
+        self.dialogs["rigs"] = dialog
+        return dialog
+
+    def edit_detection(self):
+        dialog = DetectionDesignDialog(self.ws, self)
+        dialog.setModal(False)
+        dialog.show()
+        self.dialogs["detection"] = dialog
+        return dialog
 
     # ---- status bar ----------------------------------------------------
 
@@ -372,6 +457,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         for page in self.pages.values():
             page.shutdown()
+        for dialog in self.dialogs.values():
+            dialog.close()
+        if self.session.mode == HARDWARE or self.session._hardware is not None:
+            self.statusBar().showMessage("Putting the sound card, its mixer and the "
+                                         "desktop's volumes back ...")
+            QtWidgets.QApplication.processEvents()
+        self.session.close_hardware()
         self.ws.stop_watching()
         self.settings.setValue("geometry", self.saveGeometry())
         super().closeEvent(event)

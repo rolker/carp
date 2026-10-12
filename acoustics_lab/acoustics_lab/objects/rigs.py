@@ -115,9 +115,21 @@ def create_rig(workspace, name, layout_id, devices, transducers, loopbacks=()):
 def update_rig(workspace, rig_id, text=None, **changes):
     """Change a rig and bring its as-built scene in step (one undo step)."""
     ws = workspace
+    rig = ws.get("rigs", rig_id)
+    if rig is not None and all(rig.get(k) == v for k, v in changes.items()):
+        return                      # nothing would change: no empty undo step
     with ws.macro(text or f"edit rig {ws.name_of('rigs', rig_id)}"):
         ws.update("rigs", rig_id, **changes)
         sync_as_built(ws, rig_id)
+
+
+def as_built_is_current(workspace, rig_id):
+    """True if the rig has an as-built scene that is in step with it."""
+    ws = workspace
+    rig = ws.get("rigs", rig_id)
+    scene = ws.get("scenes", rig.get("as_built") or "")
+    layout = ws.get("layouts", rig["layout"])
+    return bool(scene and layout and scene == as_built_scene(rig, layout, rig["layout"], scene))
 
 
 def sync_as_built(workspace, rig_id):

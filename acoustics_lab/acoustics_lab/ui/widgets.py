@@ -1,6 +1,7 @@
 """Small pieces shared by pages: colours, a combo box for table cells, and a
 worker thread that fires a ping off the GUI thread."""
 from ..backends.base import Cancelled
+from ..hardware.stream import DeviceError
 from ..experiments import ranging
 from ..qtcompat import Qt, QtCore, QtGui, QtWidgets, Signal
 
@@ -71,6 +72,27 @@ class PingWorker(QtCore.QThread):
         except Cancelled:
             self.failed.emit("")
         except (ValueError, OSError) as error:
+            self.failed.emit(str(error))
+        except Exception as error:                  # noqa: show it, do not die
+            self.failed.emit(f"{type(error).__name__}: {error}")
+
+
+class CallWorker(QtCore.QThread):
+    """Runs one function off the GUI thread (opening a card, playing a tone,
+    giving a card back, all of which take seconds). `done(result)` or
+    `failed(text)` follows, on the GUI thread."""
+
+    done = Signal(object)
+    failed = Signal(str)
+
+    def __init__(self, function, parent=None):
+        super().__init__(parent)
+        self.function = function
+
+    def run(self):
+        try:
+            self.done.emit(self.function())
+        except (ValueError, OSError, LookupError, DeviceError) as error:
             self.failed.emit(str(error))
         except Exception as error:                  # noqa: show it, do not die
             self.failed.emit(f"{type(error).__name__}: {error}")
