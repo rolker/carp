@@ -96,18 +96,37 @@ is the likely choice.
 |---|---|---|
 | Language | Python 3, numpy and scipy | The hardware side is already Python; the models are array maths; fast to change |
 | Physics | Written here, independent of any other engine | Keeps the tool self-contained; its tests can serve as reference values for a faster implementation elsewhere later |
-| User interface | Qt with pyqtgraph; 3D through `pyqtgraph.opengl` and `python3-opengl` | Fast live plots, 3D surfaces for beam patterns, dockable panels |
+| User interface | Qt 6 through PyQt6, with pyqtgraph; 3D through `pyqtgraph.opengl` and `python3-opengl` | Fast live plots, 3D surfaces for beam patterns, dockable panels; PyQt6 worked from apt in the step 0 spike |
 | Dependencies | Ubuntu 24.04 apt packages only | Same rule as `carp/acoustic`: the system Python that ROS uses, nothing from pip at run time |
 | Seawater properties | TEOS-10 through `python3-gsw` (in apt) as the reference; classic formulas written here alongside it | TEOS-10 is the current standard and covers fresh to salt water; the classic formulas are what textbooks and older software use, and comparing them is part of the lesson |
 | Audio | PortAudio through PyAudio, as now | Works; `audio_io.py` already handles its quirks |
 
-**Open: which Qt binding.** pyqtgraph supports PyQt5, PyQt6 and PySide2, and
-all are in apt. Prefer Qt 6 (`python3-pyqt6`) if pyqtgraph's 3D view works
-with it from apt, under Wayland as well as X11; fall back to PyQt5. Qt is
-imported through `pyqtgraph.Qt` plus a small shim of our own for classes
-that moved between Qt 5 and 6 (`QUndoStack` and `QAction` are in `QtWidgets`
-in Qt 5 and `QtGui` in Qt 6), so the binding can change without touching
-pages. A short spike settles this before anything else is built.
+**Qt binding: PyQt6** (decided 2026-10-12, after the step 0 spike).
+PyQt6 from apt ran a live plot, a 3D surface and undo/redo under X11 and
+native Wayland on the dev machine, and so did PyQt5 under X11. Install:
+
+```
+sudo apt install python3-pyqtgraph python3-pyqt6 pyqt6-dev-tools python3-opengl
+```
+
+Two things the spike found that the app must handle:
+
+- `pyqt6-dev-tools` is required: pyqtgraph imports `PyQt6.uic`, which only
+  that package provides, and fails to import without it.
+- PyOpenGL chooses its platform (EGL or GLX) from the environment, not from
+  Qt. With a Wayland session's variables set and Qt running on X11
+  (XWayland), the two disagree and every 3D item fails. The app sets
+  `PYOPENGL_PLATFORM` to match Qt's platform (`egl` for Wayland, `glx` for
+  X11) before importing OpenGL.
+
+Qt is imported through `pyqtgraph.Qt`, which already hides most moves
+between Qt 5 and 6 (actions, shortcuts and the undo classes are reachable
+from `QtGui` under both; `exec` vs `exec_`; high-DPI setup). A small
+`qtcompat.py` covers the rest, mainly by convention: scoped enum names
+(`Qt.AlignmentFlag.AlignLeft`), key sequences as strings (`"Ctrl+Z"`), and
+the Qt 6 replacements for removed calls (`QScreen`, `QRegularExpression`,
+`horizontalAdvance`, `angleDelta`, `position()`). The spike itself is in
+`acoustics_lab/spike/`.
 
 ## Principles
 
@@ -701,9 +720,8 @@ The processing in `pinger.py`, `ranging_dsp.py`, `chirp_data.py` and
 until the new tool does everything it does; then its programs retire, and
 `carp/acoustic` keeps the bench hardware notes and ping designs.
 
-0. **Spike:** a pyqtgraph window with a live plot and a 3D surface, on
-   PyQt6 and on PyQt5, on the dev machine (X11 and Wayland) and under WSL.
-   Settles the Qt binding.
+0. **Spike (done 2026-10-12):** a pyqtgraph window with a live plot and a
+   3D surface. PyQt6 chosen; WSL not yet tried.
 1. **First working tool, simulation and replay only:** models moved from
    `ranging_dsp.py` and `pinger.py` with their tests; workspace with
    signals, ping designs and undo; imports of old designs and runs; simulation
@@ -730,7 +748,6 @@ until the new tool does everything it does; then its programs retire, and
 
 ## Open questions
 
-- Qt binding (settled by the spike).
 - Ray tracing is planned for the sound speed page (layered profile,
   constant gradient per layer, so rays are circular arcs with exact travel
   times). Open: whether the simulation also uses it to bend paths and find
