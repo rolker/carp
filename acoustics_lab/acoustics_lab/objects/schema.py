@@ -4,19 +4,29 @@ Objects are plain dicts (the JSON in the files). Their kind is the folder
 they live in. This module knows the shapes, the references between kinds
 and the checks on a change; it does not touch files or Qt.
 
-  signals/<id>.json   a waveform: a chirp or tone, or one derived from another
-  designs/<id>.json   a ping design: which signal goes out of which
-                      transducer at what time, and who listens
-  layouts/<id>.json   transducers: where they are and what they can do
-  scenes/<id>.json    what the simulator simulates: a layout, a medium,
-                      noise, devices and loopbacks
+  signals/<id>.json            a waveform: a chirp or tone, or one derived from
+                               another
+  ping_designs/<id>.json       which signal goes out of which transducer at what
+                               time, who listens, and (optionally) the detection
+                               design that reads what comes back by default
+  detection_designs/<id>.json  how returns are found and measured
+  layouts/<id>.json            transducers: where they are and what they can do
+  scenes/<id>.json             what the simulator simulates: a layout, a medium,
+                               noise, devices and loopbacks
+  rigs/<id>.json              which real device and channel each transducer is
+                               on, how each device is taken hold of, and the
+                               as-built scene that is the rig's twin
 """
 import copy
 import re
 
-KINDS = ("signals", "designs", "layouts", "scenes")
-SINGULAR = {"signals": "signal", "designs": "design", "layouts": "layout",
-            "scenes": "scene"}
+from ..models import detection_design
+
+KINDS = ("signals", "ping_designs", "detection_designs", "layouts", "scenes", "rigs")
+SINGULAR = {"signals": "signal", "ping_designs": "ping design",
+            "detection_designs": "detection design", "layouts": "layout",
+            "scenes": "scene", "rigs": "rig"}
+ACCESS = ("exclusive", "shared")
 
 DERIVED_OPS = ("time_reverse", "invert")
 
@@ -57,11 +67,17 @@ def references(kind, data):
     refs = set()
     if kind == "signals" and data.get("type") == "derived":
         refs.add(("signals", data.get("source", "")))
-    elif kind == "designs":
+    elif kind == "ping_designs":
         for event in data.get("events", []):
             refs.add(("signals", event.get("signal", "")))
+        if data.get("detection_design"):
+            refs.add(("detection_designs", data["detection_design"]))
     elif kind == "scenes":
         refs.add(("layouts", data.get("layout", "")))
+    elif kind == "rigs":
+        refs.add(("layouts", data.get("layout", "")))
+        if data.get("as_built"):
+            refs.add(("scenes", data["as_built"]))
     return refs
 
 
@@ -107,7 +123,7 @@ def check(kind, data, exists, get_signal):
                 raise WorkspaceError(f"unknown operation {data.get('op')!r}")
         else:
             raise WorkspaceError(f"unknown signal type {data.get('type')!r}")
-    elif kind == "designs":
+    elif kind == "ping_designs":
         for event in data.get("events", []):
             if not event.get("transducer"):
                 raise WorkspaceError("every event needs a transducer")
@@ -115,10 +131,46 @@ def check(kind, data, exists, get_signal):
                 raise WorkspaceError("event times cannot be negative")
         if data.get("listen", 0.3) < 0:
             raise WorkspaceError("the listening time cannot be negative")
+    elif kind == "detection_designs":
+        try:
+            detection_design.check_values(data)
+        except ValueError as error:
+            raise WorkspaceError(str(error)) from None
+    elif kind == "rigs":
+        _check_rig(data)
     elif kind == "layouts":
         ids = [t.get("id") for t in data.get("transducers", [])]
         if len(set(ids)) != len(ids) or not all(ids):
             raise WorkspaceError("transducer IDs must be present and unique")
+
+
+def _check_rig(data):
+    devices = {d.get("id"): d for d in data.get("devices", [])}
+    if len(devices) != len(data.get("devices", [])) or not all(devices):
+        raise WorkspaceError("device IDs must be present and unique")
+    for d in devices.values():
+        if d.get("access", "exclusive") not in ACCESS:
+            raise WorkspaceError(f"device '{d['id']}': access is one of "
+                                 + ", ".join(ACCESS))
+        if not isinstance(d.get("rate", 48000), (int, float)) or d.get("rate", 48000) <= 0:
+            raise WorkspaceError(f"device '{d['id']}': the sample rate must be above zero")
+    seen = set()
+    for t in data.get("transducers", []):
+        if t.get("id") in seen:
+            raise WorkspaceError(f"transducer '{t.get('id')}' is on the rig twice")
+        seen.add(t.get("id"))
+        if t.get("device") not in devices:
+            raise WorkspaceError(f"transducer '{t.get('id')}': no device "
+                                 f"'{t.get('device')}' on this rig")
+    placed = {t["id"]: t for t in data.get("transducers", [])}
+    for lb in data.get("loopbacks", []):
+        rx, tx = placed.get(lb.get("receiver")), placed.get(lb.get("emitter"))
+        if rx is None or tx is None:
+            raise WorkspaceError("a loopback needs both its input and its output "
+                                 "placed on the rig")
+        if rx["device"] != tx["device"]:
+            raise WorkspaceError("a loopback needs its input and output on the "
+                                 f"same device ({lb['emitter']} -> {lb['receiver']})")
 
 
 def new_chirp(name, f0=2000.0, f1=20000.0, duration=0.02, amplitude=0.5,
@@ -134,11 +186,51 @@ def new_derived(name, op, source):
     return dict(name=name, type="derived", op=op, source=source)
 
 
-def new_design(name, events=(), receivers=("mic",), listen=0.3, roles=("bench",)):
+def new_design(name, events=(), receivers=("mic",), listen=0.3, roles=("bench",),
+               detection_design=None):
     """A ping design's data. events are dicts with transducer, signal and
-    time (s after the start of the ping)."""
-    return dict(name=name, roles=list(roles), receivers=list(receivers),
+    time (s after the start of the ping). detection_design is the ID of the
+    detection design that reads its returns by default (or None)."""
+    data = dict(name=name, roles=list(roles), receivers=list(receivers),
                 listen=float(listen), events=[dict(e) for e in events])
+    if detection_design:
+        data["detection_design"] = detection_design
+    return data
+
+
+def new_detection_design(name, **settings):
+    """A detection design's data: the defaults with some settings changed."""
+    return dict(detection_design.DEFAULT.to_dict(), **settings, name=name)
+
+
+def device_config(device_id, card="", access="exclusive", rate=48000, **more):
+    """One device of a rig. `card` says which sound card: empty means the
+    built-in one (the first card that is not USB and has both an input and
+    an output), else a card number, ALSA card id or USB port path. `access`
+    is "exclusive" (borrow the card from the desktop and open its hw:
+    device) or "shared" (go through the sound server; `server_device` names
+    PortAudio's device for it, such as "pulse", "pipewire" or "default").
+    `mixer` maps control names to values to apply before use (exclusive
+    only); `latency_allowance_s` is how long past the end of the sound the
+    recording keeps going, for the device's own output-to-input delay."""
+    data = dict(id=device_id, card=card, access=access, rate=rate, block=512,
+                input_channel=0, server_device="pulse", mixer={},
+                latency_allowance_s=0.15, measured={})
+    data.update(more)
+    return data
+
+
+def new_rig(name, layout, devices, transducers, loopbacks=(), as_built=None):
+    """A rig's data. `transducers` are dicts with id, device and channel:
+    an output channel ("left", "right" or an index) for a sender, an input
+    channel index for a receiver. `loopbacks` are dicts with receiver and
+    emitter (an electrical copy of the output mixed into the input)."""
+    data = dict(name=name, layout=layout, devices=[dict(d) for d in devices],
+                transducers=[dict(t) for t in transducers],
+                loopbacks=[dict(lb) for lb in loopbacks])
+    if as_built:
+        data["as_built"] = as_built
+    return data
 
 
 def copy_of(data):
@@ -159,12 +251,19 @@ def new_layout(name, transducers):
 
 
 def new_scene(name, layout, devices, loopbacks=(), planes=(), temperature_c=20.0,
-              link_gain=0.15, noise_rms=0.003, lead_in=0.1, seed=1):
+              link_gain=0.15, noise_rms=0.003, lead_in=0.1, seed=1,
+              reflectors=(), movers=()):
     """A scene's data. link_gain is the amplitude one metre from a point
     transducer per unit of output signal, standing in for the sensitivities
-    of real transducers until rigs hold them."""
+    of real transducers until rigs hold them. `reflectors` are fixed point
+    targets (dicts: name, position, strength), `movers` point targets that
+    move back and forth between two positions at a set speed (name, a, b,
+    speed in m/s, strength); strength is the fraction of the incoming
+    amplitude, one metre away, that comes back."""
     return dict(
         name=name, layout=layout,
+        reflectors=[dict(r) for r in reflectors],
+        movers=[dict(m) for m in movers],
         medium=dict(type="air", temperature_c=float(temperature_c),
                     absorption_db_per_m_per_khz2=0.0015),
         planes=[dict(p) for p in planes],

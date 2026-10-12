@@ -28,13 +28,23 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy import signal
 
+from ..models import detection
+from ..models.detection_design import DEFAULT, DetectionDesign
+from .. import wav_io
 from ..models.signals import make_chirp
-from .stream import LateError
+from .stream import LateError, LostDataError, XrunEvent
 
-SETTLE = 64                 # samples of context either side of a peak
-UPSAMPLE = 16               # sub-sample search resolution is 1/16 sample
-HALF = 48                   # samples either side of a peak that are upsampled
-QUANTISATION = 1.0 / np.sqrt(12.0)   # rms of int16 rounding, in steps
+# The settings that used to be constants here are a detection design now (see
+# models/detection_design.py); every function takes one, defaulting to the
+# built-in design. The old names stay as the defaults' values.
+SETTLE = DEFAULT.margin_samples      # samples of context either side of a peak
+UPSAMPLE = DEFAULT.upsample          # sub-sample search resolution is 1/16 sample
+HALF = DEFAULT.refine_half           # samples either side of a peak that are upsampled
+QUANTISATION = detection.QUANTISATION    # rms of int16 rounding, in steps
+FIRST_FRACTION = DEFAULT.first_fraction  # an earlier peak this fraction of the strongest
+                                         # (-10.5 dB) or more counts as the first arrival
+SETTLE_S = DEFAULT.settle_s          # s of input to let go by after the stream opens
+GROUP_SAMPLES = DEFAULT.group_samples    # offsets this close to the median are one group
 
 
 # -- the ping and finding it --------------------------------------------------
@@ -50,85 +60,37 @@ def make_ping(rate, kind="chirp", f0=2000.0, f1=20000.0, duration=0.010):
     return make_chirp(rate, f0, f1, duration)
 
 
-def correlation(window, template):
-    """Analytic matched-filter output of `window` against `template`.
-
-    Index i is the template starting at sample i of the window. The mean is
-    removed first (mic bias). Returns (complex array, envelope array).
-    """
-    data = np.asarray(window, dtype=np.float64)
-    data = data - data.mean()
-    c = signal.correlate(data, template, mode="valid", method="fft")
-    analytic = signal.hilbert(c)
-    return analytic, np.abs(analytic)
+# Matched filter, peak refinement, first arrival and the input check are
+# plain functions in models/detection.py; these are the names they had here.
+def correlation(window, template, design=DEFAULT):
+    """Analytic matched-filter output of `window` against `template`; see
+    models.detection.correlation. Returns (analytic array, envelope array)."""
+    return detection.correlation(window, template, design.method)
 
 
-def refine(analytic, i):
-    """Position of the envelope peak near index `i`, to a fraction of a
-    sample: the analytic correlation around `i` is interpolated 16 times
-    (it is band-limited, so FFT interpolation is exact in principle), then a
-    parabola is fitted through the top. Needs HALF samples either side."""
-    lo, hi = i - HALF, i + HALF
-    if lo < 0 or hi > len(analytic):
-        return float(i)
-    up = np.abs(signal.resample(analytic[lo:hi], 2 * HALF * UPSAMPLE))
-    j = int(np.argmax(up))
-    if 0 < j < len(up) - 1:
-        left, mid, right = up[j - 1], up[j], up[j + 1]
-        bend = left - 2 * mid + right
-        shift = 0.5 * (left - right) / bend if bend else 0.0
-    else:
-        shift = 0.0
-    return lo + (j + shift) / UPSAMPLE
+def refine(analytic, i, design=DEFAULT):
+    return detection.refine(analytic, i, design)
 
 
-def locate(window, template, snr=10.0):
-    """Strongest arrival of `template` in `window`, or None.
-
-    Returns (position in window samples as a float, level_dbfs, snr_db).
-    Used for tests and one-off captures; `ArrivalDetector` is the streaming
-    version.
-    """
-    analytic, env = correlation(window, template)
-    if len(env) == 0:
-        return None
-    i = int(np.argmax(env))
-    ratio = env[i] / _noise(env, template)
-    if ratio < snr:
-        return None
-    return refine(analytic, i), _level_dbfs(env[i], template), 20 * np.log10(ratio)
+def locate(window, template, design=DEFAULT, snr=None):
+    """Strongest arrival of `template` in `window` (int16 steps), or None:
+    (position in window samples, level_dbfs, snr_db)."""
+    return detection.locate(window, template, design, snr)
 
 
 def _noise(env, template):
-    """Typical envelope level of noise alone: the median of the envelope,
-    but never below what int16 rounding noise alone would give."""
-    floor = 1.18 * QUANTISATION * np.sqrt(np.sum(template ** 2))
-    return max(float(np.median(env)), floor)
+    return detection.noise_level(env, template)
 
 
-def _level_dbfs(peak, template):
-    """Peak amplitude of an arrival, dB below full scale, from the height of
-    its matched-filter peak (which is amplitude times the template energy)."""
-    amplitude = peak / np.sum(template ** 2) / 32768.0
-    return 20 * np.log10(max(amplitude, 1e-12))
+def _level_dbfs(peak, template, design=DEFAULT):
+    return detection.level_dbfs(peak, template, design.method)
 
 
-FIRST_FRACTION = 0.3         # an earlier peak this fraction of the strongest
-                             # (-10.5 dB) or more counts as the first arrival
-SETTLE_S = 2.0               # s of input to let go by after the stream opens
-
-
-def leading(env, i, length, floor):
+def leading(env, i, length, floor, design=DEFAULT):
     """Index of the first arrival belonging to the peak at `i`: the earliest
-    peak in the template length before `i` that reaches FIRST_FRACTION of
-    env[i] (and `floor`), else `i` itself. On an acoustic path a reflection
-    (off a screen, a table) can be stronger than the direct sound; the
-    direct sound is the one that arrives first."""
-    lo = max(0, i - length)
-    if i - lo < 3:
-        return i
-    earlier, _ = signal.find_peaks(env[lo:i], height=max(floor, FIRST_FRACTION * env[i]))
-    return lo + int(earlier[0]) if len(earlier) else i
+    peak in the template length before `i` that reaches the design's
+    first-arrival fraction of env[i] (and `floor`), else `i` itself."""
+    return detection.leading(env, i, length, floor, design.first_fraction)
 
 
 @dataclass
@@ -145,84 +107,72 @@ class ArrivalDetector:
 
     Call `poll()` as often as convenient; it returns the arrivals that are
     new and final. An arrival is reported once the input holds the template
-    length plus a margin beyond it, twice over: once for the matched filter
-    to finish, once to be sure no stronger peak follows within a template
-    length (correlation sidelobes of a loud ping rise above a quiet
-    threshold). That is about 2 template lengths + 64 samples of delay
-    (21 ms for the default chirp), the reaction time of this detector.
+    length plus a margin beyond it, `design.final_lengths` times over (2 by
+    default): once for the matched filter to finish, once to be sure no
+    stronger peak follows within a template length (correlation sidelobes of
+    a loud ping rise above a quiet threshold). That is about 2 template
+    lengths + 64 samples of delay (21 ms for the default chirp), the
+    reaction time of this detector.
     """
 
-    def __init__(self, device, template, snr=10.0, start=None):
+    def __init__(self, device, template, snr=None, start=None, design=DEFAULT):
         self.device = device
+        self.design = design
         self.template = np.asarray(template, dtype=np.float64)
         self.length = len(self.template)
-        self.snr = snr
+        self.snr = design.hit_snr if snr is None else snr
         self.cursor = device.in_position if start is None else int(start)
         self.last = None          # position of the last arrival reported
 
     def poll(self):
         """New arrivals since the last call, oldest first."""
+        d = self.design
         end = self.device.in_position
-        final = end - 2 * self.length - SETTLE
+        margin = d.margin_samples
+        final = end - int(round(d.final_lengths * self.length)) - margin
         if final < self.cursor + 128:
             return []
-        first = max(0, self.cursor - SETTLE)
+        first = max(0, self.cursor - margin)
         window = self.device.read_input(first, end)
-        analytic, env = correlation(window, self.template)
-        threshold = self.snr * _noise(env, self.template)
-        peaks, _ = signal.find_peaks(env, height=threshold, distance=self.length)
+        analytic, env = correlation(window, self.template, d)
+        noise = _noise(env, self.template)
+        threshold = self.snr * noise
+        peaks, _ = signal.find_peaks(
+            env, height=threshold, distance=max(1, int(d.same_arrival * self.length)))
         found = []
         for strongest in peaks:
-            i = leading(env, int(strongest), self.length, threshold)
+            i = leading(env, int(strongest), self.length, threshold, d)
             absolute = first + int(i)
             if not self.cursor <= absolute <= final:
                 continue
-            position = first + refine(analytic, int(i))
-            if self.last is not None and abs(position - self.last) < self.length:
+            position = first + refine(analytic, int(i), d)
+            if (self.last is not None
+                    and abs(position - self.last) < d.same_arrival * self.length):
                 continue          # a sidelobe of the one just reported
             self.last = position
             found.append(Arrival(
-                position, _level_dbfs(env[i], self.template),
-                20 * np.log10(env[i] / _noise(env, self.template)),
-                float(strongest - i)))
+                position, _level_dbfs(env[i], self.template, d),
+                20 * np.log10(env[i] / noise), float(strongest - i)))
         self.cursor = final + 1
         return found
 
 
 # -- input check ----------------------------------------------------------------
 
-def input_check(samples):
+def input_check(samples, design=DEFAULT):
     """What the input sounds like with nothing played: a dict of DC offset,
-    noise level and clipping, with plain-language warnings. A built-in
-    laptop mic left at the desktop's gain can sit at full scale with a large
-    DC offset, which hides every chirp."""
-    x = np.asarray(samples, dtype=np.float64)
-    if len(x) == 0:
-        return dict(seconds=0.0, warnings=["No input to check."])
-    dc = float(x.mean())
-    ac = x - dc
-    rms_db = 20 * np.log10(max(float(np.sqrt(np.mean(ac ** 2))), 1e-9) / 32768.0)
-    clipped = float(np.mean(np.abs(x) >= 32767))
-    warnings = []
-    if clipped > 0.001:
-        warnings.append(f"The input is clipping ({100 * clipped:.1f} % of samples "
-                        "at full scale) with nothing playing: lower the capture "
-                        "gain or mic boost, or chirps will not be found.")
-    if abs(dc) > 0.02 * 32768:
-        warnings.append(f"The input has a large DC offset ({100 * dc / 32768:+.0f} % "
-                        "of full scale), usually too much capture gain or a mic "
-                        "input still settling.")
-    if rms_db > -30 and clipped <= 0.001:
-        warnings.append(f"The input is noisy with nothing playing ({rms_db:.0f} dBFS "
-                        "rms): too much capture gain, or a loud room.")
-    return dict(dc_fraction=dc / 32768.0, noise_rms_dbfs=rms_db,
-                clipped_fraction=clipped, warnings=warnings)
+    noise level and clipping, with plain-language warnings (limits from the
+    detection design; see models.detection.input_check)."""
+    return detection.input_check(samples, design)
 
 
-def settle_and_check(device, settle=SETTLE_S, check_s=1.0):
+def settle_and_check(device, settle=None, check_s=None, design=DEFAULT):
     """Let the first `settle` s of input go by (inputs often start with a
     thump or a DC offset that takes a moment to die away), then check the
-    last `check_s` of it. Returns the input_check dict."""
+    last `check_s` of it. Returns the input_check dict, with `seconds`, and
+    `window` (the input samples it read, for checking again later)."""
+    settle = design.settle_s if settle is None else settle
+    check_s = design.check_s if check_s is None else check_s
     rate = device.rate
     want = max(int(settle * rate), 4 * device.frames_per_buffer)
     device.wait_input(want, timeout=settle + 5)
@@ -232,8 +182,9 @@ def settle_and_check(device, settle=SETTLE_S, check_s=1.0):
         quiet = device.read_input(start, end)
     except Exception:            # older than the ring holds: skip the check
         quiet = []
-    result = input_check(quiet)
+    result = input_check(quiet, design)
     result["seconds"] = (end - start) / rate
+    result["window"] = [int(start), int(end)]
     return result
 
 
@@ -291,27 +242,109 @@ class TestResult:
     summary: dict
     verdict: list                    # plain-language lines
     folder: str = ""
+    raw: object = None               # RawInput: the input as recorded, for analysing again
+
+
+@dataclass
+class RawInput:
+    """The device's input during a test, exactly as the device gave it, with
+    what is needed to analyse it again (`meta`, which is the input.wav.json
+    sidecar: the plan, the ping, the xruns, the detection design used)."""
+    samples: np.ndarray              # int16, mono
+    start: int                       # input sample number of samples[0]
+    rate: float
+    meta: dict
+
+
+class InputRecorder:
+    """Keeps a copy of a device's input from the moment it is made, so a
+    test's recording is not limited to the device's ring (30 s). Call
+    `update()` often; the ring is read in the caller's thread."""
+
+    def __init__(self, device):
+        self.device = device
+        self.start = device.in_position
+        self._next = self.start
+        self._parts = []
+        self.lost = 0                # samples the ring overwrote before we read them
+
+    def update(self):
+        device = self.device
+        end = device.in_position
+        if end <= self._next:
+            return
+        low = max(self._next, end - device.capacity + 2 * device.frames_per_buffer)
+        if low > self._next:         # too slow: keep the numbering, mark the gap with silence
+            self._parts.append(np.zeros(low - self._next, dtype=np.int16))
+            self.lost += low - self._next
+        self._parts.append(device.read_input(low, end))
+        self._next = end
+
+    def samples(self):
+        self.update()
+        return (np.concatenate(self._parts) if self._parts
+                else np.zeros(0, dtype=np.int16))
+
+
+def _raw(recorder, device, kind, design, **meta):
+    """A RawInput for a finished test, with the sidecar's contents."""
+    samples = recorder.samples()
+    events = [dict(sample=e.sample, frames=e.frames, flags=e.flags)
+              for e in device.xruns()]
+    info = dict(kind=kind, rate=device.rate, start=recorder.start,
+                frames_per_buffer=device.frames_per_buffer,
+                device=device.describe(), timing=device.timing(),
+                xrun_events=events, xrun_total=device.xrun_count,
+                lost_samples=recorder.lost, detection_design=design.to_dict(),
+                when=time.strftime("%Y-%m-%d %H:%M:%S"),
+                python=platform.python_version())
+    info.update(meta)
+    return RawInput(samples, recorder.start, device.rate, info)
+
+
+def _assign(arrivals, plan, rows, stray, progress, total):
+    """Give each new arrival to the scheduled ping it answers; returns the
+    new count of stray ones (arrivals that belong to no ping, or a second
+    one for a ping already answered)."""
+    for arrival in arrivals:
+        k = _owner(plan, arrival.position)
+        row = rows[k] if k is not None else None
+        if row is None or row.arrival == row.arrival:
+            stray += 1
+            continue
+        row.arrival = arrival.position
+        row.offset = arrival.position - row.scheduled
+        row.level_dbfs = arrival.level_dbfs
+        row.snr_db = arrival.snr_db
+        if progress:
+            progress(sum(r.offset == r.offset for r in rows), total)
+    return stray
 
 
 def run_offset_test(device, seconds, level_db=-20.0, channel="left",
                     interval=0.5, ping="chirp", progress=None,
-                    should_stop=lambda: False, settle=SETTLE_S):
+                    should_stop=lambda: False, settle=None, design=DEFAULT):
     """Ping every `interval` s for `seconds`, find each loopback copy and
     measure the offset from its scheduled output sample.
 
     The device must be started. progress(done, total) is called per ping.
-    Returns a TestResult.
+    `design` is the detection design (settle time, thresholds, grouping);
+    `settle` overrides its settle time. The raw input is kept in the
+    result's `raw`, so the same test can be analysed again with another
+    design (`reanalyse_offset`). Returns a TestResult.
     """
     rate = device.rate
     template = make_ping(rate, ping)
     gain = 10 ** (level_db / 20)
     total = max(1, int(seconds / interval))
     step = max(1, int(round(interval * rate)))
-    check = settle_and_check(device, settle)
+    recorder = InputRecorder(device)
+    check = settle_and_check(device, settle, design=design)
     first = device.out_position + int(0.5 * rate)
     plan = [first + k * step for k in range(total)]
     rows = [PingRow(k, s) for k, s in enumerate(plan)]
-    detector = ArrivalDetector(device, template)
+    detector = ArrivalDetector(device, template, design=design)
+    detector_start = detector.cursor
     scheduled = 0
     stray = 0
     wall0 = time.monotonic()
@@ -324,25 +357,22 @@ def run_offset_test(device, seconds, level_db=-20.0, channel="left",
                 rows[scheduled].note = f"scheduled {error.late_by} samples late"
             scheduled += 1
         device.wait_input(device.in_position + 2048, timeout=5)
-        for arrival in detector.poll():
-            k = _owner(plan, arrival.position)
-            row = rows[k] if k is not None else None
-            if row is None or row.arrival == row.arrival:
-                stray += 1
-                continue
-            row.arrival = arrival.position
-            row.offset = arrival.position - row.scheduled
-            row.level_dbfs = arrival.level_dbfs
-            row.snr_db = arrival.snr_db
-            if progress:
-                progress(sum(r.offset == r.offset for r in rows), total)
+        recorder.update()
+        stray = _assign(detector.poll(), plan, rows, stray, progress, total)
     for row in rows:
         stop = (row.arrival if row.arrival == row.arrival
                 else row.scheduled + step) + len(template) + device.frames_per_buffer
         if device.xruns_between(row.scheduled - device.frames_per_buffer, stop):
             row.xrun = True
-    return _offset_result(device, rows, template, level_db, channel, interval,
-                          ping, stray, time.monotonic() - wall0, check)
+    result = _offset_result(device, rows, template, level_db, channel, interval,
+                            ping, stray, time.monotonic() - wall0, check, design)
+    result.raw = _raw(recorder, device, "offset", design, ping=ping,
+                      level_dbfs=level_db, channel=channel, interval_s=interval,
+                      plan=plan, detector_start=detector_start,
+                      scheduled_late=[r.k for r in rows if "late" in r.note],
+                      input_check_window=check.get("window"),
+                      wall_s=result.summary["wall_s"])
+    return result
 
 
 def _xruns_since(device, sample):
@@ -364,19 +394,16 @@ def _owner(plan, position):
     return k if k >= 0 else None
 
 
-GROUP_SAMPLES = 5.0          # offsets this close to the median are one group
-
-
 def _offset_result(device, rows, template, level_db, channel, interval, ping,
-                   stray, wall_seconds, check=None):
+                   stray, wall_seconds, check=None, design=DEFAULT):
     rate = device.rate
     valid = [r for r in rows if r.valid]
     # The steady offset is the main group of measurements. A few may land
     # elsewhere: an echo found when the direct sound was too weak, or noise
     # taken for a ping. Those are counted and shown, not averaged in.
     centre = float(np.median([r.offset for r in valid])) if valid else 0.0
-    good = [r for r in valid if abs(r.offset - centre) <= GROUP_SAMPLES]
-    outliers = [r for r in valid if abs(r.offset - centre) > GROUP_SAMPLES]
+    good = [r for r in valid if abs(r.offset - centre) <= design.group_samples]
+    outliers = [r for r in valid if abs(r.offset - centre) > design.group_samples]
     for r in outliers:
         r.note = (r.note + "; " if r.note else "") + "outside the main group"
     if len(good) < 3:
@@ -409,10 +436,127 @@ def _offset_result(device, rows, template, level_db, channel, interval, ping,
         level_seen_dbfs=float(np.mean([r.level_dbfs for r in good])) if good else None,
         outliers=len(outliers),
         outlier_offsets_samples=[round(r.offset - centre, 1) for r in outliers[:50]],
-        input_check=check or {},
+        input_check={k: v for k, v in (check or {}).items() if k != "window"},
+        detection_design=design.to_dict(),
         python=platform.python_version())
     summary["verdict_ok"], summary["verdict_lines"] = offset_verdict(summary)
     return TestResult("offset", rows, summary, summary["verdict_lines"])
+
+
+# -- analysing a saved test again ---------------------------------------------
+
+class RecordedDevice:
+    """A saved test's input behind enough of the `DuplexDevice` interface for
+    the detector and the result builders: the input up to a cursor that
+    `advance` moves, the saved xruns and timing. Nothing is played."""
+
+    def __init__(self, raw):
+        self.raw = raw
+        meta = raw.meta
+        self.rate = float(raw.rate)
+        self.frames_per_buffer = int(meta.get("frames_per_buffer", 512))
+        self.name = meta.get("device", {}).get("name", "recorded")
+        self.capacity = len(raw.samples)
+        self._pos = raw.start
+        self._xruns = [XrunEvent(e["sample"], e["frames"], e["flags"], 0.0)
+                       for e in meta.get("xrun_events", [])]
+        self.xrun_count = int(meta.get("xrun_total", len(self._xruns)))
+
+    @property
+    def in_position(self):
+        return self._pos
+
+    @property
+    def end(self):
+        return self.raw.start + len(self.raw.samples)
+
+    def advance(self, to):
+        self._pos = min(int(to), self.end)
+
+    def read_input(self, start, stop):
+        lo, hi = int(start) - self.raw.start, int(stop) - self.raw.start
+        if lo < 0 or hi > len(self.raw.samples) or int(stop) > self._pos:
+            raise LostDataError(f"input samples {start}..{stop} are not in the recording")
+        return self.raw.samples[lo:hi].copy()
+
+    def xruns(self):
+        return list(self._xruns)
+
+    def xruns_between(self, start, stop):
+        return [e for e in self._xruns if e.sample < stop and e.sample + e.frames > start]
+
+    def timing(self):
+        return self.raw.meta.get("timing", {"claimed_offset_samples": None,
+                                           "clock_ratio": None, "blocks": 0})
+
+    def describe(self):
+        return dict(self.raw.meta.get("device", {}))
+
+
+def reanalyse_offset(raw, design=DEFAULT, step=2048):
+    """Analyse the saved input of an offset test again with another
+    detection design. The scheduled output samples, the ping and the level
+    are the saved test's; what is found in the input, the grouping and the
+    input check are the design's. Returns a TestResult (without `raw`).
+
+    The detector is fed in steps of `step` samples, as it was live; results
+    with the design the test was made with agree with the live ones to a few
+    hundredths of a sample (the live blocks were not exactly these steps).
+    """
+    meta = raw.meta
+    if meta.get("kind") != "offset":
+        raise ValueError("only an offset test's input can be analysed again here")
+    device = RecordedDevice(raw)
+    rate = device.rate
+    ping = meta["ping"]
+    template = make_ping(rate, ping)
+    plan = list(meta["plan"])
+    rows = [PingRow(k, s) for k, s in enumerate(plan)]
+    for k in meta.get("scheduled_late", []):
+        rows[k].note = "scheduled late"
+    window = meta.get("input_check_window")
+    if window:
+        lo, hi = window[0] - raw.start, window[1] - raw.start
+        check = input_check(raw.samples[max(lo, 0):hi], design)
+        check["seconds"] = (hi - lo) / rate
+    else:
+        check = dict(warnings=[], seconds=0.0)
+    detector = ArrivalDetector(device, template, start=meta["detector_start"],
+                               design=design)
+    interval = meta["interval_s"]
+    stride = max(1, int(round(interval * rate)))
+    deadline = min(plan[-1] + stride, device.end)
+    stray = 0
+    position = meta["detector_start"]
+    while position < deadline:
+        position = min(position + step, deadline)
+        device.advance(position)
+        stray = _assign(detector.poll(), plan, rows, stray, None, len(rows))
+    device.advance(device.end)
+    for row in rows:
+        stop = (row.arrival if row.arrival == row.arrival
+                else row.scheduled + stride) + len(template) + device.frames_per_buffer
+        if device.xruns_between(row.scheduled - device.frames_per_buffer, stop):
+            row.xrun = True
+    result = _offset_result(device, rows, template, meta["level_dbfs"],
+                            meta["channel"], interval, ping, stray,
+                            meta.get("wall_s", 0.0), check, design)
+    result.summary["reanalysis"] = True
+    return result
+
+
+def load_run(folder):
+    """The saved raw input of a test in a run folder (input.wav and
+    input.wav.json, as `save` writes them) as a RawInput."""
+    path = os.path.join(folder, "input.wav")
+    if not os.path.exists(path):
+        raise ValueError(f"{folder} has no input.wav: that test was saved before "
+                         "raw input was kept, or is not a test folder")
+    samples, rate = wav_io.read_wav_int16(path)
+    meta = wav_io.read_meta(path)
+    if not meta:
+        raise ValueError(f"{path} has no input.wav.json beside it")
+    return RawInput(samples, int(meta.get("start", 0)), float(rate), dict(meta))
 
 
 def _minutes_text(seconds):
@@ -511,7 +655,7 @@ class ReplyRow:
 
 def run_schedule_test(device, tat, pulses=40, level_db=-20.0, channel="left",
                       ping="chirp", progress=None, should_stop=lambda: False,
-                      settle=SETTLE_S):
+                      settle=None, design=DEFAULT):
     """Chain `pulses` replies: each loopback arrival schedules the next
     pulse at arrival + N samples, N = tat * rate rounded.
 
@@ -523,8 +667,9 @@ def run_schedule_test(device, tat, pulses=40, level_db=-20.0, channel="left",
     gain = 10 ** (level_db / 20)
     n_tat = int(round(tat * rate))
     block = device.frames_per_buffer
-    check = settle_and_check(device, settle)
-    detector = ArrivalDetector(device, template)
+    recorder = InputRecorder(device)
+    check = settle_and_check(device, settle, design=design)
+    detector = ArrivalDetector(device, template, design=design)
     started = device.in_position
     rows = []
     seeds = 0
@@ -546,6 +691,7 @@ def run_schedule_test(device, tat, pulses=40, level_db=-20.0, channel="left",
     while (len(rows) < pulses and late + lost < 10 and
            device.in_position < give_up and not should_stop()):
         device.wait_input(device.in_position + block, timeout=5)
+        recorder.update()
         arrivals = detector.poll()
         for arrival in arrivals:
             if pending is not None:
@@ -575,13 +721,18 @@ def run_schedule_test(device, tat, pulses=40, level_db=-20.0, channel="left",
             pending = None
             seed()
             waited_from = device.in_position
-    return _schedule_result(device, rows, template, level_db, channel, tat,
-                            n_tat, ping, seeds, late, lost,
-                            time.monotonic() - wall0, started, check)
+    result = _schedule_result(device, rows, template, level_db, channel, tat,
+                              n_tat, ping, seeds, late, lost,
+                              time.monotonic() - wall0, started, check, design)
+    result.raw = _raw(recorder, device, "schedule", design, ping=ping,
+                      level_dbfs=level_db, channel=channel, tat_s=tat,
+                      input_check_window=check.get("window"))
+    return result
 
 
 def _schedule_result(device, rows, template, level_db, channel, tat, n_tat,
-                     ping, seeds, late, lost, wall_seconds, started, check=None):
+                     ping, seeds, late, lost, wall_seconds, started, check=None,
+                     design=DEFAULT):
     rate = device.rate
     # Turnaround as seen through the loopback: the reply's arrival minus the
     # arrival that triggered it, against N plus the device's own offset.
@@ -614,7 +765,9 @@ def _schedule_result(device, rows, template, level_db, channel, tat, n_tat,
         margin_min_samples=int(min(margins)) if margins else 0,
         margin_min_ms=1000 * min(margins) / rate if margins else 0.0,
         xruns=counts, startup_xruns=device.xrun_count - len(events),
-        wall_s=wall_seconds, input_check=check or {},
+        wall_s=wall_seconds,
+        input_check={k: v for k, v in (check or {}).items() if k != "window"},
+        detection_design=design.to_dict(),
         python=platform.python_version())
     summary["verdict_ok"], summary["verdict_lines"] = schedule_verdict(summary)
     return TestResult("schedule", rows, summary, summary["verdict_lines"])
@@ -701,6 +854,14 @@ def save(result, runs_dir, label):
                                  _num(r.error, 4), r.note])
     with open(os.path.join(folder, "summary.json"), "w") as handle:
         json.dump(result.summary, handle, indent=2, default=_json_default)
+    if result.raw is not None:
+        # The input exactly as the device gave it, so the test can be
+        # analysed again with another detection design.
+        path = os.path.join(folder, "input.wav")
+        wav_io.write_wav_int16(path, result.raw.samples, result.raw.rate)
+        with open(path + ".json", "w") as handle:
+            json.dump(result.raw.meta, handle, indent=1, default=_json_default)
+            handle.write("\n")
     result.folder = folder
     return folder
 

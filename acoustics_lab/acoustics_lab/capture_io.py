@@ -79,15 +79,19 @@ def load_capture(wav_path):
     except KeyError as missing:
         raise ValueError(f"{Path(wav_path).name}: no signal named {missing}") from None
     receiver = extra.get("receiver", RECEIVER)
+    ping_meta = dict(extra.get("ping") or {})       # design ID and name, as made
+    ping_meta["signals"] = specs
     ping = Ping(emissions=emissions, receivers=[receiver], listen=listen,
-                meta=dict(signals=specs))
+                meta=ping_meta)
     recording = Recording(samples=samples.astype(np.float64), rate=rate,
                           clock=extra.get("clock", CLOCK),
                           started=extra.get("started", 0.0), loopback_of=loopback_of)
     return Capture(
         recordings={receiver: recording}, emitted={}, truth=None,
         meta=dict(backend="replay", source=wav_path, sound_speed=speed,
-                  recorded=meta.get("time"), original=meta),
+                  recorded=meta.get("time"), original=meta,
+                  layout=extra.get("layout"),
+                  recorded_with=extra.get("detection_design")),
         ping=ping)
 
 
@@ -122,5 +126,8 @@ def save_capture(folder, number, capture, receiver=None):
                            backend=capture.meta.get("backend"),
                            scene=capture.meta.get("scene"),
                            layout=capture.meta.get("layout"),
+                           rig=capture.meta.get("rig"),
+                           hardware=capture.meta.get("hardware"),
+                           detection_design=capture.meta.get("detection_design"),
                            ping=capture.meta.get("ping"))))
     return str(path)

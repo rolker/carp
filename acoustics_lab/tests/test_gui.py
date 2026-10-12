@@ -115,17 +115,17 @@ def test_events_edit_add_and_delete_through_the_table(window):
     page = ping(window)
     ws, t = window.ws, page.event_table
     cell(t, 1, 3).setText("200")
-    assert ws.get("designs", "left_then_right")["events"][1]["time"] == 0.2
+    assert ws.get("ping_designs", "left_then_right")["events"][1]["time"] == 0.2
     page.add_event()
-    assert len(ws.get("designs", "left_then_right")["events"]) == 3
+    assert len(ws.get("ping_designs", "left_then_right")["events"]) == 3
     t.selectRow(2)
     page.delete_event()
-    assert len(ws.get("designs", "left_then_right")["events"]) == 2
+    assert len(ws.get("ping_designs", "left_then_right")["events"]) == 2
     ws.undo_stack.undo()
-    assert len(ws.get("designs", "left_then_right")["events"]) == 3
+    assert len(ws.get("ping_designs", "left_then_right")["events"]) == 3
     page.listen.setText("0.5")
     page.listen.editingFinished.emit()
-    assert ws.get("designs", "left_then_right")["listen"] == 0.5
+    assert ws.get("ping_designs", "left_then_right")["listen"] == 0.5
 
 
 def test_loopback_scene_gives_times_of_flight(window):
@@ -181,7 +181,7 @@ def test_continuous_pings_until_stopped(window):
 
 def test_a_design_that_cannot_play_is_explained_not_crashed(window):
     page = window.page("Ranging & positioning")
-    window.ws.update("designs", "left_then_right",
+    window.ws.update("ping_designs", "left_then_right",
                      events=[dict(transducer="mic", signal="chirp_up", time=0.0)])
     assert "cannot send" in page.design_warnings.text()
     window.ping_action.trigger()

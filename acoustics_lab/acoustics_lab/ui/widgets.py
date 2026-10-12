@@ -45,15 +45,18 @@ def read_only(item):
 
 
 class PingWorker(QtCore.QThread):
-    """Fires one ping and analyses every recording, off the GUI thread."""
+    """Fires one ping and analyses it, off the GUI thread. `analyse(capture)`
+    returns the page's results (default: ranging's, one per receiver)."""
 
     progressed = Signal(float, str)
-    succeeded = Signal(object, object)      # capture, {receiver: RangingResult}
+    succeeded = Signal(object, object)      # capture, whatever `analyse` made
     failed = Signal(str)
 
-    def __init__(self, stream, parent=None):
+    def __init__(self, stream, analyse=None, parent=None):
         super().__init__(parent)
         self.stream = stream
+        self.analyse = analyse or (lambda capture: {
+            rid: ranging.analyse_capture(capture, rid) for rid in capture.recordings})
         self._cancel = False
 
     def cancel(self):
@@ -64,9 +67,7 @@ class PingWorker(QtCore.QThread):
             capture = self.stream.fire(
                 progress=lambda fraction, text="": self.progressed.emit(fraction, text),
                 cancel=lambda: self._cancel)
-            results = {rid: ranging.analyse_capture(capture, rid)
-                       for rid in capture.recordings}
-            self.succeeded.emit(capture, results)
+            self.succeeded.emit(capture, self.analyse(capture))
         except Cancelled:
             self.failed.emit("")
         except (ValueError, OSError) as error:

@@ -1,7 +1,9 @@
 """The stereo-dongle bench, as a layout and simulated scenes, and the
 objects a new workspace starts with."""
+from ..models import detection_design
 from . import schema as s
 
+DEFAULT_DETECTION = "default_arrival_detection"
 LAYOUT = "stereo_dongle"
 BENCH = "dongle_bench"
 BENCH_LOOPBACK = "dongle_bench_loopback"
@@ -37,11 +39,24 @@ def ensure_stereo_dongle(workspace):
     return LAYOUT, BENCH, BENCH_LOOPBACK
 
 
+def ensure_default_detection(workspace):
+    """Make the default detection design if the workspace has none at all
+    (a new workspace, or one from before detection designs). Returns its ID,
+    or None if the workspace already has detection designs."""
+    ws = workspace
+    if ws.ids("detection_designs"):
+        return None
+    return ws.create("detection_designs", detection_design.DEFAULT.name,
+                     detection_design.new_default())
+
+
 def populate(workspace):
-    """What a new workspace starts with: the dongle bench, a few signals
-    (one of them derived) and two ping designs."""
+    """What a new workspace starts with: the default detection design, the
+    dongle bench, a few signals (one of them derived) and two ping designs
+    that name the default detection design."""
     ws = workspace
     with ws.macro("start the workspace"):
+        ensure_default_detection(ws)
         ensure_stereo_dongle(ws)
         up = ws.create("signals", "chirp up", s.new_chirp("", 2000, 20000, 0.02))
         ws.create("signals", "chirp down", s.new_chirp("", 20000, 2000, 0.02))
@@ -49,10 +64,12 @@ def populate(workspace):
         ws.create("signals", "16-20 down", s.new_derived("", "time_reverse", hi))
         low = ws.create("signals", "low band", s.new_chirp("", 2000, 9000, 0.03))
         high = ws.create("signals", "high band", s.new_chirp("", 11000, 20000, 0.03))
-        ws.create("designs", "left then right", s.new_design("", [
+        ws.create("ping_designs", "left then right", s.new_design("", [
             dict(transducer="left", signal=up, time=0.0),
-            dict(transducer="right", signal=up, time=0.15)]))
-        ws.create("designs", "two bands at once", s.new_design("", [
+            dict(transducer="right", signal=up, time=0.15)],
+            detection_design=DEFAULT_DETECTION))
+        ws.create("ping_designs", "two bands at once", s.new_design("", [
             dict(transducer="left", signal=low, time=0.0),
-            dict(transducer="right", signal=high, time=0.0)]))
+            dict(transducer="right", signal=high, time=0.0)],
+            detection_design=DEFAULT_DETECTION))
     ws.undo_stack.clear()

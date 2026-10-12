@@ -46,6 +46,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.page_list.setCurrentRow(self._row_of(FIRST_PAGE))
         if workspace.problems:
             self.statusBar().showMessage("Unreadable files: " + "; ".join(workspace.problems))
+        elif workspace.notices:
+            self.statusBar().showMessage("; ".join(workspace.notices))
         if replay is not None:
             self.open_replay(replay)
         geometry = settings.value("geometry")
@@ -272,7 +274,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def _workspace_changed(self, kind, object_id):
         if kind in ("scenes", "layouts"):
             self._sync_toolbar()
-        elif kind == "designs":
+        elif kind == "ping_designs":
             self._sync_run()
 
     def _reloaded(self, message):

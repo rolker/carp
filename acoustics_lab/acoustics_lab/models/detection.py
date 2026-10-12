@@ -17,22 +17,160 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy import signal
 
-SEARCH = 0.03       # how far either side of its expected time an event is looked for, s
-DETECT = 8.0        # an arrival must be this many times the typical noise level
+from .detection_design import DEFAULT, DetectionDesign
+
+QUANTISATION = 1.0 / np.sqrt(12.0)   # rms of int16 rounding, in steps
+INT16_STEP = 1.0 / 32768.0           # one int16 step in full-scale units
+
+# The defaults of the detection design, under their old names.
+SEARCH = DEFAULT.search_s       # how far either side of its expected time an event is looked for, s
+DETECT = DEFAULT.detect_snr     # an arrival must be this many times the typical noise level
 
 
-def matched_filter(recording, template):
+def smoothed_envelope(data, length):
+    """Energy envelope of a signal without a template: the analytic signal's
+    power averaged over `length` samples, as a root, scaled so that a steady
+    sine of amplitude A reads A. Index i covers samples i..i+length-1, like
+    a template starting at i. Returns (the analytic signal's smoothed
+    envelope, the same) for use where a matched filter's pair is wanted."""
+    power = np.abs(signal.hilbert(data)) ** 2
+    mean = signal.correlate(power, np.ones(length) / length, mode="valid",
+                            method="fft")
+    return np.sqrt(2.0 * np.maximum(mean, 0.0))
+
+
+def correlation(window, template, method="matched"):
+    """Matched-filter output of `window` against `template`, or with
+    method="envelope" the template-free energy envelope over its length.
+
+    Index i is the template starting at sample i of the window. The mean is
+    removed first (mic bias). Returns (analytic array, envelope array); for
+    the envelope method both are the envelope.
+    """
+    data = np.asarray(window, dtype=np.float64)
+    data = data - data.mean()
+    if method == "envelope":
+        env = smoothed_envelope(data, len(template))
+        return env, env
+    c = signal.correlate(data, template, mode="valid", method="fft")
+    analytic = signal.hilbert(c)
+    return analytic, np.abs(analytic)
+
+
+def matched_filter(recording, template, method="matched"):
     """Envelope of the recording correlated against the template.
 
     Index i of the result is the template starting at sample i of the
     recording. The template is normally peak 1.0, so the envelope height is
     in the recording's own units.
     """
-    recording = np.asarray(recording, dtype=np.float64)
-    recording = recording - recording.mean()
-    correlation = signal.correlate(recording, template, mode="valid",
-                                   method="fft")
-    return np.abs(signal.hilbert(correlation))
+    return correlation(recording, template, method)[1]
+
+
+def refine(analytic, i, design=DEFAULT):
+    """Position of the envelope peak near index `i`, to a fraction of a
+    sample: the analytic correlation around `i` is interpolated
+    `design.upsample` times (it is band-limited, so FFT interpolation is
+    exact in principle), then a parabola is fitted through the top. Needs
+    `design.refine_half` samples either side."""
+    half, up_by = design.refine_half, design.upsample
+    lo, hi = i - half, i + half
+    if lo < 0 or hi > len(analytic):
+        return float(i)
+    up = np.abs(signal.resample(analytic[lo:hi], 2 * half * up_by))
+    j = int(np.argmax(up))
+    if 0 < j < len(up) - 1:
+        left, mid, right = up[j - 1], up[j], up[j + 1]
+        bend = left - 2 * mid + right
+        shift = 0.5 * (left - right) / bend if bend else 0.0
+    else:
+        shift = 0.0
+    return lo + (j + shift) / up_by
+
+
+def noise_level(env, template, unit=INT16_STEP):
+    """Typical envelope level of noise alone: the median of the envelope,
+    but never below what rounding to int16 alone would give. `unit` is the
+    size of one recording unit in full scale: 1/32768 for int16 data (the
+    default), 1.0 for floats in full-scale units."""
+    floor = 1.18 * QUANTISATION * (INT16_STEP / unit) * np.sqrt(
+        np.sum(np.asarray(template) ** 2))
+    return max(float(np.median(env)), floor)
+
+
+def level_dbfs(peak, template, method="matched", unit=INT16_STEP):
+    """Peak amplitude of an arrival, dB re full scale, from the height of
+    its filter peak. A matched-filter peak is amplitude times the template
+    energy; an envelope peak is the amplitude itself, relative to the
+    template's own rms. `unit` as for noise_level."""
+    template = np.asarray(template, dtype=np.float64)
+    if method == "envelope":
+        amplitude = peak / np.sqrt(2.0 * np.mean(template ** 2)) * unit
+    else:
+        amplitude = peak / np.sum(template ** 2) * unit
+    return 20 * np.log10(max(amplitude, 1e-12))
+
+
+def leading(env, i, length, floor, fraction=DEFAULT.first_fraction):
+    """Index of the first arrival belonging to the peak at `i`: the earliest
+    peak in the template length before `i` that reaches `fraction` of env[i]
+    (and `floor`), else `i` itself. On an acoustic path a reflection (off a
+    screen, a table) can be stronger than the direct sound; the direct sound
+    is the one that arrives first."""
+    lo = max(0, i - length)
+    if i - lo < 3:
+        return i
+    earlier, _ = signal.find_peaks(env[lo:i], height=max(floor, fraction * env[i]))
+    return lo + int(earlier[0]) if len(earlier) else i
+
+
+def locate(window, template, design=DEFAULT, snr=None, unit=INT16_STEP):
+    """Strongest arrival of `template` in `window`, or None.
+
+    Returns (position in window samples as a float, level_dbfs, snr_db).
+    Used for tests and one-off captures; `checks.ArrivalDetector` is the
+    streaming version. `snr` overrides design.hit_snr.
+    """
+    analytic, env = correlation(window, template, design.method)
+    if len(env) == 0:
+        return None
+    i = int(np.argmax(env))
+    ratio = env[i] / noise_level(env, template, unit)
+    if ratio < (design.hit_snr if snr is None else snr):
+        return None
+    return (refine(analytic, i, design),
+            level_dbfs(env[i], template, design.method, unit),
+            20 * np.log10(ratio))
+
+
+def input_check(samples, design=DEFAULT, unit=INT16_STEP):
+    """What the input sounds like with nothing played: a dict of DC offset,
+    noise level and clipping, with plain-language warnings. A built-in
+    laptop mic left at the desktop's gain can sit at full scale with a large
+    DC offset, which hides every chirp. `samples` are int16 steps, or floats
+    in full-scale units if `unit` is 1.0. The limits are the design's."""
+    x = np.asarray(samples, dtype=np.float64)
+    if len(x) == 0:
+        return dict(seconds=0.0, warnings=["No input to check."])
+    full_scale = 1.0 / unit
+    dc = float(x.mean())
+    ac = x - dc
+    rms_db = 20 * np.log10(max(float(np.sqrt(np.mean(ac ** 2))), 1e-9) / full_scale)
+    clipped = float(np.mean(np.abs(x) >= full_scale * 32767.0 / 32768.0))
+    warnings = []
+    if clipped > design.clip_fraction:
+        warnings.append(f"The input is clipping ({100 * clipped:.1f} % of samples "
+                        "at full scale) with nothing playing: lower the capture "
+                        "gain or mic boost, or chirps will not be found.")
+    if abs(dc) > design.dc_fraction * full_scale:
+        warnings.append(f"The input has a large DC offset ({100 * dc / full_scale:+.0f} % "
+                        "of full scale), usually too much capture gain or a mic "
+                        "input still settling.")
+    if rms_db > design.noise_dbfs and clipped <= design.clip_fraction:
+        warnings.append(f"The input is noisy with nothing playing ({rms_db:.0f} dBFS "
+                        "rms): too much capture gain, or a loud room.")
+    return dict(dc_fraction=dc / full_scale, noise_rms_dbfs=rms_db,
+                clipped_fraction=clipped, warnings=warnings)
 
 
 def resolution(f0, f1):
@@ -128,6 +266,7 @@ class Analysis:
     """What was found in one recording. Events are numbered as in `events`."""
     events: list
     rate: float
+    design: DetectionDesign = DEFAULT                # the settings it was made with
     envelopes: dict = field(default_factory=dict)    # key -> envelope
     results: list = field(default_factory=list)      # EventResult or None, per event
     warnings: list = field(default_factory=list)
@@ -172,22 +311,23 @@ class Analysis:
         return out
 
 
-def inseparable(events):
+def inseparable(events, design=DEFAULT):
     """Groups of events that share a signal and fire within the search
     window of each other. Their sounds add together, so the analysis sees
     one arrival and reports it for each of them."""
+    search = design.search_s
     groups = []
     for i, a in enumerate(events):
         if any(i in g for g in groups):
             continue
         group = [j for j, b in enumerate(events)
-                 if b.key == a.key and abs(b.time - a.time) < 2 * SEARCH]
+                 if b.key == a.key and abs(b.time - a.time) < 2 * search]
         if len(group) > 1:
             groups.append(group)
     return groups
 
 
-def leaking(events, rate, worse_than_db=-25.0):
+def leaking(events, rate, design=DEFAULT, worse_than_db=None):
     """Pairs of events with different signals that overlap in time and are
     poorly separated by their filters.
 
@@ -195,15 +335,21 @@ def leaking(events, rate, worse_than_db=-25.0):
     up in signal i's filter. Separate bands give -40 dB or better; an
     up-chirp against a down-chirp over the same band gives only about -10 to
     -20 dB, and the leak is smeared over the length of the chirp, so it
-    lands at the wrong time.
+    lands at the wrong time. The threshold is design.leak_db unless
+    `worse_than_db` is given. With the envelope method there is no filter to
+    leak into, so there is nothing to find.
     """
+    if worse_than_db is None:
+        worse_than_db = design.leak_db
     pairs = []
+    if design.method != "matched":
+        return pairs
     for i, a in enumerate(events):
         for j, b in enumerate(events):
             if j <= i or a.key == b.key:
                 continue
             da, db_ = a.template.size / rate, b.template.size / rate
-            if abs(a.time - b.time) > max(da, db_) + SEARCH:
+            if abs(a.time - b.time) > max(da, db_) + design.search_s:
                 continue
             pad = np.zeros(max(a.template.size, b.template.size))
             cross = matched_filter(
@@ -221,15 +367,19 @@ def _window_peak(envelope, centre, half):
     return float(envelope[lo:hi].max()) if hi - lo > 0 else 0.0
 
 
-def analyse_events(recording, rate, events, first_threshold=0.3):
+def analyse_events(recording, rate, events, first_threshold=None,
+                   design=DEFAULT):
     """Find each event's first arrival (and later ones) in a recording.
 
-    first_threshold is the fraction of an event's strongest peak that an
-    arrival must reach to count as its first. Events that were not found are
-    None in `results`; the reasons are in `warnings`.
+    How is the design's business: its method, thresholds and windows (see
+    detection_design.SETTINGS). `first_threshold`, if given, replaces the
+    design's first-arrival fraction. Events that were not found are None in
+    `results`; the reasons are in `warnings`.
     """
+    first_fraction = design.first_fraction if first_threshold is None else first_threshold
+    detect = design.detect_snr
     recording = np.asarray(recording)
-    analysis = Analysis(events=list(events), rate=rate,
+    analysis = Analysis(events=list(events), rate=rate, design=design,
                         results=[None] * len(events))
     if not events:
         analysis.warnings.append("the ping has no events")
@@ -245,11 +395,11 @@ def analyse_events(recording, rate, events, first_threshold=0.3):
     noise = {}
     for e in events:
         if e.key not in analysis.envelopes:
-            envelope = matched_filter(recording, e.template)
+            envelope = matched_filter(recording, e.template, design.method)
             analysis.envelopes[e.key] = envelope
             noise[e.key] = float(np.median(envelope)) or 1e-12
     sent = [int(round(e.time * rate)) for e in events]
-    half = int(SEARCH * rate)
+    half = int(design.search_s * rate)
     envelopes = analysis.envelopes
 
     # Anchor on the clearest peak of any signal. It belongs to one of the
@@ -258,7 +408,7 @@ def analyse_events(recording, rate, events, first_threshold=0.3):
     # turn up where they should.
     anchor = max(envelopes, key=lambda k: envelopes[k].max() / noise[k])
     peak = int(np.argmax(envelopes[anchor]))
-    if envelopes[anchor][peak] < DETECT * noise[anchor]:
+    if envelopes[anchor][peak] < detect * noise[anchor]:
         analysis.warnings.append("nothing stands out from the noise")
         return analysis
     best_start, best_score = None, -1.0
@@ -272,7 +422,7 @@ def analyse_events(recording, rate, events, first_threshold=0.3):
                 continue
             strength = (_window_peak(envelopes[other.key], start + sent[j], half)
                         / noise[other.key])
-            if strength >= DETECT:
+            if strength >= detect:
                 score += strength
         if score > best_score:
             best_start, best_score = start, score
@@ -281,23 +431,25 @@ def analyse_events(recording, rate, events, first_threshold=0.3):
         envelope = envelopes[e.key]
         centre = best_start + sent[j]
         lo, hi = max(centre - half, 0), min(centre + half, envelope.size)
-        if hi - lo < 16 or envelope[lo:hi].max() < DETECT * noise[e.key]:
+        if hi - lo < 16 or envelope[lo:hi].max() < detect * noise[e.key]:
             continue
         window = envelope[lo:hi]
-        found = find_arrivals(window, rate, first_threshold)
+        found = find_arrivals(window, rate, first_fraction, design.min_separation_s,
+                              design.max_arrivals)
         if found:
-            every = find_arrivals(window, rate, 0.05)
+            every = find_arrivals(window, rate, design.listed_fraction,
+                                  design.min_separation_s, design.max_arrivals)
             analysis.results[j] = EventResult(
                 first=found[0].sample + lo, level=float(window.max()),
                 snr=float(window.max() / noise[e.key]),
                 arrivals=[Arrival(a.sample + lo, a.level) for a in every])
 
-    for group in inseparable(events):
+    for group in inseparable(events, design):
         analysis.warnings.append(
             "events " + " and ".join(str(i + 1) for i in group)
             + " use the same signal at nearly the same time: they are one "
               "combined sound and cannot be told apart")
-    for i, j, isolation in leaking(events, rate):
+    for i, j, isolation in leaking(events, rate, design):
         analysis.warnings.append(
             f"events {i + 1} and {j + 1} overlap in time and band: each leaks "
             f"into the other's filter only {-isolation:.0f} dB down, smeared "

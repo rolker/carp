@@ -15,7 +15,7 @@ import numpy as np
 from .. import capture_io
 from ..experiments import ranging
 from ..models import media
-from ..objects import schema, signals as signal_objects
+from ..objects import detections, schema, signals as signal_objects
 from ..objects.schema import InUseError, WorkspaceError
 from ..qtcompat import Qt, QtCore, QtGui, QtWidgets, Signal, pg
 from ..ui.session import REPLAY
@@ -62,6 +62,8 @@ class RangingPage(QtWidgets.QWidget):
         self.session = session
         self.ws = session.workspace
         self.design_id = None
+        self.detection_id = None        # None: the ping design's own detection design
+        self.capture = None             # the latest capture, to analyse again
         self.results = {}               # receiver -> RangingResult, latest ping
         self.count = 0                  # pings since the last Clear
         self.columns = {}               # receiver -> per ping, a trace per event
@@ -169,9 +171,15 @@ class RangingPage(QtWidgets.QWidget):
         self.listen = QtWidgets.QLineEdit()
         self.listen.setToolTip("Seconds to keep recording after the last event")
         self.listen.editingFinished.connect(self._listen_edited)
+        self.default_detection = QtWidgets.QComboBox()
+        self.default_detection.setToolTip(
+            "The detection design that reads this ping design's returns unless a "
+            "page or a replay chooses another")
+        self.default_detection.currentIndexChanged.connect(self._default_detection_picked)
         form.addRow("Name", self.design_name)
         form.addRow("Receivers", self.receivers)
         form.addRow("Listen after (s)", self.listen)
+        form.addRow("Detection design", self.default_detection)
         box.addLayout(form)
 
         t = self.event_table = QtWidgets.QTableWidget(0, len(EVENT_COLUMNS))
@@ -216,6 +224,18 @@ class RangingPage(QtWidgets.QWidget):
         self.receiver_box = QtWidgets.QComboBox()
         self.receiver_box.currentIndexChanged.connect(lambda _: self._redraw())
         bar.addWidget(self.receiver_box)
+        bar.addWidget(QtWidgets.QLabel("Detection"))
+        self.detection_box = QtWidgets.QComboBox()
+        self.detection_box.setToolTip(
+            "How the returns are read: every threshold and window is in the "
+            "detection design, and is recorded with the result")
+        self.detection_box.currentIndexChanged.connect(self._detection_picked)
+        bar.addWidget(self.detection_box)
+        bar.addWidget(self._button(
+            "Analyse again", self.reanalyse,
+            "Read the latest ping again with the chosen detection design"))
+        bar.addWidget(self._button("Edit...", self.edit_detection,
+                                   "Edit detection designs"))
         bar.addWidget(QtWidgets.QLabel("Show (ms)"))
         self.span_edit = QtWidgets.QLineEdit(f"{self.span_ms:g}")
         self.span_edit.setMaximumWidth(60)
@@ -263,7 +283,7 @@ class RangingPage(QtWidgets.QWidget):
         self.revision += 1
         if kind in ("signals", "*"):
             self.fill_signals()
-        if kind in ("designs", "signals", "*"):
+        if kind in ("ping_designs", "detection_designs", "signals", "*"):
             self.fill_designs()
         if kind in ("layouts", "scenes", "*"):
             self.fill_events()
@@ -394,19 +414,101 @@ class RangingPage(QtWidgets.QWidget):
         keep = self.design_id
         self._filling = True
         self.design_box.clear()
-        for did in self.ws.ids("designs"):
-            self.design_box.addItem(self.ws.name_of("designs", did), did)
+        for did in self.ws.ids("ping_designs"):
+            self.design_box.addItem(self.ws.name_of("ping_designs", did), did)
         at = self.design_box.findData(keep)
         self.design_box.setCurrentIndex(at if at >= 0 else (0 if self.design_box.count() else -1))
         self._filling = False
         self.design_id = self.design_box.currentData()
+        self.fill_detection()
         self.fill_events()
+
+    def fill_detection(self):
+        """The two detection design drop-downs: the page's choice (first
+        entry: the ping design's own) and the ping design's default."""
+        self._filling = True
+        names = [(self.ws.name_of("detection_designs", i), i)
+                 for i in self.ws.ids("detection_designs")]
+        own = detections.of_ping_design(self.ws, self.design_id)
+        self.detection_box.clear()
+        self.detection_box.addItem("the ping design's own" + (
+            f" ({self.ws.name_of('detection_designs', own)})" if own else
+            " (none named: the first one)"), None)
+        for name, i in names:
+            self.detection_box.addItem(name, i)
+        at = self.detection_box.findData(self.detection_id)
+        self.detection_box.setCurrentIndex(max(at, 0))
+        if at < 0:
+            self.detection_id = None
+        self.default_detection.clear()
+        self.default_detection.addItem("(none)", None)
+        for name, i in names:
+            self.default_detection.addItem(name, i)
+        self.default_detection.setCurrentIndex(max(self.default_detection.findData(own), 0))
+        self._filling = False
+
+    def _detection_picked(self, _):
+        if self._filling:
+            return
+        self.detection_id = self.detection_box.currentData()
+        self._update_notes()
+
+    def _default_detection_picked(self, _):
+        if self._filling or not self.design_id:
+            return
+        chosen = self.default_detection.currentData()
+        if chosen != detections.of_ping_design(self.ws, self.design_id):
+            self._edit_design(detection_design=chosen)
+
+    def detection(self, capture=None):
+        """(ID, DetectionDesign) in force: the page's choice, else the ping
+        design's own (for a replayed recording, the one it was made with), else
+        the first stored design."""
+        own = detections.of_ping_design(self.ws, self.design_id)
+        if capture is not None and capture.meta.get("backend") == "replay":
+            own = (capture.ping.meta.get("detection_design") if capture.ping else None) or own
+        return detections.resolve(self.ws, self.detection_id, own)
+
+    def edit_detection(self):
+        from ..ui.detection_dialog import DetectionDesignDialog
+        dialog = DetectionDesignDialog(self.ws, self, self.detection()[0] or None)
+        dialog.setModal(False)
+        dialog.show()
+        self._detection_dialog = dialog
+
+    def _analyse(self, capture):
+        """Read every recording of a capture with the detection design in
+        force, and record which one was used with the capture."""
+        did, design = self.detection(capture)
+        capture.meta["detection_design"] = detections.record(did, design)
+        return {rid: ranging.analyse_capture(capture, rid, design, did)
+                for rid in capture.recordings}
+
+    def reanalyse(self):
+        """Read the latest ping again with the detection design now chosen."""
+        if self.capture is None:
+            self.status.emit("Nothing to analyse again yet: ping first.")
+            return
+        self.results = self._analyse(self.capture)
+        for rid, result in self.results.items():
+            if self.columns.get(rid):
+                self.columns[rid] = self.columns[rid][:-1]
+            self._add_column(rid, result)
+        self._show_headline(f"Analysed again with {self.detection(self.capture)[1].summary()}")
+        self._redraw()
+        self._update_notes()
+
+    def _show_headline(self, text):
+        warnings = sorted({w for r in self.results.values() for w in r.warnings})
+        self.headline.setText(text + ": " + ("; ".join(warnings) if warnings
+                                              else "all events heard"))
 
     def _design_picked(self, _):
         if self._filling:
             return
         self.design_id = self.design_box.currentData()
         self.revision += 1
+        self.fill_detection()
         self.fill_events()
 
     def _sender_choices(self):
@@ -417,12 +519,13 @@ class RangingPage(QtWidgets.QWidget):
         return [(t.name or t.id, t.id) for t in infos if t.can_send]
 
     def fill_events(self):
-        design = self.ws.get("designs", self.design_id) if self.design_id else None
+        design = self.ws.get("ping_designs", self.design_id) if self.design_id else None
         self._filling = True
         t = self.event_table
         t.setRowCount(0)
         enabled = design is not None
-        for w in (self.design_name, self.receivers, self.listen, t):
+        for w in (self.design_name, self.receivers, self.listen, t,
+                  self.default_detection):
             w.setEnabled(enabled)
         if design is None:
             self.design_name.clear(), self.receivers.clear(), self.listen.clear()
@@ -464,13 +567,13 @@ class RangingPage(QtWidgets.QWidget):
             return
         try:
             ping = ranging.build_ping(self.ws, self.design_id, self._infos())
-            self.design_warnings.setText("\n".join(ranging.ping_warnings(ping)))
+            self.design_warnings.setText("\n".join(ranging.ping_warnings(ping, self.detection()[1])))
         except ValueError as error:
             self.design_warnings.setText(str(error))
 
     def _edit_design(self, **changes):
         try:
-            self.ws.update("designs", self.design_id, **changes)
+            self.ws.update("ping_designs", self.design_id, **changes)
             self.status.emit("")
         except (WorkspaceError, ValueError) as error:
             self.status.emit(f"Not changed: {error}")
@@ -479,7 +582,7 @@ class RangingPage(QtWidgets.QWidget):
     def _event_edited(self, item):
         if self._filling or not self.design_id:
             return
-        events = self.ws.get("designs", self.design_id)["events"]
+        events = self.ws.get("ping_designs", self.design_id)["events"]
         n, column = item.row(), item.column()
         try:
             if column == 1:
@@ -517,20 +620,20 @@ class RangingPage(QtWidgets.QWidget):
         signals = self.ws.ids("signals")
         events = ([dict(transducer=senders[0].id, signal=signals[0], time=0.0)]
                   if senders and signals else [])
-        self.design_id = self.ws.create("designs", "new ping design", schema.new_design(
+        self.design_id = self.ws.create("ping_designs", "new ping design", schema.new_design(
             "", events, receivers=[i.id for i in self._infos() if i.can_receive][:1]))
 
     def delete_design(self):
         if self.design_id:
             try:
-                self.ws.delete("designs", self.design_id)
+                self.ws.delete("ping_designs", self.design_id)
             except InUseError as error:
                 self.status.emit(f"Not deleted: {error}")
 
     def add_event(self):
         if not self.design_id:
             return
-        design = self.ws.get("designs", self.design_id)
+        design = self.ws.get("ping_designs", self.design_id)
         senders = [i.id for i in self._infos() if i.can_send]
         signals = self.ws.ids("signals")
         if not senders or not signals:
@@ -546,7 +649,7 @@ class RangingPage(QtWidgets.QWidget):
     def delete_event(self):
         rows = self.event_table.selectionModel().selectedRows()
         if self.design_id and rows:
-            events = self.ws.get("designs", self.design_id)["events"]
+            events = self.ws.get("ping_designs", self.design_id)["events"]
             del events[rows[0].row()]
             self._edit_design(events=events)
 
@@ -588,7 +691,7 @@ class RangingPage(QtWidgets.QWidget):
             self.status.emit(f"Check the ping design: {error}")
             self._stop_continuous()
             return
-        self.worker = PingWorker(self.stream, self)
+        self.worker = PingWorker(self.stream, self._analyse, self)
         self.worker.progressed.connect(lambda f, _t: self.progress.emit(f))
         self.worker.succeeded.connect(self._ping_done)
         self.worker.failed.connect(self._ping_failed)
@@ -635,6 +738,7 @@ class RangingPage(QtWidgets.QWidget):
     def _ping_done(self, capture, results):
         self._finish_worker()
         self.count += 1
+        self.capture = capture
         self.results = results
         current = self.receiver_box.currentData()
         self._filling = True
@@ -650,9 +754,7 @@ class RangingPage(QtWidgets.QWidget):
         if capture.meta.get("backend") == "replay":
             text = (f"Recording {capture.meta['index'] + 1} of {capture.meta['count']}"
                     f" ({Path(capture.meta['source']).name})")
-        warnings = sorted({w for r in results.values() for w in r.warnings})
-        self.headline.setText(text + ": " + ("; ".join(warnings) if warnings
-                                              else "all events heard"))
+        self._show_headline(text)
         saved = ""
         if self.save_check.isChecked() and capture.meta.get("backend") != "replay":
             if self.folder is None:
@@ -692,6 +794,7 @@ class RangingPage(QtWidgets.QWidget):
 
     def clear(self):
         self.results, self.columns, self.count, self.folder = {}, {}, 0, None
+        self.capture = None
         self.headline.setText("No ping yet.")
         self._redraw()
 

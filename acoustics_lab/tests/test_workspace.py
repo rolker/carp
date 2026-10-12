@@ -38,7 +38,7 @@ def files(ws, kind):
 # ---- IDs and files -----------------------------------------------------
 
 def test_new_workspace_has_the_folders_and_a_gitignore(ws):
-    for kind in ("signals", "designs", "layouts", "scenes"):
+    for kind in ("signals", "ping_designs", "layouts", "scenes"):
         assert (ws.path / kind).is_dir()
     assert (ws.path / ".gitignore").read_text() == "runs/\n"
     assert json.loads((ws.path / "workspace.json").read_text())["name"] == "w"
@@ -65,7 +65,7 @@ def test_files_are_stable_indented_json_written_atomically(ws):
 def test_reopening_reads_everything_back(started):
     again = Workspace(started.path)
     assert not again.is_new
-    for kind in ("signals", "designs", "layouts", "scenes"):
+    for kind in ("signals", "ping_designs", "layouts", "scenes"):
         assert again.ids(kind) == started.ids(kind)
     assert again.get("scenes", "dongle_bench") == started.get("scenes", "dongle_bench")
 
@@ -76,8 +76,8 @@ def test_bad_values_are_refused(ws):
     with pytest.raises(WorkspaceError, match="level"):
         ws.create("signals", "x", s.new_chirp("", amplitude=2))
     with pytest.raises(WorkspaceError, match="no signal"):
-        ws.create("designs", "d", s.new_design("", [dict(transducer="a", signal="nope", time=0)]))
-    assert files(ws, "signals") == [] and files(ws, "designs") == []
+        ws.create("ping_designs", "d", s.new_design("", [dict(transducer="a", signal="nope", time=0)]))
+    assert files(ws, "signals") == [] and files(ws, "ping_designs") == []
 
 
 # ---- references --------------------------------------------------------
@@ -85,16 +85,16 @@ def test_bad_values_are_refused(ws):
 def test_deleting_something_in_use_is_refused_and_says_who_uses_it(ws):
     up = ws.create("signals", "up", s.new_chirp(""))
     rev = ws.create("signals", "rev", s.new_derived("", "time_reverse", up))
-    d = ws.create("designs", "d", s.new_design("", [dict(transducer="a", signal=rev, time=0)]))
+    d = ws.create("ping_designs", "d", s.new_design("", [dict(transducer="a", signal=rev, time=0)]))
     with pytest.raises(InUseError) as error:
         ws.delete("signals", up)
     assert error.value.users == [("signals", rev)]
     assert "signal 'rev'" in str(error.value)
     with pytest.raises(InUseError) as error:
         ws.delete("signals", rev)
-    assert error.value.users == [("designs", d)]
+    assert error.value.users == [("ping_designs", d)]
     assert ws.exists("signals", up) and ws.exists("signals", rev)
-    ws.delete("designs", d)             # now the chain can be taken apart
+    ws.delete("ping_designs", d)             # now the chain can be taken apart
     ws.delete("signals", rev)
     ws.delete("signals", up)
     assert files(ws, "signals") == []
@@ -219,7 +219,7 @@ def test_old_designs_import_as_signals_and_ping_designs(ws):
     assert all("imported" in m for m in messages), messages
     assert ws.exists("layouts", "stereo_dongle") and ws.exists("scenes", "dongle_bench")
     # split-bands: low band on the left, high band on the right, together.
-    d = ws.get("designs", "split_bands")
+    d = ws.get("ping_designs", "split_bands")
     low, high = d["events"]
     assert (low["transducer"], high["transducer"]) == ("left", "right")
     assert low["time"] == high["time"] == 0.0
@@ -231,7 +231,7 @@ def test_old_designs_import_as_signals_and_ping_designs(ws):
     assert len([i for i in ws.ids("signals") if ws.get("signals", i)["name"] == "chirp up"]) == 1
     # All of it as one undo step; and a second import adds nothing.
     assert ws.undo_stack.count() == 1
-    before = {k: ws.ids(k) for k in ("signals", "designs")}
+    before = {k: ws.ids(k) for k in ("signals", "ping_designs")}
     again = importers.import_designs(ws, OLD_DESIGNS)
     assert all("already imported" in m for m in again), again
     assert {k: ws.ids(k) for k in before} == before
@@ -240,7 +240,7 @@ def test_old_designs_import_as_signals_and_ping_designs(ws):
 def test_every_imported_design_can_be_built_into_a_ping(ws):
     importers.import_designs(ws, OLD_DESIGNS)
     infos = SimulationBackend.from_workspace(ws, "dongle_bench").transducers()
-    for design_id in ws.ids("designs"):
+    for design_id in ws.ids("ping_designs"):
         ping = ranging.build_ping(ws, design_id, infos)
         assert ping.receivers == ["mic"] and ping.emissions
 
@@ -253,7 +253,7 @@ def test_a_signal_with_the_same_name_but_other_settings_gets_its_own_id(ws, tmp_
         signals=[dict(name="chirp up", f0=3000.0, f1=4000.0, duration=0.01, amplitude=0.5)],
         events=[dict(channel="left", signal="chirp up", time=0.0)])))
     importers.import_designs(ws, folder)
-    mine = ws.get("designs", "mine")["events"][0]["signal"]
+    mine = ws.get("ping_designs", "mine")["events"][0]["signal"]
     assert mine != "chirp_up" and ws.get("signals", mine)["f0"] == 3000.0
     assert ws.get("signals", "chirp_up")["f0"] == 2000.0
 
@@ -292,15 +292,15 @@ def test_without_a_loopback_arrivals_are_timed_against_the_loudest(started):
 
 def test_designs_that_cannot_be_played_say_why(started):
     infos = SimulationBackend.from_workspace(started, "dongle_bench").transducers()
-    started.update("designs", "left_then_right", events=[
+    started.update("ping_designs", "left_then_right", events=[
         dict(transducer="mic", signal="chirp_up", time=0.0)])
     with pytest.raises(ValueError, match="'mic' cannot send"):
         ranging.build_ping(started, "left_then_right", infos)
-    started.update("designs", "left_then_right", events=[])
+    started.update("ping_designs", "left_then_right", events=[])
     with pytest.raises(ValueError, match="no events"):
         ranging.build_ping(started, "left_then_right", infos)
     started.update("signals", "chirp_up", f1=30000.0)
-    started.update("designs", "left_then_right", events=[
+    started.update("ping_designs", "left_then_right", events=[
         dict(transducer="left", signal="chirp_up", time=0.0)])
     with pytest.raises(ValueError, match="too high"):
         ranging.build_ping(started, "left_then_right", infos)

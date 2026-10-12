@@ -58,9 +58,9 @@ def _import_one(ws, file):
     events = [dict(transducer=e["channel"], signal=ids[e["signal"]], time=e["time"])
               for e in old["events"]]
     design = s.new_design(file.stem, events, receivers=["mic"])
-    for i in ws.ids("designs"):
-        existing = ws.get("designs", i)
+    for i in ws.ids("ping_designs"):
+        existing = ws.get("ping_designs", i)
         if existing["name"] == file.stem and existing["events"] == design["events"]:
             return f"{file.name}: already imported"
-    ws.create("designs", file.stem, design)
+    ws.create("ping_designs", file.stem, design)
     return f"{file.name}: imported ({len(ids)} signals, {len(events)} events)"

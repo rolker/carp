@@ -40,3 +40,21 @@ def read_meta(path):
         return {}
     with open(path + ".json") as f:
         return json.load(f)
+
+
+def write_wav_int16(path, samples, rate):
+    """Save mono int16 samples exactly as they are (a device's raw input)."""
+    with wave.open(path, "wb") as f:
+        f.setnchannels(1)
+        f.setsampwidth(2)
+        f.setframerate(int(rate))
+        f.writeframes(np.asarray(samples, dtype="<i2").tobytes())
+
+
+def read_wav_int16(path):
+    """Read a 16-bit WAV exactly: (first channel as int16, sample rate)."""
+    with wave.open(path, "rb") as f:
+        if f.getsampwidth() != 2:
+            raise ValueError(f"{path}: only 16-bit WAV is supported")
+        data = np.frombuffer(f.readframes(f.getnframes()), dtype="<i2")
+        return data.reshape(-1, f.getnchannels())[:, 0].astype(np.int16), f.getframerate()

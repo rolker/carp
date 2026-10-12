@@ -7,6 +7,7 @@
     duplex_check.py --device 1-2.3 --offset-test --minutes 5 --level -20 --channel left
     duplex_check.py --device donglea --schedule-test --tat 0.2
     duplex_check.py --fake --offset-test --minutes 5      # no hardware
+    duplex_check.py --reanalyse RUN_FOLDER --detection design.json --detect first_fraction=0.6
 
 A device is only ever opened when it is named with --device (card number,
 ALSA card id or USB port path) together with a test. Before a test opens
@@ -21,7 +22,12 @@ warning, to show what clipping does. The plan, including how loud, is printed be
 is played.
 
 Results go to <acoustics_lab>/runs/hardware/<date time>_<device>_<test>/
-(a CSV of every ping and summary.json), git-ignored.
+(a CSV of every ping, summary.json, and input.wav with input.wav.json: the
+input exactly as the device gave it), git-ignored. --reanalyse reads a saved
+offset test's input again with another detection design (a design file from
+a workspace's detection_designs/, and/or --detect KEY=VALUE changes to it),
+without touching any sound device, and saves the new result inside that
+folder. Every result records the detection design it used.
 """
 import argparse
 import os
@@ -33,8 +39,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, ROOT)
 
+import json                                                    # noqa: E402
+
 from acoustics_lab.hardware import (checks, desktop, discovery, mixer,  # noqa: E402
                                     reserve)
+from acoustics_lab.models import detection_design                # noqa: E402
 from acoustics_lab.hardware.stream import (DeviceError,          # noqa: E402
                                            PortAudioDuplex)
 
@@ -80,6 +89,16 @@ def parse_args(argv=None):
                         "(for debugging; opening a card it holds then fails as busy)")
     p.add_argument("--no-wait", action="store_true",
                    help="skip the 3 s pause after printing the plan")
+    p.add_argument("--detection", metavar="FILE",
+                   help="detection design (a detection_designs/<id>.json file) for "
+                        "the tests and --reanalyse; default: the built-in one "
+                        "(for --reanalyse: the one the run was made with)")
+    p.add_argument("--detect", action="append", default=[], metavar="KEY=VALUE",
+                   help="change one detection setting, e.g. first_fraction=0.6 or "
+                        "method=envelope; repeatable")
+    p.add_argument("--reanalyse", metavar="RUN_FOLDER",
+                   help="analyse a saved offset test again from its input.wav; "
+                        "opens no device")
     return p.parse_args(argv)
 
 
@@ -461,7 +480,64 @@ def start_watching(card, session, out):
               file=out)
 
 
+def detection_from_args(args, base=None):
+    """The DetectionDesign the options ask for: --detection's file (else
+    `base`, else the built-in one), with --detect changes on top. Raises
+    ValueError with a message for a bad file, key or value."""
+    data = (base or detection_design.DEFAULT).to_dict()
+    if args.detection:
+        try:
+            with open(args.detection) as f:
+                data.update(json.load(f))
+        except (OSError, ValueError) as error:
+            raise ValueError(f"cannot read the detection design {args.detection}: "
+                             f"{error}") from None
+    for text in args.detect:
+        if "=" not in text:
+            raise ValueError(f"--detect needs KEY=VALUE, got '{text}'")
+        key, value = (part.strip() for part in text.split("=", 1))
+        if key not in detection_design.SETTING:
+            raise ValueError(f"no detection setting '{key}'; they are: "
+                             + ", ".join(detection_design.SETTING))
+        data[key] = value if key == "method" else _number(key, value)
+    return detection_design.from_dict(data)
+
+
+def _number(key, text):
+    try:
+        return float(text)
+    except ValueError:
+        raise ValueError(f"{key} needs a number, not '{text}'") from None
+
+
+def do_reanalyse(args, out):
+    """Analyse a saved offset test again with another detection design."""
+    try:
+        raw = checks.load_run(args.reanalyse)
+        was = detection_design.from_dict(raw.meta.get("detection_design", {}))
+        design = detection_from_args(args, base=was)
+        result = checks.reanalyse_offset(raw, design)
+    except (ValueError, OSError) as error:
+        print(error, file=out)
+        return 2
+    print(f"Run {args.reanalyse}", file=out)
+    print(f"  made with:      {was.summary()}", file=out)
+    print(f"  analysed with:  {design.summary()}", file=out)
+    changed = design.differences(was)
+    if changed:
+        print("  changed:        " + ", ".join(
+            f"{k} {a:g} (was {b:g})" if not isinstance(a, str) else f"{k} {a} (was {b})"
+            for k, (a, b) in changed.items()), file=out)
+    for line in result.verdict:
+        print("  " + line, file=out)
+    folder = checks.save(result, args.reanalyse, "reanalysis")
+    print(f"  Saved in {folder}", file=out)
+    return 0 if result.summary["verdict_ok"] else 1
+
+
 def run(args, out, session):
+    if args.reanalyse:
+        return do_reanalyse(args, out)
     if args.list:
         return do_list(out)
     if not (args.device or args.fake):
@@ -471,6 +547,11 @@ def run(args, out, session):
     if not (args.mixer or args.offset_test or args.schedule_test):
         print("Nothing to do: add --mixer, --offset-test or --schedule-test.",
               file=out)
+        return 2
+    try:
+        design = detection_from_args(args)
+    except ValueError as error:
+        print(error, file=out)
         return 2
     if args.level > 0:
         warn(f"{args.level:g} dBFS is above full scale: the output is clipped "
@@ -555,11 +636,12 @@ def run(args, out, session):
         if args.offset_test:
             tests.append(lambda: checks.run_offset_test(
                 device, args.minutes * 60, args.level, args.channel,
-                args.interval, args.ping, _progress(out), lambda: bool(stopped)))
+                args.interval, args.ping, _progress(out), lambda: bool(stopped),
+                design=design))
         if args.schedule_test:
             tests.append(lambda: checks.run_schedule_test(
                 device, args.tat, args.pulses, args.level, args.channel,
-                args.ping, _progress(out), lambda: bool(stopped)))
+                args.ping, _progress(out), lambda: bool(stopped), design=design))
         for run in tests:
             result = run()
             print("", file=out)

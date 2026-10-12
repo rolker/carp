@@ -2,8 +2,13 @@
 
     my_workspace/
       workspace.json
-      signals/<id>.json   designs/<id>.json   layouts/<id>.json   scenes/<id>.json
+      signals/<id>.json  ping_designs/<id>.json  detection_designs/<id>.json
+      layouts/<id>.json  scenes/<id>.json        rigs/<id>.json
       runs/               captures, git-ignored by default
+
+Workspaces from before ping designs and detection designs were told apart
+kept their ping designs in `designs/`; opening one moves them to
+`ping_designs/` (see `notices`).
 
 Every edit is written to its file at once, atomically (temporary file, then
 rename), so a crash never leaves half a file. All edits go through one
@@ -71,7 +76,11 @@ class Workspace(QtCore.QObject):
         self.path = Path(path).expanduser().resolve()
         self.is_new = not (self.path / "workspace.json").exists()
         self.path.mkdir(parents=True, exist_ok=True)
+        self.notices = self._migrate() if not self.is_new else []
+        self.new_kinds = []         # kinds whose folder was not there before this opening
         for kind in KINDS:
+            if not (self.path / kind).exists():
+                self.new_kinds.append(kind)
             (self.path / kind).mkdir(exist_ok=True)
         if self.is_new:
             write_json(self.path / "workspace.json",
@@ -83,6 +92,32 @@ class Workspace(QtCore.QObject):
         self._objects, self.problems = self._read_all()
         self._watcher = None
         self._timer = None
+
+    def _migrate(self):
+        """Move ping designs from the folder step 1 called designs/ to
+        ping_designs/. Files whose names are already taken in the new folder
+        stay where they are, and the notice says so. Returns messages."""
+        old, new = self.path / "designs", self.path / "ping_designs"
+        if not old.is_dir():
+            return []
+        new.mkdir(exist_ok=True)
+        moved, stayed = [], []
+        for file in sorted(old.glob("*.json")):
+            if (new / file.name).exists():
+                stayed.append(file.name)
+            else:
+                os.replace(file, new / file.name)
+                moved.append(file.name)
+        with contextlib.suppress(OSError):      # only if empty
+            old.rmdir()
+        notices = []
+        if moved:
+            notices.append(f"Moved {len(moved)} ping design file(s) from designs/ "
+                           "to ping_designs/")
+        if stayed:
+            notices.append("Left in designs/ because ping_designs/ already has a "
+                           "file of the same name: " + ", ".join(stayed))
+        return notices
 
     # ---- reading -------------------------------------------------------
 

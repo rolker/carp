@@ -40,6 +40,11 @@ class Application:
         workspace = Workspace(path)
         if workspace.is_new:
             starter.populate(workspace)
+        elif "detection_designs" in workspace.new_kinds:
+            # A workspace from before detection designs: give it the default
+            # one, so that nothing is analysed with settings it cannot see.
+            starter.ensure_default_detection(workspace)
+            workspace.undo_stack.clear()
         self.settings.setValue("last_workspace", str(workspace.path))
         recent = [r for r in self.settings.value("recent", [], type=list)
                   if r != str(workspace.path)]

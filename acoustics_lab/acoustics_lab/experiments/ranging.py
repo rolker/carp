@@ -11,10 +11,11 @@ from scipy import signal as sps
 
 from ..backends.base import Emission, Ping
 from ..models import detection
+from ..models.detection_design import DEFAULT
 from ..objects import signals as signal_objects
 from ..objects.schema import WorkspaceError
 
-FIRST_THRESHOLD = 0.3       # fraction of an event's peak that counts as its first arrival
+FIRST_THRESHOLD = DEFAULT.first_fraction   # now a setting of the detection design
 DEFAULT_SOUND_SPEED = 343.2
 
 
@@ -25,7 +26,7 @@ def build_ping(workspace, design_id, infos):
     transducer's device sample rate. Raises ValueError, with a message a
     person can act on, for a design that cannot be played.
     """
-    design = workspace.get("designs", design_id)
+    design = workspace.get("ping_designs", design_id)
     if design is None:
         raise ValueError("no ping design is selected")
     if not design["events"]:
@@ -60,6 +61,7 @@ def build_ping(workspace, design_id, infos):
         raise ValueError("nothing can receive with this backend and scene")
     return Ping(emissions=emissions, receivers=receivers, listen=design["listen"],
                 meta=dict(design_id=design_id, design_name=design["name"],
+                          detection_design=design.get("detection_design"),
                           signals=specs))
 
 
@@ -84,18 +86,18 @@ def events_from_ping(ping, rate):
     return events
 
 
-def ping_warnings(ping):
+def ping_warnings(ping, design=DEFAULT):
     """Problems a ping design has before it is even sent: events that cannot
-    be told apart, or that leak into each other's filters. A list of plain
-    sentences."""
+    be told apart, or that leak into each other's filters (by the detection
+    design's search window and leak limit). A list of plain sentences."""
     rate = ping.emissions[0].rate
     events = events_from_ping(ping, rate)
     out = []
-    for group in detection.inseparable(events):
+    for group in detection.inseparable(events, design):
         out.append("events " + " and ".join(str(i + 1) for i in group)
                    + " use the same signal at nearly the same time and cannot "
                      "be told apart")
-    for i, j, isolation in detection.leaking(events, rate):
+    for i, j, isolation in detection.leaking(events, rate, design):
         out.append(f"events {i + 1} and {j + 1} overlap in time and band and leak "
                    f"into each other's filters ({isolation:.0f} dB)")
     return out
@@ -109,14 +111,18 @@ class RangingResult:
     sound_speed: float
     rows: list = field(default_factory=list)
     truth: dict = None
+    design: detection.DetectionDesign = DEFAULT   # the settings it was read with
+    design_id: str = ""
 
     @property
     def warnings(self):
         return self.analysis.warnings
 
 
-def analyse_capture(capture, receiver, first_threshold=FIRST_THRESHOLD):
-    """Where each event of the ping turned up in one receiver's recording.
+def analyse_capture(capture, receiver, design=DEFAULT, design_id=""):
+    """Where each event of the ping turned up in one receiver's recording,
+    read with a detection design (every threshold and window in it; the
+    result keeps it and its ID).
 
     Without a loopback, arrivals are timed against the loudest event's first
     arrival. Where the recording holds an electrical loopback copy of an
@@ -128,10 +134,10 @@ def analyse_capture(capture, receiver, first_threshold=FIRST_THRESHOLD):
     specs = ping.meta.get("signals", {})
     events = events_from_ping(ping, recording.rate)
     analysis = detection.analyse_events(recording.samples, recording.rate, events,
-                                        first_threshold)
+                                        design=design)
     result = RangingResult(receiver=receiver, analysis=analysis,
                            loopback=list(recording.loopback_of), sound_speed=speed,
-                           truth=capture.truth)
+                           truth=capture.truth, design=design, design_id=design_id)
     result.rows = _rows(result, ping, specs)
     return result
 
@@ -147,7 +153,7 @@ def _true_path(truth, receiver, emission):
 
 def _rows(result, ping, specs):
     analysis, speed = result.analysis, result.sound_speed
-    groups = detection.inseparable(analysis.events)
+    groups = detection.inseparable(analysis.events, result.design)
     rows = []
     for i, e in enumerate(ping.emissions):
         found = analysis.results[i]
