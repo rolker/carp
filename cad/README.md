@@ -65,6 +65,154 @@ are read from those exports, not from Onshape.
   stock cable (~100 mm usable reach, §1). He will probably move the Pi
   closer to the cameras — not yet done. Which camera is not recorded.
 
+## Acoustic bench: truss masts with snap-on holders (proposed, 2026-10-12)
+
+**Status: proposed. Built so far: the `Lego` Variable Studio and the `Lego plate` Part Studio (2026-10-12); nothing printed yet.** A reconfigurable stand
+for the bench transducers (`acoustic/README.md`, "Bench hardware"), for
+trying layouts quickly rather than printing a new ring or cross each time.
+Drawing (private page on Roland's account):
+[truss mast sketch](https://claude.ai/artifact/AQvrAeJJUAu7HV3kie9y7y).
+
+- **Square truss masts on the Lego grid, printed standing up, no
+  supports.** Four vertical chords **32 mm apart (four stud pitches)**,
+  laced with zig-zag diagonals at 50–60° from horizontal (55° drawn) and no
+  horizontal members, so every layer rests on the one below. **No flat
+  undersides anywhere:** stud pads, the top cap and any wedge rise from the
+  chords at 55°, a pointed arch, because a flat bottom would be a 32 mm
+  bridge. Up to 256 mm per print (Z of the Centauri Carbon 2).
+- **Thin members, because sound sees them less:** what matters is size
+  against the wavelength (17–21 mm at 16–20 kHz in air). About 2 mm members
+  scatter faintly (ka ≈ 0.3–0.4 at 20 kHz); 5–8 mm parts (Lego, pads) are
+  real reflectors, so keep Lego low and away, and keep pads behind the
+  discs. Halving a member's thickness cuts its echo by roughly 12 dB.
+  Anything adding less than about 6–10 cm of path blurs into a disc's direct
+  sound instead of showing as a separate echo.
+- **Stacking and Lego:** the **top cap has 4×4 studs pointing up** (they
+  print upright, the most accurate way) and the **base has a 4×4 Lego
+  underside**, printed on the bed. Masts stack for height, keeping their
+  faces aligned, and press onto Lego or Duplo (Duplo's 16 mm pitch takes
+  Lego studs) for tripods. No Technic needed.
+- **Stud pads on the faces:** at chosen heights a pad bridges two chords
+  with **four studs on a 24 mm square pointing straight out** and an **open
+  centre (Ø17)**. Studs printed sideways are short horizontal cylinders;
+  give each a small flat underneath so it prints cleanly (Lego clutch comes
+  from the sides). The centre stays open because a bender disc radiates
+  from its back too, and a solid pad right behind it would reflect that
+  sound back almost at once.
+- **Snap-on holders without brackets:** the holder's back has **four
+  sockets** that grip the pad's studs, so it snaps straight onto the mast,
+  or onto any Lego plate. The soft layer is a **gasket (TPU or foam) lining
+  the holder's pocket at the disc rim**, so the holder is one rigid piece and
+  the disc is still isolated from the mast.
+- **Directions:** a square mast gives four facing directions, 90° apart;
+  stacking keeps them lined up. **Wedge pads** at a node give 30° or 45°
+  between faces; their slopes stay at 50° or more from horizontal.
+- **Positions:** stud joints repeat to about ±0.1–0.2 mm, small against the
+  wavelength. Disc positions can be measured, or located by acoustics_lab
+  from direct-sound times.
+
+### In Onshape (all in the `CARP` document)
+
+- Two Variable Studios: **`Lego`** for the Lego dimensions, nominal and
+  adjusted for this printer (below), and **`Acoustic bench`** for the mast
+  and holder variables. Local fits stay local Variable features, per the
+  naming conventions.
+- Part Studio **`Lego plate`** (built 2026-10-12): a Lego plate or baseplate to put masts and
+  holders on in assemblies. It uses the *nominal* values, because it stands
+  for real Lego. Size in studs as configured variables (16×16, 32×32; a 32×32
+  baseplate is about 255.6 mm square), set by the configuration variables
+  `stud_count_x` and `stud_count_y` (Integer, created from the Configuration
+  panel's "Configure Part Studio" dropdown); one stud cylinder
+  feature-patterned both ways with those counts; origin at a stud centre on the top surface, so assembly
+  positions read in stud pitches and carry straight into an acoustics_lab
+  layout. No hand-placed mate connectors needed: Onshape infers one at the
+  centre of every circular edge, so a socket or a mast base mates onto a
+  stud's top edge.
+- Part Studio `Truss mast`: one layout sketch of **one face** (two chords and
+  the diagonals as lines, driven by the variables), the **Frame** feature
+  sweeping square profiles along the lines and trimming the joints, a
+  **circular pattern** of the face four times at 90° about the mast axis,
+  then **Boolean union** into one printable solid. Base, top cap and stud
+  pads in the same Part Studio, pads at chosen heights.
+- The transducer holder keeps its own Part Studio, configured for 20 and
+  27 mm discs, with the four-socket back, the gasket seat, and a mate
+  connector at the disc centre on its face (Z along the acoustic axis).
+- Assemblies only to check fit and to record a layout; they don't drive
+  geometry.
+
+### Variable Studio `Lego`
+
+LEGO publishes no official specification; these are the widely published
+measurements most printable-Lego designs use. The nominal values stay
+untouched; each kind of printed feature gets its own fit offset from the
+coupon, and the printed sizes are expressions (naming rule 4).
+
+**Nominal (real Lego):**
+
+| Variable | Value | Notes |
+|---|---|---|
+| `lego_stud_pitch` | 8.0 mm | Centre to centre; the module everything is built on |
+| `lego_stud_diameter` | 4.8 mm | Outside of a stud |
+| `lego_stud_height` | 1.7 mm | Above the top surface (1.8 is also quoted) |
+| `lego_plate_height` | 3.2 mm | One plate, without studs |
+| `lego_brick_height` | `3 * lego_plate_height` → 9.6 mm | One brick |
+| `lego_side_gap` | 0.1 mm | Each side: an N-stud part is `N * lego_stud_pitch - 2 * lego_side_gap` long (2×2 = 15.8 mm) |
+| `lego_wall_thickness` | 1.2 mm | Outer wall of a brick or plate |
+| `lego_top_thickness` | 1.0 mm | Top skin of a brick |
+| `lego_tube_outer_diameter` | 6.51 mm | Underside tube, between four studs |
+| `lego_tube_inner_diameter` | 4.8 mm | Tube bore |
+| `lego_post_diameter` | 3.2 mm | Underside post on 1×N parts, between two studs |
+| `duplo_stud_pitch` | `2 * lego_stud_pitch` → 16 mm | Duplo takes Lego studs |
+| `duplo_brick_height` | `2 * lego_brick_height` → 19.2 mm | |
+| `duplo_stud_diameter` | about 9.4 mm | Less consistently published: measure one |
+
+**Adjusted for this printer** (offsets from the fit coupon; FDM usually
+prints outside diameters a little fat and holes a little tight, so expect
+stud offsets slightly negative and the socket offset slightly positive,
+around 0.1 mm each):
+
+| Variable | Value | Notes |
+|---|---|---|
+| `lego_stud_fit_offset_upright` | from coupon | Studs printed pointing up (top caps) |
+| `lego_stud_fit_offset_sideways` | from coupon | Studs printed pointing sideways (mast pads) |
+| `lego_stud_diameter_upright` | `lego_stud_diameter + lego_stud_fit_offset_upright` | What printed parts use |
+| `lego_stud_diameter_sideways` | `lego_stud_diameter + lego_stud_fit_offset_sideways` | |
+| `lego_tube_fit_offset` | from coupon | Underside tubes (mast bases) |
+| `lego_tube_outer_diameter_printed` | `lego_tube_outer_diameter + lego_tube_fit_offset` | |
+| `lego_underside_fit_offset` | from coupon | Underside walls: recess width |
+| `lego_socket_fit_offset` | from coupon | Round sockets that grip a stud (holder backs) |
+| `lego_socket_diameter_printed` | `lego_stud_diameter + lego_socket_fit_offset` | |
+
+### Variable Studio `Acoustic bench` (proposed)
+
+| Variable | Value | Notes |
+|---|---|---|
+| `stud_flat_depth` | 0.2 mm | Flat under a sideways stud; check on the coupon |
+| `pad_stud_spacing` | `3 * lego_stud_pitch` → 24 mm | Studs on a square around the open centre |
+| `pad_hole_diameter` | 17 mm | Open centre; matches the holder's through hole |
+| `truss_chord_spacing` | `4 * lego_stud_pitch` → 32 mm | Mast square on the Lego grid |
+| `truss_chord_width` | 2.6 mm | Square profile; 2.4–3 |
+| `truss_member_width` | 2.0 mm | Lacing; 1.6–2 near discs |
+| `truss_diagonal_angle` | 55 deg | From horizontal; 50–60 |
+| `truss_bay_length` | `truss_chord_spacing * tan(truss_diagonal_angle)` → 45.7 mm | Derived: height one diagonal climbs |
+| `truss_corbel_angle` | 55 deg | Under pads, the top cap and wedges |
+| `mast_height` | 200 mm | ≤ 256 per print; stack for more |
+| `holder_gasket_thickness` | from coupon | TPU or foam at the disc rim |
+
+### First prints
+
+1. **Fit coupon:** studs printed upright and sideways at three sizes each,
+   with and without the flat (try them in a real Lego brick); a 4×4
+   underside at three offsets (press onto real Lego); holder sockets at three
+   sizes on a printed stud pad; one gasket seat. The winners set the
+   `lego_*_fit_offset` values.
+2. **Short test mast,** about 8–10 cm: lacing at 50°, 55° and 60° on
+   different faces, 2.0 and 2.4 mm members, one stud pad, the top cap.
+   Shows which angle and size print cleanly; a few minutes and grams.
+3. **Full mast,** 20 cm, with base, top cap, two pads and a snap-on holder;
+   stack it on the test mast. Check stiffness, then ping past it in
+   acoustics_lab to see how visible it is.
+
 ## First target: camera carrier + stand-in plate
 
 Not the sled yet. The first print is **stage 1 of the test plan in
@@ -173,6 +321,8 @@ One document, `CARP`:
 | **Part Studio** `Dome` | Simple model from the measurements: 2.0 flange disc + R 26.3 hemisphere, centre ~0.4 in front of the flange back face, marked as a mate connector |
 | **Part Studio** `Front` | Multi-part: layout sketch, lid, carrier, spacers, stand-in plate |
 | **Assembly** `Front check` | Two cameras + two domes placed on the parts; clearances and axis alignment |
+| **Variable Studio** `Lego` | Lego dimensions, nominal and adjusted for this printer (see "Acoustic bench" above) |
+| **Part Studio** `Lego plate` | Lego plate/baseplate for assemblies, sized in studs by configuration (`stud_count_x`, `stud_count_y`) |
 
 **`Front` is one multi-part Part Studio** — the Onshape idiom for parts
 designed around each other. Lid, carrier and stand-in all reference one
