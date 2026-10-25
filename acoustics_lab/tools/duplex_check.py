@@ -308,11 +308,15 @@ def print_plan(args, device, card, out):
             for c in mixer.read_controls(card.number):
                 if c.role in (mixer.PLAYBACK_VOLUME, mixer.PLAYBACK_SWITCH,
                               mixer.AUTO_GAIN, mixer.MIC_MONITOR,
-                              mixer.CAPTURE_VOLUME):
+                              mixer.CAPTURE_VOLUME, mixer.CAPTURE_SWITCH):
                     print(f"  mixer:    {c.name} = {c.value_text()}", file=out)
                     if (c.role in (mixer.AUTO_GAIN, mixer.MIC_MONITOR)
                             and any(c.values)):
                         print(f"  WARNING:  {c.name} is on; {mixer.ADVICE[c.role]}",
+                              file=out)
+                    if (c.role in (mixer.PLAYBACK_SWITCH, mixer.CAPTURE_SWITCH)
+                            and not all(c.values)):
+                        print(f"  WARNING:  {c.name} is off; {mixer.ADVICE[c.role]}",
                               file=out)
         except mixer.MixerError as error:
             print(f"  mixer:    not read ({error})", file=out)
