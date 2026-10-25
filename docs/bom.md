@@ -208,7 +208,7 @@ check the other two.
 | Item | Status | Use on CARP | Notes |
 |---|---|---|---|
 | Extech EX430 True RMS multimeter | to check | TRRS pinout, mic bias, piezo disc capacitance, resistor matching, general bench work | Autoranging, with a capacitance range. Not a clamp meter (see "Likely already owned") |
-| Extech 382213 DC power supply | to check | Current-limited first power-up of the Pixhawk, Bar30, Pololu 5 V and new boards; a supply for a piezo driver if one is ever added | Three outputs (Roland, 2026-10-25): **one adjustable, a fixed 12 V and a fixed 5 V**. Adjustable range and current rating, and whether the fixed outputs have a current limit, not yet read off the panel. Too little current to run an ESC, but the adjustable output can smoke-test one with the limit set low. Not needed for the dongles, which run off USB |
+| Extech 382213 DC power supply | to check | Current-limited first power-up of the Pixhawk, Bar30, Pololu 5 V and new boards; a supply for a piezo driver if one is ever added | Digital triple output (Roland, 2026-10-25; specs from extech.com/products/382213): **adjustable 0–30 V / 0–3 A** with constant voltage / constant current and a current-limit LED; **fixed 5 V and fixed 12 V, each 0.5 A continuous, 1 A max**, with no settable limit (the page says only "overload and short circuit protection"). Ripple and noise < 5 mV; line and load regulation < 0.05 % + 10 mV; LCD meters, accuracy not listed. 3 A is too little to run an ESC, but the adjustable output can smoke-test one with the limit set low. The fixed 5 V at 0.5 A is too weak for the Pi 5. Not needed for the dongles, which run off USB |
 | Rigol DS1052E oscilloscope, 50 MHz, 2 ch | to check | Drive amplitude on the transmit disc, receive signal, time of flight as a check on the software that doesn't depend on the dongle clocks, disc resonance (FFT or a stepped tone) | Probe ground is mains earth: clip it to circuit ground only. USB port for pulling waveforms to the computer; under WSL that needs `usbipd` |
 
 **Checks:**
@@ -226,7 +226,7 @@ check the other two.
   it, and check that it goes to constant current and recovers; check it
   holds under a real load (a 12 V bulb or power resistor, because the
   ¼ W kit resistors are too small); ripple on the scope, AC coupled
-  (a few mV is fine, hundreds of mV of hum means tired filter capacitors).
+  (the spec is < 5 mV; hundreds of mV of hum means tired filter capacitors).
 - **DS1052E:** boot and backlight (a dim or flickering screen means an
   ageing CCFL, the usual failure); warm up ~30 min, then Utility →
   Self-Calibration with the inputs disconnected; both probes set to ×10 and
