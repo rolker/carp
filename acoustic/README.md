@@ -272,10 +272,22 @@ the hardware tools now live in `../acoustics_lab/` (`tools/duplex_check.py`,
 So the labels follow the plug, but they assume the older OMTP layout (mic
 on ring 2, ground on the sleeve). Most current gear is CTIA, with **ground on
 ring 2 and the mic on the sleeve**: on a CTIA dongle the terminal marked
-"V" would be ground and "Grd" would be the mic. Which one the dongle uses
-is the next measurement: plug the cable into a dongle and measure DC
-between V and Grd. The mic bias (a few volts) is positive on the mic
-contact. The other three cables not yet checked.
+"V" would be ground and "Grd" would be the mic. **Measured the same day: the dongle is CTIA.** With the cable in a dongle
+plugged into the computer, the meter read **+3.72 V on "Grd" relative to
+"V"** (black on V, red on Grd, no load): the mic bias is on the sleeve.
+Wire the bench by this, **not by the printed labels**:
+
+| Terminal label | Plug contact | Dongle signal |
+|---|---|---|
+| L | tip | left out |
+| R | ring 1 | right out |
+| V | ring 2 | **ground** |
+| Grd | sleeve | **mic in** (+3.72 V bias, open circuit) |
+
+Relabel the "V" and "Grd" terminals (tape) on every cable before wiring.
+The 1 µF in the circuit below keeps the 3.72 V off the discs and the
+outputs. One cable and one dongle measured; the other three cables not yet
+buzzed out, and the other dongles assumed the same until checked.
 
 ## Ideas for later (Roland, 2026-10-11) — not built
 
