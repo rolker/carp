@@ -112,7 +112,7 @@ Previously mentioned in notes but never costed as line items.
 
 | Item | Have? | Notes |
 |---|---|---|
-| Multimeter with DC current clamp | ? | Verify actual thruster draw against the 150 W spec without breaking the circuit |
+| Multimeter with DC current clamp | partly | The Extech EX430 came out of storage (Bench instruments, below), but it is not a clamp meter: its 10 A range measures in series, so the circuit has to be broken. A clamp is still wanted to check thruster draw against the 150 W spec |
 | Joystick / gamepad | ? | Needed for Phase 0 SITL |
 | Bike pump | ? | Leak testing |
 | Kitchen scale + bucket | ? | Thrust measurement, Phase 2 |
@@ -196,6 +196,51 @@ A printed cover is to be tested against this rule (2026-10-11,
 
 A part proven in PLA+ on the bench is a finished *design*, not a finished
 part: reprint it in PETG or ASA before it goes in the build.
+
+## Bench instruments (owned, from storage)
+
+Brought out of storage 2026-10-25 (Roland). They have been in storage, so
+**each one has to be checked before it is trusted**. They are owned, so they
+are not counted in the build totals. Status: `to check` → `works` /
+`needs repair` / `retired`. Check the multimeter first, because it is used to
+check the other two.
+
+| Item | Status | Use on CARP | Notes |
+|---|---|---|---|
+| Extech EX430 True RMS multimeter | to check | TRRS pinout, mic bias, piezo disc capacitance, resistor matching, general bench work | Autoranging, with a capacitance range. Not a clamp meter (see "Likely already owned") |
+| Extech 382213 DC power supply | to check | Current-limited first power-up of the Pixhawk, Bar30, Pololu 5 V and new boards; a supply for a piezo driver if one is ever added | Believed to be triple output (two 0–30 V / 3 A adjustable plus a fixed 5 V); confirm from the front panel. 3 A is too little to run an ESC, but enough to smoke-test one with the limit set low. Not needed for the dongles, which run off USB |
+| Rigol DS1052E oscilloscope, 50 MHz, 2 ch | to check | Drive amplitude on the transmit disc, receive signal, time of flight as a check on the software that doesn't depend on the dongle clocks, disc resonance (FFT or a stepped tone) | Probe ground is mains earth: clip it to circuit ground only. USB port for pulling waveforms to the computer; under WSL that needs `usbipd` |
+
+**Checks:**
+
+- **EX430:** fresh 9 V battery and every display segment lit; leads
+  without cracks, tips shorted read under ~0.5 Ω; fuses checked by
+  resistance from the V/Ω jack into the mA and A jacks (a low reading means
+  the fuse is good; replace a blown one with the rating the manual gives);
+  readings against known values: a new AA (1.5–1.6 V), the Pi USB-C
+  supply (5.1 V), kit resistors (5 %), kit capacitors (loose at the high
+  values); continuity beeper and diode mode.
+- **382213:** check the cord and plug and listen for loose parts before
+  plugging it in; with no load, turn each channel through its range and
+  check it against the EX430; set ~5 V with a ~100 mA limit, short the
+  output, and check that it goes to constant current and recovers; check it
+  holds under a real load (a 12 V bulb or power resistor, because the
+  ¼ W kit resistors are too small); ripple on the scope, AC coupled
+  (a few mV is fine, hundreds of mV of hum means tired filter capacitors).
+- **DS1052E:** boot and backlight (a dim or flickering screen means an
+  ageing CCFL, the usual failure); warm up ~30 min, then Utility →
+  Self-Calibration with the inputs disconnected; both probes set to ×10 and
+  compensated on the built-in 1 kHz square wave, on both channels; a DC
+  voltage read on the scope and on the EX430 should agree within a few
+  percent.
+
+**Results** (fill in as checked):
+
+| Instrument | Date | Result |
+|---|---|---|
+| EX430 | | |
+| 382213 | | |
+| DS1052E | | |
 
 ## Running totals
 
