@@ -126,7 +126,7 @@ Previously mentioned in notes but never costed as line items.
 | Item | Est $ | Notes |
 |---|---|---|
 | Parallel green line lasers | 20 | Scaling **and** altitude for optical flow. Green penetrates turbid water far better than red |
-| USB audio interface, 96–192 kHz multichannel | 100–200 | Acoustic ranging. CM6206-class does 96k stereo. Hold until the cheap dongle test (Ordered) shows the idea is worth it |
+| USB audio interface, 96–192 kHz multichannel | 100–200 | Acoustic ranging. CM6206-class does 96k stereo. Hold until the cheap dongle test (Ordered) shows the idea is worth it. The Edirol FA-101 found in storage (Bench instruments) may fill this for the bench, if a FireWire computer can be found |
 | Polyurethane potting resin for the piezo discs | 20 | Discs themselves are in Ordered (20 mm and 27 mm, 2026-10-10). Potting is for the wet stage only — not needed for the in-air bench test. Est was for discs + resin together |
 | 12 V LiFePO4 pack | 50 | Hotel only — BMS current limit rules out propulsion |
 | Single small diffuse light, potted | 20 | Shadowed-structure inspection; required for deeper sites (ADR-004) |
@@ -210,6 +210,7 @@ check the other two.
 | Extech EX430 True RMS multimeter | to check | TRRS pinout, mic bias, piezo disc capacitance, resistor matching, general bench work | Autoranging, with a capacitance range. Not a clamp meter (see "Likely already owned") |
 | Extech 382213 DC power supply | to check | Current-limited first power-up of the Pixhawk, Bar30, Pololu 5 V and new boards; a supply for a piezo driver if one is ever added | Digital triple output (Roland, 2026-10-25; specs from extech.com/products/382213): **adjustable 0–30 V / 0–3 A** with constant voltage / constant current and a current-limit LED; **fixed 5 V and fixed 12 V, each 0.5 A continuous, 1 A max**, with no settable limit (the page says only "overload and short circuit protection"). Ripple and noise < 5 mV; line and load regulation < 0.05 % + 10 mV; LCD meters, accuracy not listed. 3 A is too little to run an ESC, but the adjustable output can smoke-test one with the limit set low. The fixed 5 V at 0.5 A is too weak for the Pi 5. Not needed for the dongles, which run off USB |
 | Rigol DS1052E oscilloscope, 50 MHz, 2 ch | to check | Drive amplitude on the transmit disc, receive signal, time of flight as a check on the software that doesn't depend on the dongle clocks, disc resonance (FFT or a stepped tone) | Probe ground is mains earth: clip it to circuit ground only. USB port for pulling waveforms to the computer; under WSL that needs `usbipd` |
+| Edirol FA-101 audio interface | to check | Possibly the 96–192 kHz multichannel interface in Options, for the acoustic bench only: many inputs and outputs on **one clock**, which is what the dongles cannot promise | Found 2026-10-25 (Roland), used before for acoustics. **FireWire 400 (IEEE 1394a), not USB**: it needs a computer with a FireWire port or card, and WSL cannot reach one, so it would run on native Linux (ALSA `snd-bebob` or FFADO) or Windows. Not for the vehicle: the Pi 5 has no FireWire. Up to 24-bit / 192 kHz, with fewer channels at the higher rates (check the manual for the counts). The front mic inputs have phantom power: **keep phantom off** with a piezo disc connected |
 
 **Checks:**
 
@@ -233,6 +234,12 @@ check the other two.
   compensated on the built-in 1 kHz square wave, on both channels; a DC
   voltage read on the scope and on the EX430 should agree within a few
   percent.
+- **FA-101:** first find a computer it can plug into (FireWire port or
+  card, native Linux or Windows). Then: does it power up and show up as a
+  device; play and record at 48 kHz; then at the highest rate it offers and
+  how many channels it keeps there; loopback from an output to an input, on
+  the scope too; noise floor with the inputs open. Phantom power off for
+  all of it.
 
 **Results** (fill in as checked):
 
@@ -241,6 +248,7 @@ check the other two.
 | EX430 | | |
 | 382213 | | |
 | DS1052E | | |
+| FA-101 | | |
 
 ## Running totals
 
