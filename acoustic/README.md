@@ -289,6 +289,69 @@ The 1 µF in the circuit below keeps the 3.72 V off the discs and the
 outputs. One cable and one dongle measured; the other three cables not yet
 buzzed out, and the other dongles assumed the same until checked.
 
+### First loopback offset test (2026-10-25) — no signal recorded yet
+
+**Setup.** Pi 5 (`carp`), dongle on USB port `4-2` (card 0, "iStore
+Audio"), no desktop sound server on it. Loopback on the breadboard, no
+discs:
+
+```
+ L ──[100 Ω]──●A──[100 kΩ]──●B──[1 µF]──●── Grd terminal (mic in, sleeve)
+ V terminal (ground, ring 2) ── ground rail      R ── not connected
+```
+
+100 kΩ instead of the 1 MΩ in the proposed circuit above: with no disc on
+node B, 1 MΩ into the mic input's low resistance would be very faint. The
+1 µF is a ceramic marked 105 that measures 0.83 µF.
+
+**Mixer** (`duplex_check.py --device 4-2 --mixer`): PCM Playback Switch on,
+PCM Playback Volume 11370 (of 0..11520), Mic Capture Switch on, Mic Capture
+Volume 8191 (of 0..8191, the maximum). No AGC or mic monitor controls.
+
+**Runs** (`duplex_check.py --device 4-2 --offset-test --minutes 1 --channel
+left`, −20 dBFS), raw input kept on the Pi under
+`acoustics_lab/runs/hardware/`:
+
+- `20261025_184636_Audio_offset`: 93 of 120 pings not found; arrival
+  **−94 dBFS**, below one 16-bit step, so effectively silence. The figures it
+  printed (offset 3990 samples = 83 ms, spread ±4.2 samples, clock −65 ppm
+  against the system clock, no dropouts) are not meaningful with no signal.
+- `20261025_190415_Audio_offset`: only 2 of 120 usable.
+
+**Fault-finding with the DS1052E** (ground clip on the ground rail):
+
+- Bias on the Grd terminal: present (+3.72 V measured earlier with the
+  meter), so the cable reaches the dongle's mic contact.
+- Chirp bursts seen at node A. The 20 ms chirp every 0.5 s is awkward to
+  trigger on; a continuous tone is easier:
+  `speaker-test -D plughw:0 -c 2 -t sine -f 1000`.
+- With that tone: **node A about 2.5 V peak-to-peak** (playback volume
+  11370). Node B barely above the scope's noise (×10 probe, ~15–20 mV).
+  With the capacitor lifted, **node B rises to 2.36 V**: the 100 kΩ is
+  fine, and the mic input is a low-resistance load (likely 1–2 kΩ),
+  which divides the 2.5 V down to roughly 25–50 mV at the mic. **The signal
+  reaches the mic input**, and that much should record loudly at maximum
+  capture gain.
+
+**Open question:** does the dongle record what reaches its mic? Next steps:
+
+1. With the tone playing, record from the same dongle and print the level:
+   `arecord -D plughw:0 -f S16_LE -r 48000 -c 1 -d 5 /tmp/tone.wav`, then
+   peak and RMS in dBFS (numpy, `wave`).
+2. Loud (around −30 to 0 dBFS): the dongle hears, and the problem is in how
+   `duplex_check` plays or finds the chirp: compare the two raw `input.wav`
+   files above.
+3. Near −90 dBFS: the dongle is ignoring its mic, likely mic detection (a
+   headset jack that stays muted until the mic line is loaded). Add **4.7 kΩ
+   from the Grd terminal to the ground rail** (bias should drop to about
+   1–2 V) and record again; if the level then lands below −40 dBFS in the
+   offset test, lower the 100 kΩ to 47 k or 22 k.
+4. Once a ping arrives between about −40 and −6 dBFS, rerun the 1-minute
+   offset test, then `--minutes 5`, then the other dongles.
+
+To see the small signal at Grd on the scope: Acquire → Average (16–32), BW
+Limit on, AC coupling.
+
 ## Ideas for later (Roland, 2026-10-11) — not built
 
 - Top-level tabs for the tools: Noise and Data as their own tabs, not
