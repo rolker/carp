@@ -257,6 +257,11 @@ Owned, found 2026-10-25 (Roland). Not counted in the build totals.
 | Item | Status | Notes |
 |---|---|---|
 | Elenco CK-1000 component kit | in hand, contents not yet checked against the label | Label lists: ¼ W 5 % resistors 10 Ω–1 MΩ (5 each, includes 100 k, 220 k, 470 k, 1 M); trim pots 500 Ω–1 MΩ; ceramic disc 2.2–680 pF; Mylar film 0.001–0.33 µF; 50 V radial electrolytics 1–1000 µF; diodes incl. 1N4148, 1N4001 and Zeners; 2N2222A, 2N2907, 2N3904, 2N3906, 2N3055, 2N5457 (JFET); LM386, NE555, 741, CD4013, 4017, 7805, 7812, 74LS logic; inductors, 5 V relay, condenser microphone, 8 Ω speaker, buzzer, switches, alligator clips, 22 ga solid wire (5 colours). Useful on the acoustic bench: **1 MΩ trim pot** for setting the loopback level instead of swapping 1 M / 470 k / 100 k; **1N4148s** to clamp the mic input; the **condenser mic** to hear what a transmit disc puts into the air; **LM386** as a stronger disc driver or receive gain stage if the dongle is too weak (the 741 is too slow above ~10 kHz); **22 ga solid wire** for the breadboard, where the 30 AWG stranded is too limp |
+| Arduino Mega 2560 | to check | 5 V AVR board. On the bench: drives the AD9835 over SPI, fires HC-SR04 pings, generates servo / ESC pulses, and gives a hardware trigger for the scope. Its ADC is too slow and coarse to record the discs |
+| HC-SR04 ultrasonic ranger | to check | 40 kHz air ranging module, 5 V. An independent distance check in air to compare with the disc ranging, and a pair of real ultrasonic transducers to look at on the scope. 40 kHz is above what a 48 kHz dongle can record (24 kHz max) |
+| Parallax standard servo | to check | Bench load for checking Pixhawk servo outputs (Phase 1) and the RC servo tester before anything drives an ESC |
+| SparkFun AD9835 breakout | to check | DDS signal generator, programmed over SPI (from the Mega). A clean sine at any frequency for **sweeping disc resonance**, including above the dongle's 24 kHz limit, and for driving the HC-SR04 transducers at 40 kHz. Output is small: watch it on the scope, and add the LM386 or a transistor stage if a disc needs more drive |
+| SparkFun 6DOF IMU v4 | to check | Old Bluetooth IMU board. Not for the vehicle (the Pixhawk's IMUs are better); curiosity or learning only |
 
 ## Running totals
 
