@@ -260,6 +260,23 @@ thing the loopback offset test should show. The checks above still apply;
 the hardware tools now live in `../acoustics_lab/` (`tools/duplex_check.py`,
 `docs/hardware-layer.md`).
 
+**TRRS screw-terminal cable, buzzed out (Roland, 2026-10-25), one cable:**
+
+| Terminal label | Plug contact |
+|---|---|
+| L | tip |
+| R | ring 1 (next to the tip) |
+| V | ring 2 |
+| Grd | sleeve |
+
+So the labels follow the plug, but they assume the older OMTP layout (mic
+on ring 2, ground on the sleeve). Most current gear is CTIA, with **ground on
+ring 2 and the mic on the sleeve**: on a CTIA dongle the terminal marked
+"V" would be ground and "Grd" would be the mic. Which one the dongle uses
+is the next measurement: plug the cable into a dongle and measure DC
+between V and Grd. The mic bias (a few volts) is positive on the mic
+contact. The other three cables not yet checked.
+
 ## Ideas for later (Roland, 2026-10-11) — not built
 
 - Top-level tabs for the tools: Noise and Data as their own tabs, not
