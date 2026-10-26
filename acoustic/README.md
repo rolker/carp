@@ -333,7 +333,8 @@ left`, −20 dBFS), raw input kept on the Pi under
   reaches the mic input**, and that much should record loudly at maximum
   capture gain.
 
-**Open question:** does the dongle record what reaches its mic? Next steps:
+**Answered below:** the dongle records its mic, but mutes it while its
+left output plays. The plan that followed at the time:
 
 1. With the tone playing, record from the same dongle and print the level:
    `arecord -D plughw:0 -f S16_LE -r 48000 -c 1 -d 5 /tmp/tone.wav`, then
@@ -351,6 +352,76 @@ left`, −20 dBFS), raw input kept on the Pi under
 
 To see the small signal at Grd on the scope: Acquire → Average (16–32), BW
 Limit on, AC coupling.
+
+### Found (2026-10-25, evening): the dongle mutes its mic while L plays
+
+Tests by recording a tone played on the same dongle and then from a
+second dongle (card 3, port `2-2`, its playback volume raised from 6400 to
+11370 to match). Raw recordings were in the session scratchpad, not kept.
+
+- **Step 1 (tone on L, record):** the 1 kHz came back at −106 dBFS, with
+  only low-frequency junk (18–130 Hz) and a floor so low a quarter of the
+  samples were exactly zero. **Step 3 (4.7 kΩ from Grd to ground):** no
+  change, and not the cause; to be removed for the tests below.
+- 300 ms bursts on L came through at −56 to −59 dBFS for their first
+  ~100 ms, then vanished.
+- **Second dongle's L into this dongle's mic** (same 100 Ω / 100 kΩ /
+  1 µF network, grounds joined): steady 1 kHz at −27 dBFS, settling to
+  −42 dBFS within a second (a ~15 dB slow gain change on steady tones) and
+  staying there. 300 ms bursts at −25 dBFS throughout. 20 ms chirps 42–52 dB
+  above the matched-filter noise.
+- With the second dongle still feeding the mic: **this dongle playing
+  1.5 kHz on L muted it** (about −94); playing 1.5 kHz on R, or silence,
+  left it open.
+
+So the mic is shut while there is sound on the left output, whatever the
+sound: speakerphone-style ducking, not noise suppression and not a canceller
+matched to the signal. The right output does not trigger it. There is no
+mixer control for it. **On these dongles, only R can transmit while the
+same dongle listens**, which rules out two transmitters per dongle (L and
+R) in the proposed layout.
+
+**Loopback moved to R** (`R ──[100 Ω]──[100 kΩ]──[1 µF]── Grd`, L not
+connected). Dongle 1's own R tone arrives at −27 dBFS, the same as from
+the other dongle; R bursts come through whole.
+
+Offset test, `duplex_check.py --device 4-2 --offset-test --minutes 1
+--channel right` (`runs/hardware/20261025_201557_Audio_offset`):
+
+- **120 of 120 pings found**, none missed, no dropouts.
+- Offset 3994.87 samples (83.23 ms), spread **0.86 sample (18 µs, ~6 mm
+  of air)**, worst ±3.2 samples. Drift 0.1 ppm over the minute: input and
+  output stay locked on one dongle. Device clock −37.6 ppm against the Pi.
+- It printed "ping arrives weak (−83 dBFS)", but that figure is on the
+  matched-filter scale. Measured in the recording: ping peak about
+  −63 dBFS above 1.5 kHz against −100 dBFS between pings, ~35 dB SNR.
+- **The mic path cuts off above about 8 kHz.** Spectrum of the averaged
+  ping (the test's 10 ms 2–20 kHz chirp), relative to its best band: 1–3
+  kHz −31 dB, 3–5 −14, 5–7 0, 7–9 −27, above 9 kHz about −43. The chirp
+  has a full Hann taper, so it was sent strongest near 11 kHz and weak at
+  both ends: the fall above 8 kHz is the dongle, the weak low end is
+  partly the taper. The chip probably samples the mic at 16 kHz
+  internally.
+
+**Chirp kept to 3–8 kHz** (`duplex_check.py` gained `--f0`/`--f1`; the
+band is saved with each run and used again by `--reanalyse`). Same
+loopback, level and settings, `--f0 3000 --f1 8000`:
+
+| Run | Chirp | Found | Offset mean | Spread | Worst | SNR |
+|---|---|---|---|---|---|---|
+| `20261025_201557` | 2–20 kHz | 120/120 | 3994.87 | 0.86 | ±3.2 | ~35 dB |
+| `20261025_202321` | 3–8 kHz | 120/120 | 3972.81 | **0.033** | ±0.17 | 54–60 dB |
+| `20261025_202444` | 3–8 kHz | 120/120 | 4041.09 | **0.028** | ±0.11 | |
+
+Offsets in samples. With the energy where the dongle passes it, the spread
+is 0.6 µs (0.2 mm of air) and drift 0.003 ppm. **But the offset changes
+each time the stream opens** (by 68 samples between the two 3–8 kHz
+runs), while it holds to a few hundredths of a sample within a stream. A
+fixed turnaround therefore has to be measured on each stream open, which
+the loopback copy in every recording already gives.
+
+Next: `--minutes 5`, then the other dongles (each one's R, ducking and
+band assumed the same until checked).
 
 ## Ideas for later (Roland, 2026-10-11) — not built
 
