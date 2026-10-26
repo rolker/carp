@@ -76,6 +76,10 @@ def parse_args(argv=None):
     p.add_argument("--pulses", type=int, default=40,
                    help="replies to collect in the schedule test (default 40)")
     p.add_argument("--ping", default="chirp", choices=["chirp", "click"])
+    p.add_argument("--f0", type=float, default=2000.0,
+                   help="chirp start frequency, Hz (default 2000)")
+    p.add_argument("--f1", type=float, default=20000.0,
+                   help="chirp end frequency, Hz (default 20000)")
     p.add_argument("--rate", type=float, help="sample rate, Hz (default: the device's)")
     p.add_argument("--block", type=int, default=512,
                    help="frames per callback (default 512)")
@@ -298,6 +302,8 @@ def print_plan(args, device, card, out):
         pings = int(args.minutes * 60 / args.interval)
         print(f"  test:     offset test, {pings} {args.ping} pings every "
               f"{args.interval:g} s for {args.minutes:g} min", file=out)
+    if args.ping == "chirp" and (args.offset_test or args.schedule_test):
+        print(f"  chirp:    {args.f0 / 1000:g}-{args.f1 / 1000:g} kHz", file=out)
     if args.schedule_test:
         print(f"  test:     schedule test, {args.pulses} replies at a "
               f"{args.tat * 1000:.0f} ms turnaround", file=out)
@@ -562,11 +568,12 @@ def run(args, out, session):
             tests.append(lambda: checks.run_offset_test(
                 device, args.minutes * 60, args.level, args.channel,
                 args.interval, args.ping, _progress(out), lambda: bool(stopped),
-                design=design))
+                design=design, f0=args.f0, f1=args.f1))
         if args.schedule_test:
             tests.append(lambda: checks.run_schedule_test(
                 device, args.tat, args.pulses, args.level, args.channel,
-                args.ping, _progress(out), lambda: bool(stopped), design=design))
+                args.ping, _progress(out), lambda: bool(stopped), design=design,
+                f0=args.f0, f1=args.f1))
         for run in tests:
             result = run()
             print("", file=out)

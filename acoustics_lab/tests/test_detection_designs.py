@@ -292,6 +292,22 @@ def test_analysing_a_saved_run_with_the_same_design_gives_the_same_offsets(tmp_p
         live.summary["offset_mean_samples"], abs=0.05)
 
 
+def test_a_chirp_band_is_saved_and_used_again(tmp_path):
+    with dongle(noise_rms=3.0) as dev:
+        live = checks.run_offset_test(dev, 10, f0=3000.0, f1=8000.0)
+    assert live.summary["chirp_hz"] == [3000.0, 8000.0]
+    folder = checks.save(live, str(tmp_path), "f")
+    raw = checks.load_run(folder)
+    assert raw.meta["chirp_hz"] == [3000.0, 8000.0]
+    again = checks.reanalyse_offset(raw)
+    assert again.summary["chirp_hz"] == [3000.0, 8000.0]
+    assert again.summary["used"] == live.summary["used"] > 0
+    assert again.summary["offset_mean_samples"] == pytest.approx(
+        live.summary["offset_mean_samples"], abs=0.05)
+    del raw.meta["chirp_hz"]                       # a run saved before the band was
+    assert checks.reanalyse_offset(raw).summary["chirp_hz"] == [2000.0, 20000.0]
+
+
 def test_another_design_changes_what_the_same_recording_says(tmp_path):
     # An echo 60 samples later and twice as strong as the direct sound.
     with dongle(noise_rms=2.0, echoes=[(60.0, 2.0)]) as dev:

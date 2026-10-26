@@ -323,18 +323,20 @@ def _assign(arrivals, plan, rows, stray, progress, total):
 
 def run_offset_test(device, seconds, level_db=-20.0, channel="left",
                     interval=0.5, ping="chirp", progress=None,
-                    should_stop=lambda: False, settle=None, design=DEFAULT):
+                    should_stop=lambda: False, settle=None, design=DEFAULT,
+                    f0=2000.0, f1=20000.0):
     """Ping every `interval` s for `seconds`, find each loopback copy and
     measure the offset from its scheduled output sample.
 
     The device must be started. progress(done, total) is called per ping.
     `design` is the detection design (settle time, thresholds, grouping);
-    `settle` overrides its settle time. The raw input is kept in the
-    result's `raw`, so the same test can be analysed again with another
-    design (`reanalyse_offset`). Returns a TestResult.
+    `settle` overrides its settle time. f0 and f1 are the chirp's start and
+    end frequencies. The raw input is kept in the result's `raw`, so the
+    same test can be analysed again with another design
+    (`reanalyse_offset`). Returns a TestResult.
     """
     rate = device.rate
-    template = make_ping(rate, ping)
+    template = make_ping(rate, ping, f0, f1)
     gain = 10 ** (level_db / 20)
     total = max(1, int(seconds / interval))
     step = max(1, int(round(interval * rate)))
@@ -366,7 +368,8 @@ def run_offset_test(device, seconds, level_db=-20.0, channel="left",
             row.xrun = True
     result = _offset_result(device, rows, template, level_db, channel, interval,
                             ping, stray, time.monotonic() - wall0, check, design)
-    result.raw = _raw(recorder, device, "offset", design, ping=ping,
+    result.summary["chirp_hz"] = [f0, f1]
+    result.raw = _raw(recorder, device, "offset", design, ping=ping, chirp_hz=[f0, f1],
                       level_dbfs=level_db, channel=channel, interval_s=interval,
                       plan=plan, detector_start=detector_start,
                       scheduled_late=[r.k for r in rows if "late" in r.note],
@@ -509,7 +512,8 @@ def reanalyse_offset(raw, design=DEFAULT, step=2048):
     device = RecordedDevice(raw)
     rate = device.rate
     ping = meta["ping"]
-    template = make_ping(rate, ping)
+    f0, f1 = meta.get("chirp_hz", (2000.0, 20000.0))    # runs before the band was saved
+    template = make_ping(rate, ping, f0, f1)
     plan = list(meta["plan"])
     rows = [PingRow(k, s) for k, s in enumerate(plan)]
     for k in meta.get("scheduled_late", []):
@@ -541,6 +545,7 @@ def reanalyse_offset(raw, design=DEFAULT, step=2048):
     result = _offset_result(device, rows, template, meta["level_dbfs"],
                             meta["channel"], interval, ping, stray,
                             meta.get("wall_s", 0.0), check, design)
+    result.summary["chirp_hz"] = [f0, f1]
     result.summary["reanalysis"] = True
     return result
 
@@ -655,15 +660,16 @@ class ReplyRow:
 
 def run_schedule_test(device, tat, pulses=40, level_db=-20.0, channel="left",
                       ping="chirp", progress=None, should_stop=lambda: False,
-                      settle=None, design=DEFAULT):
+                      settle=None, design=DEFAULT, f0=2000.0, f1=20000.0):
     """Chain `pulses` replies: each loopback arrival schedules the next
-    pulse at arrival + N samples, N = tat * rate rounded.
+    pulse at arrival + N samples, N = tat * rate rounded. f0 and f1 are the
+    chirp's start and end frequencies.
 
     The first pulse is a seed at a known output sample; after a miss or a
     late schedule the chain is seeded again. Returns a TestResult.
     """
     rate = device.rate
-    template = make_ping(rate, ping)
+    template = make_ping(rate, ping, f0, f1)
     gain = 10 ** (level_db / 20)
     n_tat = int(round(tat * rate))
     block = device.frames_per_buffer
@@ -724,7 +730,8 @@ def run_schedule_test(device, tat, pulses=40, level_db=-20.0, channel="left",
     result = _schedule_result(device, rows, template, level_db, channel, tat,
                               n_tat, ping, seeds, late, lost,
                               time.monotonic() - wall0, started, check, design)
-    result.raw = _raw(recorder, device, "schedule", design, ping=ping,
+    result.summary["chirp_hz"] = [f0, f1]
+    result.raw = _raw(recorder, device, "schedule", design, ping=ping, chirp_hz=[f0, f1],
                       level_dbfs=level_db, channel=channel, tat_s=tat,
                       input_check_window=check.get("window"))
     return result
