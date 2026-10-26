@@ -168,7 +168,9 @@ both transmitters reply with a TAT for each receiver.
 - Pi has **no ADC at all**; its PWM audio out is unsuitable for driving a
   transducer
 - USB interface with genuinely synchronous multichannel input at 96 or 192 kHz.
-  CM6206-class does 96k stereo; Scarlett-class does better
+  (CM6206 records at only 48 kHz, checked 2026-10-25; Scarlett-class does better).
+  Headset-chip USB dongles are not enough: on the bench they muted the mic
+  while one output played and passed only up to ~8 kHz (`acoustic/README.md`)
 - 27 mm piezo discs potted in polyurethane — they work far better underwater
   than they have any right to
 - High-impedance preamp per channel, small amp for transmit
