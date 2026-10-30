@@ -168,7 +168,7 @@ ping.
 - Disc-to-disc sensitivity and phase spread, which sets how much sidelobe
   performance survives without calibration.
 - Ring-down time of a potted disc, which sets the minimum range.
-- Whatever the UCA222 bench shows (arriving 2026-10-31): bandwidth, offset
+- Whatever the UCA222 bench shows (received, not yet tested): bandwidth, offset
   stability, crosstalk between its two inputs.
 - Whether a line input with a JFET buffer is sensitive enough, or the
   mic-preamp class of input is needed.
