@@ -7,6 +7,8 @@ bought; `later` = deliberate deferral.
 
 ## Ordered
 
+### ROV
+
 | Item | Qty | Source | Est $ | Paid $ | Status | Notes |
 |---|---|---|---|---|---|---|
 | Radiolink Pixhawk Advanced | 1 | RobotShop | 60 | 159.82 | received | FMUv2 / STM32F427. **Not** the Radiolink Pixhawk 4 — that one is ArduPilot-incompatible (proprietary binaries, wrong connectors). Shipped separately, +8.92 shipping |
@@ -45,6 +47,23 @@ bought; `later` = deliberate deferral.
 | uxcell FFC 22-pin 0.5 mm **Type B**, 500 mm, 5 pcs | 1 | Amazon (uxcell) | 7 | 6.47 | received | 2026-09-26, arriving Tue 2026-09-29. Bench, mock-up and fixture cables plus spares — generous enough to connect cameras without fighting for slack. Plain unshielded FFC: the vehicle gets the shortest length that reaches once the sled/bay order is drawn (pending row below) |
 | Raspberry Pi 5 Active Cooler (official) | 1 | Amazon (UeeKKoo, 3rd party) | — | 10.95 | received | 2026-09-27, arriving 2026-09-28. ~$5 list — third-party premium, so check it is genuine on arrival. **Fitted 2026-10-10.** ADR-015 re-run with it: 1080p10 holds 50–51 °C (was 64–66 uncooled), 1080p20 holds under 60 °C. Moves SoC heat into the hull air, not out of the hull — pairs with an air-stirring fan or a conduction path (`sled.md`). Clears the M.2 HAT+ (its standoffs are sized for it). Push-pins and pad are one-use-ish: fit it once. Fan speed control works under stock Ubuntu 24.04 (`pwm-fan`, starts at 50 °C, steps up at 60) |
 | iRasptek 27 W 5.1 V / 5 A USB-C PD supply | 1 | Amazon (iRasptek) | — | 10.99 | received | 2026-09-27, arriving 2026-09-28. **Bench only** — the vehicle Pi runs from the Pololu off the hotel pack. Fixes the undervoltage the Pi hit on a 4.9 V supply during the build (ADR-017); 5 A lets the Pi 5 run USB peripherals at full current |
+
+**ROV ordered subtotal: est ~$1,243 (+6 unestimated adds) · paid $1,782.33.**
+The 36 rows above sum to $1,766.91 in item prices; the other $15.42 is
+shipping on the RobotShop orders ($140.69 + $168.74 incl. shipping, items
+$300.51) and the Blue Robotics order ($54.94 incl. shipping, items $48.44).
+Amazon rows are per-item prices with free shipping (per-order figures in git
+history). Reconciled against the rows 2026-10-30.
+
+### Acoustic bench
+
+Bench test of acoustic ranging (`navigation.md` Method 4; code and findings
+in `acoustic/README.md`). Nothing here goes on the vehicle yet, so it is
+totaled separately and kept out of the build cost. All bought without
+estimates.
+
+| Item | Qty | Source | Est $ | Paid $ | Status | Notes |
+|---|---|---|---|---|---|---|
 | QimKero USB-A → 3.5 mm TRRS sound card dongle, 2-pack | 2 pk | Amazon (QimKero) | — | 13.88 | received | 2026-10-10, received 2026-10-12. 6.94 per pack — **4 dongles**. Cheap-parts bench test of the acoustic ranging idea (`navigation.md` Method 4) before spending on the 96–192 kHz interface in Options. Female TRRS jack: stereo out + mono mic in per dongle. **Seen on arrival (two plugged in, read-only):** USB `001f:0b21` "Generic iStore Audio", full-speed USB; **48 kHz only**, 16-bit, 2 out / 1 in; mixer is just PCM playback switch + volume and Mic capture switch + volume (no auto gain, no mic monitor). **Every unit reports the same serial number**, so only the USB port tells them apart — label them and keep each in its socket. USB descriptors: output endpoint *adaptive* (follows the host's USB clock), input *asynchronous* (the dongle's own clock) — whether output and input on one dongle stay locked is for the loopback offset test. **TRRS (2026-10-25): CTIA**, ground on ring 2, mic on the sleeve, mic bias **+3.72 V** open circuit (one dongle; `acoustic/README.md`). The screw-terminal cables' "V" and "Grd" labels are therefore swapped for these dongles. **Still to check:** loopback offset test; the other two dongles |
 | XMSJSIY 3.5 mm TRRS male → 4-pin screw-terminal cable, 32 cm, 2-pack | 2 pk | Amazon (Sissel's Store) | — | 17.20 | received | 2026-10-10 (two orders, 8.60 each), received; confirmed by Roland 2026-10-25 as 2 × 2-packs, so 4 cables in hand (arrival date not recorded). Was arriving 2026-10-11. **4 cables**, 4-pole male plug per the listing ("trrs male" variant) — matches the dongles' female jack. Solderless hookup from the dongles to the breadboard for the acoustic bench test. **Check on arrival:** which terminal is tip / ring 1 / ring 2 / sleeve — buzz it out, don't trust the labels |
 | EDGELEC Dupont jumper wire kit, 120 pcs, 20 cm | 1 | Amazon (EDGELEC) | — | 6.98 | received | 2026-10-10, received; confirmed by Roland 2026-10-25 (arrival date not recorded). Was arriving 2026-10-11. Breadboard hookup for the acoustic bench test. Assorted kit — presumably M-M / M-F / F-F, confirm on arrival. 20 cm loose leads pick up noise on the small receive signals: keep the mic-input side short and away from the transmit wiring |
@@ -57,13 +76,11 @@ bought; `later` = deliberate deferral.
 | Behringer U-Control UCA222 USB audio interface | 2 | online (order L2164368188) | — | 49.80 | ordered | 2026-10-25, 24.90 each, free shipping, arriving Sat 2026-10-31. Replaces the QimKero dongles for the acoustic bench: those are headset chips that **mute the mic while L plays** and **pass only up to ~8 kHz** on the mic input (`acoustic/README.md`, 2026-10-25). The UCA222 is a general-purpose codec (PCM2902 or the CoolAudio V2902 clone, which varies by unit), **stereo line in and stereo line out on one clock**, 16-bit / 48 kHz: should record flat to ~20 kHz, enough for the 8–20 kHz chirp in `navigation.md`, with no ducking. Same box as the UCA202 in red. RCA jacks: needs RCA-to-wire leads for the breadboard. Line input is low impedance compared with a piezo, so a disc will probably need a buffer (2N5457 JFET in the CK-1000 kit). **Check on arrival:** chip marking if visible; `duplex_check --list`; loopback on each output into each input; frequency sweep for where each input cuts off; offset test; whether playing on one output affects recording |
 | exgoofit RCA male plug to screw terminal, 10-pack | 1 | Amazon (Exgoofit) | — | 5.80 | ordered | 2026-10-25, arriving Wed 2026-10-28. Solderless hookup from the UCA222's RCA jacks to the breadboard: 10 plugs covers both boxes' 2 in + 2 out with two spare. Each plug has two terminals, centre pin (signal) and outer shell (ground): **check which is which with the meter** before wiring, and tug-test the wires — 30 AWG stranded is thin for these screws, so use the 22 ga solid or tin the ends |
 
-**Ordered subtotal: est ~$1,237 (+15 unestimated adds) · paid $1,869.33
-(Amazon orders through 2026-08-20 + RobotShop $140.69 + $168.74 incl.
-shipping + Blue Robotics $54.94 incl. shipping + uxcell cables $6.47,
-2026-09-26 + Active Cooler and bench PSU $21.94, 2026-09-27 + acoustic
-bench-test parts $87.00 across six orders, net of two cancelled items,
-2026-10-10 — per-order
-figures in git history).**
+**Acoustic bench subtotal: paid $142.60** ($87.00 across six Amazon orders
+2026-10-10, net of two cancelled items, + $55.60 on 2026-10-25: the UCA222
+pair $49.80 and RCA plugs $5.80; all free shipping). Related and not yet
+bought, in Options / later: potting resin (~$20) and the 96–192 kHz
+interface ($100–200).
 
 ## Core, pending
 
@@ -269,17 +286,23 @@ Owned, found 2026-10-25 (Roland). Not counted in the build totals.
 
 | | Est $ | Paid $ |
 |---|---|---|
-| Ordered | ~1,237 | 1,869.33 |
+| Ordered — ROV | ~1,243 | 1,782.33 |
+| Ordered — acoustic bench | — | 142.60 |
 | Core pending | ~205–310 | |
 | Small parts pending | ~115 | |
 | Field gear pending | ~55 | |
-| **Paid + pending (6 thrusters, no options)** | **~$2,245–2,350** | |
+| **ROV build: paid + pending (6 thrusters, no options)** | **~$2,155–2,260** | |
+| **Everything incl. acoustic bench** | **~$2,300–2,405** | |
 | Shop tooling (excluded from above) | | 407.32 out of pocket (483.37 list) |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
-build (≈4×). The projection is Paid ($1,869.33, a known number) plus pending
-estimates ($375–480); ordered items ran ~25% over their estimates, so pending
-items may too. (Corrected 2026-08-20 per design review M1 — the earlier
+build (≈4×). The projection is ROV Paid ($1,782.33, a known number) plus
+pending estimates ($375–480); the estimated ordered items ran ~30% over
+their estimates ($1,604 paid against ~$1,243 est), so pending items may
+too. (Corrected 2026-08-20 per design review M1 — the earlier
 "$1,550–1,700" summary mixed estimates for items whose real prices were
 already known. Pending re-totaled after review 2 added the compass, spare
-dome, and spare XT90-S.)
+dome, and spare XT90-S. Split 2026-10-30: the acoustic bench has its own
+table and stays out of the build total; the earlier $1,869.33 "Ordered"
+figure included the $87.00 of 2026-10-10 acoustic parts but not the
+$55.60 of 2026-10-25.)
