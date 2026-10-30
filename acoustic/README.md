@@ -20,6 +20,7 @@ sudo apt install python3-numpy python3-scipy python3-pyaudio python3-matplotlib
 | `loopback_test.py` | Stage 1: time of flight on one sound device |
 | `plot_runs.py` | Plots of saved recordings: one ping in detail, or many side by side |
 | `test_ranging_dsp.py` | Checks on simulated recordings: `python3 test_ranging_dsp.py` |
+| `array_patterns.py` | Beam patterns of candidate topside arrays for `docs/topside-head.md`: `python3 array_patterns.py` |
 
 ## Stage 1: one dongle, loopback plus a disc pair
 

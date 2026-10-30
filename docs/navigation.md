@@ -175,6 +175,9 @@ both transmitters reply with a TAT for each receiver.
   than they have any right to
 - High-impedance preamp per channel, small amp for transmit
 - ~$100–200 total
+- Further out: the topside cross filled into a 32-channel multibeam/tracking/comms
+  head on one PoE cable, `topside-head.md` (idea, after ROV 1.0 and Tracking 1.0;
+  its §2 lists what Tracking 1.0 should fix so the door stays open)
 
 ### Three things that will bite
 

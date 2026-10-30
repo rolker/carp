@@ -55,6 +55,7 @@ docs/
   bringup-checklist.md  Bench acceptance tests before anything is sealed
   field-checklist.md    Dive-day card: night-before, launch, in-water, after
   navigation.md         Downline method, scaling lasers, acoustic ranging
+  topside-head.md       Idea, post-1.0: one PoE head for multibeam, tracking and acoustic comms
   open-questions.md     Unresolved decisions
   prior-art.md          Survey of other cheap ROV builds, distilled lessons
 params/

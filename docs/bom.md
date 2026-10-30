@@ -145,7 +145,7 @@ Previously mentioned in notes but never costed as line items.
 | Item | Est $ | Notes |
 |---|---|---|
 | Parallel green line lasers | 20 | Scaling **and** altitude for optical flow. Green penetrates turbid water far better than red |
-| USB audio interface, 96–192 kHz multichannel | 100–200 | Acoustic ranging. CM6206 records at only 48 kHz (96 kHz is playback only, per its datasheet and listings, checked 2026-10-25). Hold until the cheap dongle test (Ordered) shows the idea is worth it. The Edirol FA-101 found in storage (Bench instruments) may fill this for the bench, if a FireWire computer can be found |
+| USB audio interface, 96–192 kHz multichannel | 100–200 | Acoustic ranging. CM6206 records at only 48 kHz (96 kHz is playback only, per its datasheet and listings, checked 2026-10-25). Hold until the cheap dongle test (Ordered) shows the idea is worth it. The Edirol FA-101 found in storage (Bench instruments) may fill this for the bench, if a FireWire computer can be found. The post-1.0 alternative is a home-built 32-channel digitizer at the array, `topside-head.md` §7, est. $310–600 |
 | Polyurethane potting resin for the piezo discs | 20 | Discs themselves are in Ordered (20 mm and 27 mm, 2026-10-10). Potting is for the wet stage only — not needed for the in-air bench test. Est was for discs + resin together |
 | 12 V LiFePO4 pack | 50 | Hotel only — BMS current limit rules out propulsion |
 | Single small diffuse light, potted | 20 | Shadowed-structure inspection; required for deeper sites (ADR-004) |
