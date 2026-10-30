@@ -271,7 +271,7 @@ check the other two.
 
 ### Parts from storage
 
-Owned, found 2026-10-25 (Roland). Not counted in the build totals.
+Owned, found 2026-10-25 and 2026-10-30 (Roland). Not counted in the build totals.
 
 | Item | Status | Notes |
 |---|---|---|
@@ -281,6 +281,7 @@ Owned, found 2026-10-25 (Roland). Not counted in the build totals.
 | Parallax standard servo | to check | Bench load for checking Pixhawk servo outputs (Phase 1) and the RC servo tester before anything drives an ESC |
 | SparkFun AD9835 breakout | to check | DDS signal generator, programmed over SPI (from the Mega). A clean sine at any frequency for **sweeping disc resonance**, including above the dongle's 24 kHz limit, and for driving the HC-SR04 transducers at 40 kHz. Output is small: watch it on the scope, and add the LM386 or a transistor stage if a disc needs more drive |
 | SparkFun 6DOF IMU v4 | to check | Old Bluetooth IMU board. Not for the vehicle (the Pixhawk's IMUs are better); curiosity or learning only |
+| Bottom Line EZ 4400 fishfinder, head unit + transducer + manual | to check | Donated years ago, first looked at 2026-10-30 (manual p. 34 photographed). **200 kHz**, 400 W peak-to-peak / 50 W RMS output, transducer cone 18° at −3 dB (implies a ~24 mm piston), 12 V DC at 0.5 A, 250 ft max depth, 44 × 80 dot LCD, no data output. **The transducer is the prize:** a potted, cabled, resonant 200 kHz element — the transmit disc for a 200 kHz disc array (`topside-head.md` discussion; a pencil, not a fan), a loud known source for testing whether small off-resonance receive discs can hear 200 kHz, and with a preamp a reference 200 kHz receiver. The head is a working 200 kHz pinger and an independent depth reference for the kayak, if it powers up. **Check first:** transducer capacitance (expect ~1 nF) and insulation to the shield with the EX430; resonance and Q by AD9835 sweep on the scope, in a bucket; then current-limited power-up of the head at 12 V on the 382213 with the limit low. **Caution:** the head drives the transducer at ~400 V — never connect the transducer to a low-voltage input while the head is powered |
 
 ## Running totals
 
