@@ -432,7 +432,7 @@ RCA screw plugs; the unused input left open. Mixer at PCM 108 (−20 dB), the
 only control ALSA shows: no capture gain or AGC. Offset runs are in
 `acoustics_lab/runs/hardware/` (`*CODEC*_offset`), sweeps in `runs/sweep-*`;
 the ducking and cross-box recordings were in the session scratchpad, not
-kept.
+kept; their scripts are here.
 
 **Loopback, 2–20 kHz chirp, −20 dBFS, `--rate 48000`.** Every run with the
 wire on the input being recorded found all its pings, with no dropouts or
@@ -509,6 +509,19 @@ shorted; `duplex_check` on both boxes at once (the cross-box run used `aplay`
 and `arecord`); one box each on two computers; the chip marking; any disc,
 including through the JFET buffer. The 12–13 LSB peak on the unwired input in
 the cross-box run was not looked into.
+
+**Next (agreed 2026-10-30, not started): first disc-to-disc test in air.**
+Start without the JFET buffer: L out through 100 Ω to the transmit disc, L out
+also to R in as time zero, receive disc straight into L in. Disc capacitance
+and the line input's resistance set a high-pass corner (rough guess 2–8 kHz,
+neither measured), so measure the capacitance first. Build the buffer only if
+that band or level falls short. Mount the discs face to face and parallel,
+230 mm apart (0.67 ms, 32 samples), about 300 mm above the table, held by
+the rim on separate supports, with drive and receive wires apart. Prove it is
+sound: the arrival moves with spacing and drops behind foam or folded cloth.
+Start at −20 dB mixer and −20 dBFS and raise in steps. `loopback_test.py`
+expects the copy mixed into one input, so it needs a small stereo change. Scripts for
+the ducking and cross-box runs: `uca222_ducking.py`, `uca222_cross_clock.py`.
 
 ## Ideas for later (Roland, 2026-10-11) — not built
 
