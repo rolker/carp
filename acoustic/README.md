@@ -510,7 +510,7 @@ and `arecord`); one box each on two computers; the chip marking; any disc,
 including through the JFET buffer. The 12–13 LSB peak on the unwired input in
 the cross-box run was not looked into.
 
-**Next (agreed 2026-10-30, not started): first disc-to-disc test in air.**
+**Next (proposed 2026-10-30, not started): first disc-to-disc test in air.**
 Start without the JFET buffer: L out through 100 Ω to the transmit disc, L out
 also to R in as time zero, receive disc straight into L in. Disc capacitance
 and the line input's resistance set a high-pass corner (rough guess 2–8 kHz,
