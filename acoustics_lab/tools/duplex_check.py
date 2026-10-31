@@ -5,6 +5,7 @@
     duplex_check.py --device donglea --mixer
     duplex_check.py --device donglea --mixer --set 'Speaker Playback Volume=60%'
     duplex_check.py --device 1-2.3 --offset-test --minutes 5 --level -20 --channel left
+    duplex_check.py --device 4-2 --offset-test --channel right --input right --rate 48000
     duplex_check.py --device donglea --schedule-test --tat 0.2
     duplex_check.py --fake --offset-test --minutes 5      # no hardware
     duplex_check.py --reanalyse RUN_FOLDER --detection design.json --detect first_fraction=0.6
@@ -71,6 +72,9 @@ def parse_args(argv=None):
                    help="output peak level in dBFS (default -20)")
     p.add_argument("--channel", default="left", choices=["left", "right", "both"],
                    help="output channel wired to the loopback (default left)")
+    p.add_argument("--input", choices=["left", "right"],
+                   help="input channel to record, opening the input as stereo "
+                        "(default: open one input channel, as on a dongle)")
     p.add_argument("--tat", type=float, default=0.2,
                    help="turnaround time of the schedule test, s (default 0.2)")
     p.add_argument("--pulses", type=int, default=40,
@@ -102,7 +106,10 @@ def parse_args(argv=None):
     p.add_argument("--reanalyse", metavar="RUN_FOLDER",
                    help="analyse a saved offset test again from its input.wav; "
                         "opens no device")
-    return p.parse_args(argv)
+    args = p.parse_args(argv)
+    if args.input and args.fake:
+        p.error("--input needs real hardware: the fake has one input channel")
+    return args
 
 
 # -- listing and mixer --------------------------------------------------------
@@ -286,8 +293,13 @@ def make_real(args, out, holds):
         print(f"{rate:g} Hz is not accepted both ways by {pa.name}; it accepts "
               f"in {pa.input_rates}, out {pa.output_rates}. Use --rate.", file=out)
         return None, 2
+    if args.input and pa.inputs < 2:
+        print(f"--input needs a stereo input; {pa.name} has {pa.inputs}.",
+              file=out)
+        return None, 2
+    stereo = dict(in_channels=2, input_channel=int(args.input == "right")) if args.input else {}
     return PortAudioDuplex(pa, rate=rate, frames_per_buffer=args.block,
-                           name=card.id), card
+                           name=card.id, **stereo), card
 
 
 def print_plan(args, device, card, out):
@@ -298,6 +310,8 @@ def print_plan(args, device, card, out):
           f"{device.in_channels} in / {device.out_channels} out, "
           f"{device.frames_per_buffer} frames per block "
           f"({1000 * device.frames_per_buffer / device.rate:.1f} ms)", file=out)
+    if args.input:
+        print(f"  input:    {args.input} channel", file=out)
     if args.offset_test:
         pings = int(args.minutes * 60 / args.interval)
         print(f"  test:     offset test, {pings} {args.ping} pings every "

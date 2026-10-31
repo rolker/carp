@@ -186,6 +186,11 @@ def test_tool_runs_the_schedule_test_on_the_fake(tmp_path):
     assert "replies at a turnaround of 200 ms" in text
 
 
+def test_tool_refuses_input_choice_on_the_fake():
+    with pytest.raises(SystemExit):
+        run_tool("--fake", "--offset-test", "--input", "right")
+
+
 def test_tool_never_opens_anything_unless_a_device_is_named():
     code, text = run_tool("--offset-test")
     assert code == 2 and "Name a device" in text

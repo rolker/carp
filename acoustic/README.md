@@ -424,6 +424,92 @@ the loopback copy in every recording already gives.
 Next: `--minutes 5`, then the other dongles (each one's R, ducking and
 band assumed the same until checked).
 
+## UCA222 bench results (2026-10-30)
+
+Two boxes on the Pi 5: box 1 on USB port `4-2`, box 2 on `2-2`. Electrical
+only, no discs. Each link is a direct wire with grounds joined, through the
+RCA screw plugs; the unused input left open. Mixer at PCM 108 (−20 dB), the
+only control ALSA shows: no capture gain or AGC. Offset runs are in
+`acoustics_lab/runs/hardware/` (`*CODEC*_offset`), sweeps in `runs/sweep-*`;
+the ducking and cross-box recordings were in the session scratchpad, not
+kept.
+
+**Loopback, 2–20 kHz chirp, −20 dBFS, `--rate 48000`.** Every run with the
+wire on the input being recorded found all its pings, with no dropouts or
+clipping. Each path had three 1-minute runs and one of 5 minutes, except
+box 1 L, which had four 1-minute runs and one of 5 minutes in the default
+one-channel mode:
+
+| Path | Offset (samples) | Worst deviation (samples) | Level |
+|---|---|---|---|
+| Box 1 L → L | 3199.76–3328.75 | 0.0024 | −29.7 dBFS |
+| Box 1 R → R | 3199.51–3200.52 | 0.0031 | −29.65 to −29.76 dBFS |
+| Box 2 R → R | 3199.42–3200.82 | 0.0021 | −29.82 to −29.91 dBFS |
+| Box 2 L → L | 3199.57–3201.17 | 0.0018 | −29.78 to −29.87 dBFS |
+
+- **Within a stream the offset holds to about 0.003 sample** (60 ns), against
+  0.03 on the dongle, with no drift: input and output stay locked.
+- **The offset changes on each stream open**, so the loopback copy is still
+  needed on every open. The 12 stereo runs all fell between 3199.4 and 3201.2,
+  moving up to about 1.8 samples. A jump of about 128 samples, to near 3328,
+  appeared only with the one-channel input (3 of 6 runs). Too few runs to
+  call that a rule.
+- Noise floor about −88.5 dBFS on both boxes, about 1 LSB. About 30 dB of
+  headroom was left at these levels.
+
+**Bandwidth.** Sweep on box 1 L → L: all 19 bands 2–21 kHz heard, within
+**0.4 dB**. In `sweep-20261030-185742` the 16–17 kHz band shows about 5 dB
+less SNR at a normal level; not checked whether it repeats. The other three
+paths have no sweep: their chirp spectra are symmetric about 11 kHz to within
+0.5 dB where looked at (box 2 both channels), which is indirect.
+
+**No ducking on any input.** A steady 1 kHz from the other box, recorded in
+stereo while this box played 5 kHz at −6 dBFS on L, R, both, and nothing:
+
+| Input | Tone level | Variation, 100 ms blocks | Separation from the other input, 1 kHz |
+|---|---|---|---|
+| Box 1 L | −29.70 dBFS | under 0.01 dB | ≥ 92 dB |
+| Box 1 R | −29.67 dBFS | 0.01 dB | ≥ 92 dB |
+| Box 2 L | −29.73 dBFS | under 0.01 dB | ≥ 94 dB |
+| Box 2 R | −29.83 dBFS | under 0.01 dB | ≥ 93 dB |
+
+So **two transmitters and two receivers can share one box**, which the
+dongles ruled out. Separation is limited by the noise floor, at 1 kHz only,
+with the other input open. The box's own 5 kHz reaches its inputs at −86 to
+−95 dBFS with its outputs unloaded, about 60–65 dB below what the output
+sends; a disc load may change that. Closing the playback stream leaves a
+click on both inputs: −55 dBFS on box 1, −49 dBFS on box 2.
+
+**The two boxes share a clock on one computer.** Cross-wired (box 2 L out →
+box 1 L in, box 1 R out → box 2 R in), both playing and recording at once
+for 5 minutes with `aplay` and `arecord`, a 1 kHz tone each way:
+
+- Clock difference **0.002 ppm**, equal and opposite in the two directions
+  (+0.002 and −0.002), and in each half of the run.
+- Timing wander 0.45 µs rms, worst 1.02 µs; biggest 1 s step 0.116 µs.
+- No overruns reported, level steady to two decimals.
+
+Two free-running crystals would not agree that closely, so both are
+presumably locked to the host's USB frames. From memory the PCM2902 clocks
+itself that way; not confirmed, and the input's "asynchronous" descriptor
+does not fit it. **This will not carry over to boxes on two computers**, so
+ROV and topside need that difference measured.
+
+**The "device clock against the system clock" figure in `duplex_check.py` is
+not reliable.** It reads about +130 ppm at 1 minute, −5 to −13 ppm at
+5 minutes and +540 to +600 ppm at 15 s, on either box. That fits a fixed
+start-up error of about 9 ms (inferred); the tool is not fixed.
+
+**Added:** `duplex_check.py --input left|right` opens the input as stereo
+and records that channel. Without it, the one-channel mode hears L in only
+(0 of 30 pings on either box with the wire on R in).
+
+**Not done:** noise and crosstalk across the chirp band with an input
+shorted; `duplex_check` on both boxes at once (the cross-box run used `aplay`
+and `arecord`); one box each on two computers; the chip marking; any disc,
+including through the JFET buffer. The 12–13 LSB peak on the unwired input in
+the cross-box run was not looked into.
+
 ## Ideas for later (Roland, 2026-10-11) — not built
 
 - Top-level tabs for the tools: Noise and Data as their own tabs, not
