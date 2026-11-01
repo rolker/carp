@@ -47,13 +47,16 @@ bought; `later` = deliberate deferral.
 | uxcell FFC 22-pin 0.5 mm **Type B**, 500 mm, 5 pcs | 1 | Amazon (uxcell) | 7 | 6.47 | received | 2026-09-26, arriving Tue 2026-09-29. Bench, mock-up and fixture cables plus spares — generous enough to connect cameras without fighting for slack. Plain unshielded FFC: the vehicle gets the shortest length that reaches once the sled/bay order is drawn (pending row below) |
 | Raspberry Pi 5 Active Cooler (official) | 1 | Amazon (UeeKKoo, 3rd party) | — | 10.95 | received | 2026-09-27, arriving 2026-09-28. ~$5 list — third-party premium, so check it is genuine on arrival. **Fitted 2026-10-10.** ADR-015 re-run with it: 1080p10 holds 50–51 °C (was 64–66 uncooled), 1080p20 holds under 60 °C. Moves SoC heat into the hull air, not out of the hull — pairs with an air-stirring fan or a conduction path (`sled.md`). Clears the M.2 HAT+ (its standoffs are sized for it). Push-pins and pad are one-use-ish: fit it once. Fan speed control works under stock Ubuntu 24.04 (`pwm-fan`, starts at 50 °C, steps up at 60) |
 | iRasptek 27 W 5.1 V / 5 A USB-C PD supply | 1 | Amazon (iRasptek) | — | 10.99 | received | 2026-09-27, arriving 2026-09-28. **Bench only** — the vehicle Pi runs from the Pololu off the hotel pack. Fixes the undervoltage the Pi hit on a 4.9 V supply during the build (ADR-017); 5 A lets the Pi 5 run USB peripherals at full current |
+| SOMELINE Dupont crimping kit, 2030M ratchet crimper, 32–20 AWG, 2.54 mm terminals and housings | 1 | Amazon (SOMELINE) | — | 27.98 | ordered | 2026-10-31, arriving 2026-11-01. For the Pololu → Pi GPIO lead: 2×5 housing on pins 1–10, wires on 2, 4 (5 V) and 6, 9 (GND); the connector choice is proposed. The housing is not keyed — mark pin 1 |
+| DEKIEVALE 22 AWG stranded silicone wire, tinned copper, 8 colours, 16.5 ft each | 1 | Amazon (DEKIEVALE) | — | 17.90 | ordered | 2026-10-31, arriving 2026-11-01. Doubled per rail on the Pololu output. Check that the jacket fits the Dupont terminal's insulation grip; AWM 1007 22 AWG stranded from storage is the fallback. Do not land 22 AWG on the star point without a small inline fuse (proposed, ~5 A) |
+| DMLENGOIN SP13 3-pin IP68 screw-terminal connectors, 2 pairs | 1 | Amazon (MaiCheng US) | — | 15.59 | ordered | 2026-10-31, arriving 2026-11-01. **Bench only** so far: the female end mates with the U2 blue plug, fit to be confirmed. Listing says 5 A in the text and 13 A in the spec image: treat as 5 A against the U2's 9 A. Ø1.6 mm pins, 18–16 AWG, 4–6.5 mm cable, no depth given for IP68. Trace terminals by continuity from the thruster's pin numbers |
 
-**ROV ordered subtotal: est ~$1,243 (+6 unestimated adds) · paid $1,782.33.**
-The 36 rows above sum to $1,766.91 in item prices; the other $15.42 is
+**ROV ordered subtotal: est ~$1,243 (+9 unestimated adds) · paid $1,843.80.**
+The 39 rows above sum to $1,828.38 in item prices; the other $15.42 is
 shipping on the RobotShop orders ($140.69 + $168.74 incl. shipping, items
 $300.51) and the Blue Robotics order ($54.94 incl. shipping, items $48.44).
 Amazon rows are per-item prices with free shipping (per-order figures in git
-history). Reconciled against the rows 2026-10-30.
+history). Reconciled against the rows 2026-10-31.
 
 ### Acoustic bench
 
