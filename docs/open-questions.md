@@ -22,6 +22,8 @@ views, cables up/down).
 - Camera board seats are print-only: slide-in rails (2026-10-02, after the
   tolerance coupons, `cad/README.md` §4).
 - The bench rig should mirror the vehicle layout.
+- The U2 blue plugs get cut off rather than matched with a connector
+  (2026-11-01): the cables would be cut for the hull anyway.
 
 **Proposed, not approved:**
 

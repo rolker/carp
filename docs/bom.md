@@ -13,7 +13,7 @@ bought; `later` = deliberate deferral.
 |---|---|---|---|---|---|---|
 | Radiolink Pixhawk Advanced | 1 | RobotShop | 60 | 159.82 | received | FMUv2 / STM32F427. **Not** the Radiolink Pixhawk 4 — that one is ArduPilot-incompatible (proprietary binaries, wrong connectors). Shipped separately, +8.92 shipping |
 | Pololu D36V50F5 | 1 | RobotShop | 25 | 39.95 | received | 5 V @ 5.5 A. Honest ratings, real thermal path |
-| Digital RC servo tester | 1 | RobotShop | 20 | 10.74 | received | Manual mode holds settable pulse width, 2 µs resolution, PPM passthrough display |
+| Digital RC servo tester | 1 | RobotShop | 20 | 10.74 | received | Manual mode holds settable pulse width, 2 µs resolution, PPM passthrough display. Labelled "HJ Servo Consistency Test", **4.8–6 V**, legend `S + −` and `OUT 1 2 3 4`; pin block is 5 columns × 3 rows, and **continuity (2026-11-01): each row's five pins are tied together**, including the signal row, so all columns share one signal and continuity shows no separate input column. **Pinout confirmed 2026-11-01 (Roland) by driving the Parallax servo from the bench supply: top row (panel side) S, middle +, bottom row −.** Diode mode, red–black, panel row A, middle B, far row C: C–A 0.578 V, A–C and B–C a falling reading then OL (likely a capacitor charging), A–B, B–A and C–B OL. C–B OL suggests a reverse-protection diode in the + feed. **Scope (2026-11-01): 4.48 Vpp pulse; width follows the setting: 1 ms at 1000, 1.5 ms at 1500, 2 ms at 2000; 20 ms between pulses** |
 | Bar30 pressure sensor (Blue Robotics R2) | 1 | RobotShop | 85 | 90.00 | received | MS5837-30BA, potted in penetrator. See ADR-006 |
 | 4S 6000 mAh LiPo (YOWOO, 100C, XT90-S) | 2 | Amazon | 84 | 131.98 | received | 65.99 ea. Anti-spark XT90-S as specified in ADR-013 |
 | Dual LiPo balance charger/discharger, 10 A | 1 | Amazon | 60 | 67.19 | received | |
@@ -47,16 +47,17 @@ bought; `later` = deliberate deferral.
 | uxcell FFC 22-pin 0.5 mm **Type B**, 500 mm, 5 pcs | 1 | Amazon (uxcell) | 7 | 6.47 | received | 2026-09-26, arriving Tue 2026-09-29. Bench, mock-up and fixture cables plus spares — generous enough to connect cameras without fighting for slack. Plain unshielded FFC: the vehicle gets the shortest length that reaches once the sled/bay order is drawn (pending row below) |
 | Raspberry Pi 5 Active Cooler (official) | 1 | Amazon (UeeKKoo, 3rd party) | — | 10.95 | received | 2026-09-27, arriving 2026-09-28. ~$5 list — third-party premium, so check it is genuine on arrival. **Fitted 2026-10-10.** ADR-015 re-run with it: 1080p10 holds 50–51 °C (was 64–66 uncooled), 1080p20 holds under 60 °C. Moves SoC heat into the hull air, not out of the hull — pairs with an air-stirring fan or a conduction path (`sled.md`). Clears the M.2 HAT+ (its standoffs are sized for it). Push-pins and pad are one-use-ish: fit it once. Fan speed control works under stock Ubuntu 24.04 (`pwm-fan`, starts at 50 °C, steps up at 60) |
 | iRasptek 27 W 5.1 V / 5 A USB-C PD supply | 1 | Amazon (iRasptek) | — | 10.99 | received | 2026-09-27, arriving 2026-09-28. **Bench only** — the vehicle Pi runs from the Pololu off the hotel pack. Fixes the undervoltage the Pi hit on a 4.9 V supply during the build (ADR-017); 5 A lets the Pi 5 run USB peripherals at full current |
-| SOMELINE Dupont crimping kit, 2030M ratchet crimper, 32–20 AWG, 2.54 mm terminals and housings | 1 | Amazon (SOMELINE) | — | 27.98 | ordered | 2026-10-31, arriving 2026-11-01. For the Pololu → Pi GPIO lead: 2×5 housing on pins 1–10, wires on 2, 4 (5 V) and 6, 9 (GND); the connector choice is proposed. The housing is not keyed — mark pin 1 |
-| DEKIEVALE 22 AWG stranded silicone wire, tinned copper, 8 colours, 16.5 ft each | 1 | Amazon (DEKIEVALE) | — | 17.90 | ordered | 2026-10-31, arriving 2026-11-01. Doubled per rail on the Pololu output. Check that the jacket fits the Dupont terminal's insulation grip; AWM 1007 22 AWG stranded from storage is the fallback. Do not land 22 AWG on the star point without a small inline fuse (proposed, ~5 A) |
-| DMLENGOIN SP13 3-pin IP68 screw-terminal connectors, 2 pairs | 1 | Amazon (MaiCheng US) | — | 15.59 | ordered | 2026-10-31, arriving 2026-11-01. **Bench only** so far: the female end mates with the U2 blue plug, fit to be confirmed. Listing says 5 A in the text and 13 A in the spec image: treat as 5 A against the U2's 9 A. Ø1.6 mm pins, 18–16 AWG, 4–6.5 mm cable, no depth given for IP68. Trace terminals by continuity from the thruster's pin numbers |
+| SOMELINE Dupont crimping kit, 2030M ratchet crimper, 32–20 AWG, 2.54 mm terminals and housings | 1 | Amazon (SOMELINE) | — | 27.98 | received | 2026-10-31, received by 2026-11-01. For the Pololu → Pi GPIO lead: 2×5 housing on pins 1–10, wires on 2, 4 (5 V) and 6, 9 (GND); the connector choice is proposed. The housing is not keyed — mark pin 1 |
+| DEKIEVALE 22 AWG stranded silicone wire, tinned copper, 8 colours, 16.5 ft each | 1 | Amazon (DEKIEVALE) | — | 17.90 | received | 2026-10-31, received 2026-11-01, with a small yellow cable stripper / punch-down tool. Doubled per rail on the Pololu output. Check that the jacket fits the Dupont terminal's insulation grip; AWM 1007 22 AWG stranded from storage is the fallback. Do not land 22 AWG on the star point without a small inline fuse (proposed, ~5 A) |
+| DMLENGOIN SP13 3-pin IP68 screw-terminal connectors, 2 pairs | 1 | Amazon (MaiCheng US) | — | 15.59 | received | 2026-10-31, received 2026-11-01. **Does not fit the U2 blue plug: too small (Roland, 2026-11-01).** The U2 mate is still to be found. Listing says 5 A in the text and 13 A in the spec image: treat as 5 A against the U2's 9 A. Ø1.6 mm pins, 18–16 AWG, 4–6.5 mm cable, no depth given for IP68. Trace terminals by continuity from the thruster's pin numbers |
+| UCkasayfy 6-way ATC/ATO fuse block, plain "6 Way" style (FB005 family), with LED fuse indicators | 1 | Amazon (UCkasayfy) | — | 9.99 | ordered | 2026-11-01, arriving 2026-11-02. Listed 100 A per block, 30 A per circuit, 32 V, M5 main studs, M4 circuit screws for 16–12 AWG; fuses included, values not listed. Distribution option A: **proposed** (`docs/wiring.md` not yet changed). On arrival: count the negative screws, confirm stud polarity by markings and continuity, measure it, read the fuse values. A reviewer says the cover leaves the main studs exposed: insulate them |
 
-**ROV ordered subtotal: est ~$1,243 (+9 unestimated adds) · paid $1,843.80.**
-The 39 rows above sum to $1,828.38 in item prices; the other $15.42 is
+**ROV ordered subtotal: est ~$1,243 (+10 unestimated adds) · paid $1,853.79.**
+The 40 rows above sum to $1,838.37 in item prices; the other $15.42 is
 shipping on the RobotShop orders ($140.69 + $168.74 incl. shipping, items
 $300.51) and the Blue Robotics order ($54.94 incl. shipping, items $48.44).
 Amazon rows are per-item prices with free shipping (per-order figures in git
-history). Reconciled against the rows 2026-10-31.
+history). Reconciled against the rows 2026-11-01.
 
 ### Acoustic bench
 
@@ -274,14 +275,20 @@ check the other two.
 
 ### Parts from storage
 
-Owned, found 2026-10-25 and 2026-10-30 (Roland). Not counted in the build totals.
+Owned, found 2026-10-25, 2026-10-30 and 2026-11-01 (Roland). Not counted in the build totals.
 
 | Item | Status | Notes |
 |---|---|---|
 | Elenco CK-1000 component kit | in hand, contents not yet checked against the label | Label lists: ¼ W 5 % resistors 10 Ω–1 MΩ (5 each, includes 100 k, 220 k, 470 k, 1 M); trim pots 500 Ω–1 MΩ; ceramic disc 2.2–680 pF; Mylar film 0.001–0.33 µF; 50 V radial electrolytics 1–1000 µF; diodes incl. 1N4148, 1N4001 and Zeners; 2N2222A, 2N2907, 2N3904, 2N3906, 2N3055, 2N5457 (JFET); LM386, NE555, 741, CD4013, 4017, 7805, 7812, 74LS logic; inductors, 5 V relay, condenser microphone, 8 Ω speaker, buzzer, switches, alligator clips, 22 ga solid wire (5 colours). Useful on the acoustic bench: **1 MΩ trim pot** for setting the loopback level instead of swapping 1 M / 470 k / 100 k; **1N4148s** to clamp the mic input; the **condenser mic** to hear what a transmit disc puts into the air; **LM386** as a stronger disc driver or receive gain stage if the dongle is too weak (the 741 is too slow above ~10 kHz); **22 ga solid wire** for the breadboard, where the 30 AWG stranded is too limp |
 | Arduino Mega 2560 | to check | 5 V AVR board. On the bench: drives the AD9835 over SPI, fires HC-SR04 pings, generates servo / ESC pulses, and gives a hardware trigger for the scope. Its ADC is too slow and coarse to record the discs |
-| HC-SR04 ultrasonic ranger | to check | 40 kHz air ranging module, 5 V. An independent distance check in air to compare with the disc ranging, and a pair of real ultrasonic transducers to look at on the scope. 40 kHz is above what a 48 kHz dongle can record (24 kHz max) |
-| Parallax standard servo | to check | Bench load for checking Pixhawk servo outputs (Phase 1) and the RC servo tester before anything drives an ESC |
+| HC-SR04 ultrasonic ranger ×3 | to check | Two more found 2026-11-01. 40 kHz air ranging module, 5 V. An independent distance check in air to compare with the disc ranging, and a pair of real ultrasonic transducers to look at on the scope. 40 kHz is above what a 48 kHz dongle can record (24 kHz max) |
+| Parallax standard servo | works | Responds to the servo tester on the bench supply (2026-11-01). Bench load for checking Pixhawk servo outputs (Phase 1) and the RC servo tester before anything drives an ESC |
+| RadioShack servo 273-0441 | works | Turned out to be a second Parallax standard servo, sold under the RadioShack number. Found 2026-11-01. Both servos run together from the servo tester on the bench supply (2026-11-01). Second bench load, same use as the first |
+| RadioShack DPDT relay 275-0218 | to check | Found 2026-11-01. No CARP use yet |
+| RadioShack photocells 276-1657 | to check | Found 2026-11-01. No CARP use yet; learning parts |
+| RadioShack IR emitter/detector 276-0142, 3 sets | to check | Found 2026-11-01. No CARP use yet; learning parts |
+| RadioShack 2N3055 transistor 276-2041 ×3 | to check | Found 2026-11-01, in addition to any in the CK-1000 kit. No CARP use yet |
+| RadioShack rectifier diodes 276-1143, 2 pkgs of 2 | to check | Found 2026-11-01. Ratings not recorded: read them off the package |
 | SparkFun AD9835 breakout | to check | DDS signal generator, programmed over SPI (from the Mega). A clean sine at any frequency for **sweeping disc resonance**, including above the dongle's 24 kHz limit, and for driving the HC-SR04 transducers at 40 kHz. Output is small: watch it on the scope, and add the LM386 or a transistor stage if a disc needs more drive |
 | SparkFun 6DOF IMU v4 | to check | Old Bluetooth IMU board. Not for the vehicle (the Pixhawk's IMUs are better); curiosity or learning only |
 | Bottom Line EZ 4400 fishfinder, head unit + transducer + manual | to check | Donated years ago, first looked at 2026-10-30 (manual p. 34 photographed). **200 kHz**, 400 W peak-to-peak / 50 W RMS output, transducer cone 18° at −3 dB (implies a ~24 mm piston), 12 V DC at 0.5 A, 250 ft max depth, 44 × 80 dot LCD, no data output. **The transducer is the prize:** a potted, cabled, resonant 200 kHz element — the transmit disc for a 200 kHz disc array (`topside-head.md` discussion; a pencil, not a fan), a loud known source for testing whether small off-resonance receive discs can hear 200 kHz, and with a preamp a reference 200 kHz receiver. The head is a working 200 kHz pinger and an independent depth reference for the kayak, if it powers up. **Transducer on the EX430 (2026-10-30):** round plastic plug, three pins, no metal shell, no braid exposed. Plug: OD 7.1, ID 5.5, 7 deep; pins about Ø1 × 5.5 long, even triangle about 2.5 apart; inward rib about 2 wide, wall 1.3 at the rib against about 0.8. Looking into the plug, rib at top: pin 1 right, pin 3 left, pin 2 opposite the rib. Readings: 1–2 **1.005–1.010 MΩ**, steady; 1–3 **10.24–11.09 kΩ**, falling to 9.25 kΩ and still going when warmed in the hand, so an NTC thermistor, probably 10 kΩ; 2–3 is the sum of those two, so pin 1 is the common. 1–2 is **2.11 nF** with an estimated 2–5 m of cable (not unwound): the element is connected, about 1.6–1.9 nF if the cable is ~100 pF/m. **Pin 2 as element hot, pin 1 as common, and the 1 MΩ as a bleed across the element are inferred, not proven.** No matching connector found, so wire wraps and a printed plug (Onshape, 2026-10-30; the first plug's thin pull stem broke, replaced by a grip head). At 200 kHz, 2.11 nF is about 377 Ω, so the AD9835 needs a driver stage. **Still to check:** flexing the cable at both ends while watching 1–2 and 1–3; resonance and Q by AD9835 sweep on the scope, in a bucket; then current-limited power-up of the head at 12 V on the 382213 with the limit low. **Caution:** the head drives the transducer at ~400 V — never connect the transducer to a low-voltage input while the head is powered |
@@ -290,17 +297,17 @@ Owned, found 2026-10-25 and 2026-10-30 (Roland). Not counted in the build totals
 
 | | Est $ | Paid $ |
 |---|---|---|
-| Ordered — ROV | ~1,243 | 1,782.33 |
+| Ordered — ROV | ~1,243 | 1,853.79 |
 | Ordered — acoustic bench | — | 142.60 |
 | Core pending | ~205–310 | |
 | Small parts pending | ~115 | |
 | Field gear pending | ~55 | |
-| **ROV build: paid + pending (6 thrusters, no options)** | **~$2,155–2,260** | |
-| **Everything incl. acoustic bench** | **~$2,300–2,405** | |
+| **ROV build: paid + pending (6 thrusters, no options)** | **~$2,230–2,335** | |
+| **Everything incl. acoustic bench** | **~$2,370–2,475** | |
 | Shop tooling (excluded from above) | | 407.32 out of pocket (483.37 list) |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
-build (≈4×). The projection is ROV Paid ($1,782.33, a known number) plus
+build (≈4×). The projection is ROV Paid ($1,853.79, a known number) plus
 pending estimates ($375–480); the estimated ordered items ran ~30% over
 their estimates ($1,604 paid against ~$1,243 est), so pending items may
 too. (Corrected 2026-08-20 per design review M1 — the earlier

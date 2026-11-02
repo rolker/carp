@@ -68,6 +68,13 @@ Per unit, on the servo tester, no autopilot involved.
 - [ ] Clamp-meter the current draw against the 150 W spec
 - [ ] All four/six simultaneously — combined draw against the pack
 
+**First powered test, one thruster with its plug cut, 2026-11-01:** bench
+supply at 12.0 V, servo tester, in air. Three rising beeps at power-up, idle
+**0.02 A**. Dead zone **1460–1505 µs**. 0.06 A at 1400, 0.05 A at 1550,
+0.09 A at 1600. Direction, stop points and the other five thrusters still to do.
+This unit's plug was marked **L** (meaning unconfirmed, possibly hand of
+rotation): carry the mark onto each cable before cutting its plug.
+
 ## Phase 3 — Integration, still dry
 
 - [ ] Pixhawk → ESCs, wired to the frame diagram's output numbering
