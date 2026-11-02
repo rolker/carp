@@ -182,8 +182,9 @@ tool serving other projects too, so it doesn't count against the vehicle cost.
 | Spurtar vernier caliper, 150 mm, steel | 1 | Amazon (Wittyware) | 16.97 | received | The one to trust for dimensions that drive the CAD — flange OD, thruster OD, ESC brick |
 | Ultrassist plastic vernier calipers, 150 mm ×2 | 1 | Amazon (Ultrassist) | 6.99 | received | One for Isabelle to learn on. The other kept for the shop: plastic is **non-conductive**, which is the right property for measuring around live LiPo terminals |
 | YISHU 6 ft surge-protected power strip, 8 outlets + 4 USB | 1 | Amazon (QINGLIANFENG TECH) | 11.99 | received | 2026-09-27, arriving 2026-09-28. Bench power |
+| EDGELEC 14 AWG UL3135 silicone test leads, 3.3 ft, 2 alligator-to-alligator + 2 stackable 4 mm banana-to-alligator | 2 pk | Amazon (EDGELEC) | 18.98 | ordered | 2026-11-01, arriving Tue 2026-11-03. 9.99 each, less a $1.00 promotion. Bench leads for the 382213; not for the LiPo |
 
-**Shop tooling subtotal: $483.37 · out of pocket $407.32** (rewards points −$76.05)
+**Shop tooling subtotal: $502.35 · out of pocket $426.30** (rewards points −$76.05)
 
 Still pending for the print shop: **ASA 1 kg** (~$20 — exterior ROV brackets,
 UV-stable; needs the enclosure + ventilation), desiccant/dry bags for
@@ -304,7 +305,7 @@ Owned, found 2026-10-25, 2026-10-30 and 2026-11-01 (Roland). Not counted in the 
 | Field gear pending | ~55 | |
 | **ROV build: paid + pending (6 thrusters, no options)** | **~$2,230–2,335** | |
 | **Everything incl. acoustic bench** | **~$2,370–2,475** | |
-| Shop tooling (excluded from above) | | 407.32 out of pocket (483.37 list) |
+| Shop tooling (excluded from above) | | 426.30 out of pocket (502.35 list) |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
 build (≈4×). The projection is ROV Paid ($1,853.79, a known number) plus
