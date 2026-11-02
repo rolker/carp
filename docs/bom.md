@@ -50,7 +50,7 @@ bought; `later` = deliberate deferral.
 | SOMELINE Dupont crimping kit, 2030M ratchet crimper, 32–20 AWG, 2.54 mm terminals and housings | 1 | Amazon (SOMELINE) | — | 27.98 | received | 2026-10-31, received by 2026-11-01. For the Pololu → Pi GPIO lead: 2×5 housing on pins 1–10, wires on 2, 4 (5 V) and 6, 9 (GND); the connector choice is proposed. The housing is not keyed — mark pin 1 |
 | DEKIEVALE 22 AWG stranded silicone wire, tinned copper, 8 colours, 16.5 ft each | 1 | Amazon (DEKIEVALE) | — | 17.90 | received | 2026-10-31, received 2026-11-01, with a small yellow cable stripper / punch-down tool. Doubled per rail on the Pololu output. Check that the jacket fits the Dupont terminal's insulation grip; AWM 1007 22 AWG stranded from storage is the fallback. Do not land 22 AWG on the star point without a small inline fuse (proposed, ~5 A) |
 | DMLENGOIN SP13 3-pin IP68 screw-terminal connectors, 2 pairs | 1 | Amazon (MaiCheng US) | — | 15.59 | received | 2026-10-31, received 2026-11-01. **Does not fit the U2 blue plug: too small (Roland, 2026-11-01).** The U2 mate is still to be found. Listing says 5 A in the text and 13 A in the spec image: treat as 5 A against the U2's 9 A. Ø1.6 mm pins, 18–16 AWG, 4–6.5 mm cable, no depth given for IP68. Trace terminals by continuity from the thruster's pin numbers |
-| UCkasayfy 6-way ATC/ATO fuse block, plain "6 Way" style (FB005 family), with LED fuse indicators | 1 | Amazon (UCkasayfy) | — | 9.99 | ordered | 2026-11-01, arriving 2026-11-02. Listed 100 A per block, 30 A per circuit, 32 V, M5 main studs, M4 circuit screws for 16–12 AWG; fuses included, values not listed. Distribution option A: **proposed** (`docs/wiring.md` not yet changed). On arrival: count the negative screws, confirm stud polarity by markings and continuity, measure it, read the fuse values. A reviewer says the cover leaves the main studs exposed: insulate them |
+| UCkasayfy 6-way ATC/ATO fuse block, plain "6 Way" style (FB005 family), with LED fuse indicators | 1 | Amazon (UCkasayfy) | — | 9.99 | received | Arrived 2026-11-02. Six negative screws plus the negative post and nut. **No fuses included**, though the listing said they were: ATC/ATO blades still to buy. Listed 100 A per block, 30 A per circuit, 32 V, M5 main studs, M4 circuit screws for 16–12 AWG. Distribution option A: **proposed** (`docs/wiring.md` not yet changed). Still to do: confirm stud polarity by markings and continuity, measure it. A reviewer said the cover leaves the main studs exposed; on the part itself it covers them well, and a dropped tool is very unlikely to short anything |
 
 **ROV ordered subtotal: est ~$1,243 (+10 unestimated adds) · paid $1,853.79.**
 The 40 rows above sum to $1,838.37 in item prices; the other $15.42 is
@@ -116,9 +116,13 @@ Previously mentioned in notes but never costed as line items.
 | Spare XT90-S male connector | 1 | | 8 | | pending | Review 2 MA3: anti-spark resistor is a consumable (~30–50 matings); lives in the field box |
 | Spare XT60 pigtail pairs | 2–3 pr | | 8 | | pending | The two packs came as 3 pairs each — 6 pairs for 6 ESC drops, none spare. A melted or mis-soldered one otherwise stops a thruster |
 | Pi 5 camera cables, 22↔22-pin, 0.5 mm, **Type B**, vehicle length | 2+2 | | 12 | | pending | **Not blocking the bench test** — the Arducams have 22-pin connectors and shipped with 22↔22 Type B cables (~150 mm) that plug straight into the Pi 5. Needed for the vehicle only, **length from the CAD cable path once the sled and bay order are drawn** — with cameras and Pi both on the sled, Pi right behind the cameras (`sled.md`), the stock ~150 mm cables may reach and this row may not be needed at all; the 500 mm uxcell set (Ordered) covers bench work meanwhile. Match Type B — wrong type makes no contact; never flip one to make it fit. Shortest that reaches; route away from ESC leads |
+| ATC/ATO blade fuses, fast-acting, 5 / 10 / 15 A | 5+ / 6+ / 8 | | 10 | | pending | **Not ordered.** Fuse block came with none. 5 A: power module, Pololu, first run of each new thruster lead. 10 A: next step, and the holding value until peak thruster current is measured. 15 A: wiring rule 0, but the U2 cable is only about 18 AWG (estimate), so proposed, not final. An assortment is fine if it holds all three |
+| Inline ATO holders, covered, 16 AWG leads | 2 | | 15 | | pending | **Not ordered.** Power module and Pololu spurs, decided 2026-11-02. First choice (proposed) Littelfuse FHAC0001 series: IP67, 20 A max, variants differ in lead length and colour, so check length. Est is a guess |
+| Insulated ring terminals: yellow 12–10 AWG, blue 16–14 AWG, red 22–16 AWG | 10+ each | | 15 | | pending | **Not ordered.** Yellow M5/#10 plus the MIDI holder's stud size (measure it); blue M4/#8 and M5/#10; red M4/#8 for thruster wires, too thin for blue. Confirm block stud and screw sizes before ordering; M5 and M4 are the listing's figures. Est is a guess |
+| P-clips and screws | 6 | | 6 | | pending | **Not ordered.** Strain relief on the bench board. Est is a guess |
 | ApisQueen ESC tuning tool | 1 | | 12–15 | | pending | **Hold — compatibility unconfirmed.** O'Hara card = boat ESC line; Feather USB board = 80–300 A standalone ESCs; unclear which (if either) programs the U2's integrated ESC. Check the manual on arrival or email help@underwaterthruster.com. Only needed if depth hold is jerky and ArduSub deadzone params can't fix it |
 
-**Small parts subtotal (est): ~$115**
+**Small parts subtotal (est): ~$160**
 
 ## Field / mission gear, pending
 
@@ -180,6 +184,7 @@ tool serving other projects too, so it doesn't count against the vehicle cost.
 | ELEGOO PETG 1.75 mm, yellow & orange 2 kg | 1 | Amazon (ELEGOO Official US) | 26.58 | received | 2 spools. Wet-environment parts; high-vis colors are a feature underwater |
 | ELEGOO PLA+ 1.75 mm, white 1 kg | 1 | Amazon (ELEGOO Official US) | 13.24 | received | 1 spool. General purpose |
 | Spurtar vernier caliper, 150 mm, steel | 1 | Amazon (Wittyware) | 16.97 | received | The one to trust for dimensions that drive the CAD — flange OD, thruster OD, ESC brick |
+| Ratcheting crimper for insulated terminals, 22–10 AWG | 1 | | — | pending | **Not ordered.** Needed for the ring terminals; the Dupont crimper is the wrong tool. Also check for a heat gun and a stripper that takes 10 AWG: neither is listed here |
 | Ultrassist plastic vernier calipers, 150 mm ×2 | 1 | Amazon (Ultrassist) | 6.99 | received | One for Isabelle to learn on. The other kept for the shop: plastic is **non-conductive**, which is the right property for measuring around live LiPo terminals |
 | YISHU 6 ft surge-protected power strip, 8 outlets + 4 USB | 1 | Amazon (QINGLIANFENG TECH) | 11.99 | received | 2026-09-27, arriving 2026-09-28. Bench power |
 | EDGELEC 14 AWG UL3135 silicone test leads, 3.3 ft, 2 alligator-to-alligator + 2 stackable 4 mm banana-to-alligator | 2 pk | Amazon (EDGELEC) | 18.98 | ordered | 2026-11-01, arriving Tue 2026-11-03. 9.99 each, less a $1.00 promotion. Bench leads for the 382213; not for the LiPo |
@@ -301,15 +306,15 @@ Owned, found 2026-10-25, 2026-10-30 and 2026-11-01 (Roland). Not counted in the 
 | Ordered — ROV | ~1,243 | 1,853.79 |
 | Ordered — acoustic bench | — | 142.60 |
 | Core pending | ~205–310 | |
-| Small parts pending | ~115 | |
+| Small parts pending | ~160 | |
 | Field gear pending | ~55 | |
-| **ROV build: paid + pending (6 thrusters, no options)** | **~$2,230–2,335** | |
-| **Everything incl. acoustic bench** | **~$2,370–2,475** | |
+| **ROV build: paid + pending (6 thrusters, no options)** | **~$2,275–2,380** | |
+| **Everything incl. acoustic bench** | **~$2,415–2,520** | |
 | Shop tooling (excluded from above) | | 426.30 out of pocket (502.35 list) |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
 build (≈4×). The projection is ROV Paid ($1,853.79, a known number) plus
-pending estimates ($375–480); the estimated ordered items ran ~30% over
+pending estimates ($420–525); the estimated ordered items ran ~30% over
 their estimates ($1,604 paid against ~$1,243 est), so pending items may
 too. (Corrected 2026-08-20 per design review M1 — the earlier
 "$1,550–1,700" summary mixed estimates for items whose real prices were
