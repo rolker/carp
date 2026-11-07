@@ -249,7 +249,7 @@ these as variables):
 
 | Part | Footprint L × W | Height, cover closed | Mounting holes: count, spacing, Ø | Terminals and wire exits | Notes |
 |---|---|---|---|---|---|
-| MIDI holder | | | | stud centres, stud height, cover swing | |
+| MIDI holder | 53.3 × 22.2 | 26.0 | 2 on a diagonal, Ø4.7; caliper spans across the diagonal 41 / 49.8 → centres 45.4 apart, Ø4.4 by spans. Centres 3.5 from the narrow edge and 4.5 from the long edge as read (2026-11-07) | stud centres, stud height, cover swing still to measure | Two **dovetail keys on one long side**, 8 wide at the face narrowing to 7 over 2.3 deep, 6.8 tall, 28 apart: the ganging feature for a second holder, and a locating feature a printed cradle can copy. **Check:** 3.5 and 4.5 from the edges to hole *centres* give a 46.3 × 13.2 pattern, diagonal 48.1, which is longer than the 45.4 measured across the diagonal; the offsets are probably to the hole edge, or the 53.3 includes an overhang. Re-measure the hole spacing along the length with outer/inner spans |
 | 6-way block | | | | stud positions, screw row pitch, negative post, LED side | cover swing clearance |
 | Inline holder | body L × Ø | | none, lead length | cap hinge side | |
 | Cap filter module | | | none? | XT60 orientation, how four chain | |
