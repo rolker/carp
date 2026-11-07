@@ -254,7 +254,7 @@ these as variables):
 | Inline holder | body L × Ø | | none, lead length | cap hinge side | |
 | Cap filter module | | | none? | XT60 orientation, how four chain | |
 | Power module | | | | cable lengths both ends, connector positions | |
-| Pololu D36V50F5 | board L × W | tallest part | | which edge the terminals are on | board thickness |
+| Pololu D36V50F5 | 25.5 × 25.5 | 7.9 from the board underside to the tallest top-side part (6.2 above the top face); bottom-side parts reach 1.7 below the underside (3.4 below the top face) | 3 holes Ø2.5 at three corners, 21.5 c-to-c (M2 or #2 screws; the fourth corner is clear of a hole) | which edge the terminals are on still to note | board 1.7 thick (2026-11-07). Cradle needs standoffs ≥ 2 so the bottom-side parts float, or a pocket under them |
 | XT90-S female + pigtail | connector body | | | | for a panel clip |
 | 10 AWG wire | OD | | | | zip-tie slot size |
 
