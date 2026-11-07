@@ -120,10 +120,10 @@ Previously mentioned in notes but never costed as line items.
 | Spare XT60 pigtail pairs | 2–3 pr | | 8 | | pending | The two packs came as 3 pairs each — 6 pairs for 6 ESC drops, none spare. A melted or mis-soldered one otherwise stops a thruster |
 | Pi 5 camera cables, 22↔22-pin, 0.5 mm, **Type B**, vehicle length | 2+2 | | 12 | | pending | **Not blocking the bench test** — the Arducams have 22-pin connectors and shipped with 22↔22 Type B cables (~150 mm) that plug straight into the Pi 5. Needed for the vehicle only, **length from the CAD cable path once the sled and bay order are drawn** — with cameras and Pi both on the sled, Pi right behind the cameras (`sled.md`), the stock ~150 mm cables may reach and this row may not be needed at all; the 500 mm uxcell set (Ordered) covers bench work meanwhile. Match Type B — wrong type makes no contact; never flip one to make it fit. Shortest that reaches; route away from ESC leads |
 | Insulated ring terminals: yellow 12–10 AWG, blue 16–14 AWG, red 22–16 AWG | 10+ each | | 15 | | pending | **Not ordered.** Yellow M5/#10 (block main studs measured 5 mm, 2026-11-07) and the MIDI holder's studs (also measured 5 mm, 2026-11-07); blue M4/#8 and M5/#10; red M4/#8 for thruster wires, too thin for blue. Circuit screws measured 4 mm. **All sizes confirmed, ready to order.** The inline holders' 12 AWG leads take yellow, not blue, so blue is only needed if a 16–14 AWG wire lands on a stud. Est is a guess |
-| P-clips and screws | 6 | | 6 | | pending | **Not ordered.** Strain relief on the bench board. Est is a guess |
+| P-clips and screws | 6 | | 6 | | later | Skipped 2026-11-07 (Roland): strain relief on the bench board can be zip ties through holes, or printed into the holders. Revisit if the crimps see strain |
 | ApisQueen ESC tuning tool | 1 | | 12–15 | | pending | **Hold — compatibility unconfirmed.** O'Hara card = boat ESC line; Feather USB board = 80–300 A standalone ESCs; unclear which (if either) programs the U2's integrated ESC. Check the manual on arrival or email help@underwaterthruster.com. Only needed if depth hold is jerky and ArduSub deadzone params can't fix it |
 
-**Small parts subtotal (est): ~$135**
+**Small parts subtotal (est): ~$130**
 
 ## Field / mission gear, pending
 
@@ -307,15 +307,15 @@ Owned, found 2026-10-25, 2026-10-30 and 2026-11-01 (Roland). Not counted in the 
 | Ordered — ROV | ~1,268 | 1,871.76 |
 | Ordered — acoustic bench | — | 142.60 |
 | Core pending | ~205–310 | |
-| Small parts pending | ~135 | |
+| Small parts pending | ~130 | |
 | Field gear pending | ~55 | |
-| **ROV build: paid + pending (6 thrusters, no options)** | **~$2,265–2,370** | |
-| **Everything incl. acoustic bench** | **~$2,410–2,515** | |
+| **ROV build: paid + pending (6 thrusters, no options)** | **~$2,260–2,365** | |
+| **Everything incl. acoustic bench** | **~$2,405–2,510** | |
 | Shop tooling (excluded from above) | | 426.30 out of pocket (502.35 list) |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
 build (≈4×). The projection is ROV Paid ($1,871.76, a known number) plus
-pending estimates ($395–500); the estimated ordered items ran ~30% over
+pending estimates ($390–495); the estimated ordered items ran ~30% over
 their estimates ($1,604 paid against ~$1,243 est), so pending items may
 too. (Corrected 2026-08-20 per design review M1 — the earlier
 "$1,550–1,700" summary mixed estimates for items whose real prices were
