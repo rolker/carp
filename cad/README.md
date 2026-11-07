@@ -213,6 +213,74 @@ around 0.1 mm each):
    stack it on the test mast. Check stiffness, then ping past it in
    acoustics_lab to see how visible it is.
 
+## Power distribution holders (started 2026-11-07, proposed)
+
+**Status: proposed layout, measurements pending.** Printed holders for the
+power distribution parts, designed as vehicle internals from the start
+because the bench rig mirrors the vehicle layout (decided,
+`docs/open-questions.md`). PLA+ for the bench print, PETG for the hull.
+
+**Two things the docs still get wrong, found while starting this:**
+
+- `docs/housing-layout.md` and `docs/sled.md` keep an **ESC bay** of 80 mm
+  at the rear with six ESC bricks ringing the wall. The U2's ESC is the
+  potted cylinder on the thruster cable, **outside the hull** (2026-11-01).
+  What the rear of the tube holds instead is six three-wire cables from
+  the penetrators and the distribution parts below. The bay stack and the
+  "stays in the tube" table need rewriting once the placement below is
+  decided; not changed yet.
+- `docs/wiring.md` still shows six XT60 drops from the star point. Option A
+  replaces them with the 6-way block (proposed, not yet in `wiring.md`).
+
+**Parts the holders carry:**
+
+| Part | Role | Status |
+|---|---|---|
+| BOJACK MIDI holder | 80 A main fuse at the star point; M5 studs | received |
+| UCkasayfy 6-way ATC block | six thruster circuits; M5 studs, M4 screws, negative post | received, inspected |
+| Anyongora inline ATC holders ×2 | power module and Pololu spurs, 12 AWG leads | arriving 2026-11-08 |
+| FEICHAO 1000 µF XT60 cap filters ×4 | bulk capacitance at the star point (rule 7) | received |
+| Radiolink power module | Pixhawk 5.3 V and voltage sense, XT60 in/out | received |
+| Pololu D36V50F5 | 5 V to the Pi | received |
+| XT90-S input | service disconnect; one input for pack or bench supply (proposed) | received |
+
+**Measure first** (steel caliper; fill in, then the holders are drawn from
+these as variables):
+
+| Part | Footprint L × W | Height, cover closed | Mounting holes: count, spacing, Ø | Terminals and wire exits | Notes |
+|---|---|---|---|---|---|
+| MIDI holder | | | | stud centres, stud height, cover swing | |
+| 6-way block | | | | stud positions, screw row pitch, negative post, LED side | cover swing clearance |
+| Inline holder | body L × Ø | | none, lead length | cap hinge side | |
+| Cap filter module | | | none? | XT60 orientation, how four chain | |
+| Power module | | | | cable lengths both ends, connector positions | |
+| Pololu D36V50F5 | board L × W | tallest part | | which edge the terminals are on | board thickness |
+| XT90-S female + pigtail | connector body | | | | for a panel clip |
+| 10 AWG wire | OD | | | | zip-tie slot size |
+
+**Layout question, Roland's to decide (two options, drawing on request):**
+
+1. **On the sled, behind the packs.** Everything the pack feeds comes out
+   with it; the XT90-S stays the one disconnect. The six thruster cables
+   from the rear penetrators then need a service loop or a disconnect at
+   the block, and the cables cross the sled gap live.
+2. **Fixed in the rear of the tube** where the ESC bay was. Thruster
+   cables land on the block short and permanent, as the ESC phase wires
+   were meant to. The pack-to-MIDI link then crosses the sled disconnect,
+   which the XT90-S already does, and the power module and Pololu spurs
+   run forward to the sled.
+
+Either way the tray top is at Z −55 (proposed) and the bore at that height
+is about 108 wide; the pack pair takes 100 of it over 155 of length.
+
+**Holder rules, proposed:** each holder is a flat cradle that screws to the
+tray or tube wall, uses the part's own mounting holes where it has them
+(M3 or M4 heat-set inserts), and has zip-tie slots on the wire exits for
+strain relief, which is why the P-clips were dropped. One multi-part Part
+Studio `Power distribution` with a layout sketch, so moving the block
+moves its holder; part dimensions as local variables named per the
+conventions above (`fuse_block_length`, `midi_holder_stud_spacing`).
+
 ## First target: camera carrier + stand-in plate
 
 Not the sled yet. The first print is **stage 1 of the test plan in
