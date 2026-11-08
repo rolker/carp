@@ -54,9 +54,10 @@ bought; `later` = deliberate deferral.
 | Anyongora 12 AWG waterproof inline ATC/ATO fuse holders, 4 pack, with 40 assorted fuses 2–40 A | 1 | Amazon (Anyongora) | 15 | 7.99 | ordered | 2026-11-07, arriving 2026-11-08. Covers the inline-holder row (power module and Pololu spurs; two holders spare) and supplies the 10 A fuses. Leads are 12 AWG, heavier than the 16 AWG planned: fine for the block's M4 screws (listed 16–12 AWG), but check the ring terminal size on the Pololu end. On arrival: count the fuses by value, especially the 10 A (6+ wanted; buy a pack if short), and check the holder cap seals. Replaces the Littelfuse FHAC0001 proposal |
 | GOODSEN 15 A ATC/ATO blade fuses, 25 pcs | 1 | Amazon (GOODSEN) | 10 | 4.99 | ordered | 2026-11-07, arriving 2026-11-08. Wiring rule 0 value for the thruster circuits, but only after peak current is measured (proposed, `open-questions.md`): the U2 cable is about 18 AWG by estimate |
 | GOODSEN 5 A ATC/ATO blade fuses, 25 pcs | 1 | Amazon (GOODSEN) | — | 4.99 | ordered | 2026-11-07, arriving 2026-11-08. First-run value for every new thruster lead, and the power module and Pololu spurs |
+| Insulated ring terminals: yellow 12–10 AWG #10/M5, red 22–16 AWG #8/M4 (blue if included) | — | (not recorded) | 15 | ? | ordered | **Ordered 2026-11-07 (Roland); seller, mix and price not recorded, fill in.** Yellow #10 for the block and MIDI studs (both measured Ø4.8) and the 12 AWG inline holder leads; red #8 for the ~18 AWG thruster wires on the M4 circuit screws. Needs the insulated-terminal ratchet crimper, still pending |
 
-**ROV ordered subtotal: est ~$1,268 (+11 unestimated adds) · paid $1,871.76.**
-The 43 rows above sum to $1,856.34 in item prices; the other $15.42 is
+**ROV ordered subtotal: est ~$1,283 (+11 unestimated adds) · paid $1,871.76 plus the unpriced ring terminals.**
+The 44 rows above sum to $1,856.34 in item prices (terminals not yet priced); the other $15.42 is
 shipping on the RobotShop orders ($140.69 + $168.74 incl. shipping, items
 $300.51) and the Blue Robotics order ($54.94 incl. shipping, items $48.44).
 Amazon rows are per-item prices with free shipping (per-order figures in git
@@ -119,11 +120,10 @@ Previously mentioned in notes but never costed as line items.
 | Spare XT90-S male connector | 1 | | 8 | | pending | Review 2 MA3: anti-spark resistor is a consumable (~30–50 matings); lives in the field box |
 | Spare XT60 pigtail pairs | 2–3 pr | | 8 | | pending | The two packs came as 3 pairs each — 6 pairs for 6 ESC drops, none spare. A melted or mis-soldered one otherwise stops a thruster |
 | Pi 5 camera cables, 22↔22-pin, 0.5 mm, **Type B**, vehicle length | 2+2 | | 12 | | pending | **Not blocking the bench test** — the Arducams have 22-pin connectors and shipped with 22↔22 Type B cables (~150 mm) that plug straight into the Pi 5. Needed for the vehicle only, **length from the CAD cable path once the sled and bay order are drawn** — with cameras and Pi both on the sled, Pi right behind the cameras (`sled.md`), the stock ~150 mm cables may reach and this row may not be needed at all; the 500 mm uxcell set (Ordered) covers bench work meanwhile. Match Type B — wrong type makes no contact; never flip one to make it fit. Shortest that reaches; route away from ESC leads |
-| Insulated ring terminals: yellow 12–10 AWG, blue 16–14 AWG, red 22–16 AWG | 10+ each | | 15 | | pending | **Not ordered.** Yellow M5/#10 (block main studs measured 5 mm, 2026-11-07) and the MIDI holder's studs (also measured 5 mm, 2026-11-07); blue M4/#8 and M5/#10; red M4/#8 for thruster wires, too thin for blue. Circuit screws measured 4 mm. **All sizes confirmed, ready to order.** The inline holders' 12 AWG leads take yellow, not blue, so blue is only needed if a 16–14 AWG wire lands on a stud. Est is a guess |
 | P-clips and screws | 6 | | 6 | | later | Skipped 2026-11-07 (Roland): strain relief on the bench board can be zip ties through holes, or printed into the holders. Revisit if the crimps see strain |
 | ApisQueen ESC tuning tool | 1 | | 12–15 | | pending | **Hold — compatibility unconfirmed.** O'Hara card = boat ESC line; Feather USB board = 80–300 A standalone ESCs; unclear which (if either) programs the U2's integrated ESC. Check the manual on arrival or email help@underwaterthruster.com. Only needed if depth hold is jerky and ArduSub deadzone params can't fix it |
 
-**Small parts subtotal (est): ~$130**
+**Small parts subtotal (est): ~$115**
 
 ## Field / mission gear, pending
 
@@ -304,10 +304,10 @@ Owned, found 2026-10-25, 2026-10-30 and 2026-11-01 (Roland). Not counted in the 
 
 | | Est $ | Paid $ |
 |---|---|---|
-| Ordered — ROV | ~1,268 | 1,871.76 |
+| Ordered — ROV | ~1,283 | 1,871.76 + terminals |
 | Ordered — acoustic bench | — | 142.60 |
 | Core pending | ~205–310 | |
-| Small parts pending | ~130 | |
+| Small parts pending | ~115 | |
 | Field gear pending | ~55 | |
 | **ROV build: paid + pending (6 thrusters, no options)** | **~$2,260–2,365** | |
 | **Everything incl. acoustic bench** | **~$2,405–2,510** | |
@@ -315,7 +315,7 @@ Owned, found 2026-10-25, 2026-10-30 and 2026-11-01 (Roland). Not counted in the 
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
 build (≈4×). The projection is ROV Paid ($1,871.76, a known number) plus
-pending estimates ($390–495); the estimated ordered items ran ~30% over
+pending estimates ($375–480) and the unpriced terminals; the estimated ordered items ran ~30% over
 their estimates ($1,604 paid against ~$1,243 est), so pending items may
 too. (Corrected 2026-08-20 per design review M1 — the earlier
 "$1,550–1,700" summary mixed estimates for items whose real prices were
