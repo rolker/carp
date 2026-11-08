@@ -54,10 +54,11 @@ bought; `later` = deliberate deferral.
 | Anyongora 12 AWG waterproof inline ATC/ATO fuse holders, 4 pack, with 40 assorted fuses 2–40 A | 1 | Amazon (Anyongora) | 15 | 7.99 | ordered | 2026-11-07, arriving 2026-11-08. Covers the inline-holder row (power module and Pololu spurs; two holders spare) and supplies the 10 A fuses. Leads are 12 AWG, heavier than the 16 AWG planned: fine for the block's M4 screws (listed 16–12 AWG), but check the ring terminal size on the Pololu end. On arrival: count the fuses by value, especially the 10 A (6+ wanted; buy a pack if short), and check the holder cap seals. Replaces the Littelfuse FHAC0001 proposal |
 | GOODSEN 15 A ATC/ATO blade fuses, 25 pcs | 1 | Amazon (GOODSEN) | 10 | 4.99 | ordered | 2026-11-07, arriving 2026-11-08. Wiring rule 0 value for the thruster circuits, but only after peak current is measured (proposed, `open-questions.md`): the U2 cable is about 18 AWG by estimate |
 | GOODSEN 5 A ATC/ATO blade fuses, 25 pcs | 1 | Amazon (GOODSEN) | — | 4.99 | ordered | 2026-11-07, arriving 2026-11-08. First-run value for every new thruster lead, and the power module and Pololu spurs |
-| Insulated ring terminals: yellow 12–10 AWG #10/M5, red 22–16 AWG #8/M4 (blue if included) | — | (not recorded) | 15 | ? | ordered | **Ordered 2026-11-07 (Roland); seller, mix and price not recorded, fill in.** Yellow #10 for the block and MIDI studs (both measured Ø4.8) and the 12 AWG inline holder leads; red #8 for the ~18 AWG thruster wires on the M4 circuit screws. Needs the insulated-terminal ratchet crimper, still pending |
+| haisstronica heat-shrink ring terminals, 12–10 AWG, #10, yellow, 50 pcs | 1 | Amazon (HAISSTRONICA) | 15 | 9.99 | ordered | 2026-11-07, arriving 2026-11-08. For the block and MIDI studs (both Ø4.8) and the 12 AWG inline holder leads. Adhesive-lined 3:1 heat shrink: needs a heat gun as well as the insulated-terminal crimper, both still to confirm in shop tooling |
+| QOOSIKICC insulated ring and disconnect terminal assortment, 102 pcs | 1 | Amazon (Shenzhen Mingrisheng) | — | 7.99 | ordered | 2026-11-07, arriving 2026-11-08. Mixed sizes: on arrival sort out the **red 22–16 AWG #8** rings for the thruster wires on the M4 circuit screws and count them (6 needed plus spares); the rest is a general stock. Check hole sizes with the caliper rather than trusting the labels |
 
-**ROV ordered subtotal: est ~$1,283 (+11 unestimated adds) · paid $1,871.76 plus the unpriced ring terminals.**
-The 44 rows above sum to $1,856.34 in item prices (terminals not yet priced); the other $15.42 is
+**ROV ordered subtotal: est ~$1,283 (+12 unestimated adds) · paid $1,889.74.**
+The 45 rows above sum to $1,874.32 in item prices; the other $15.42 is
 shipping on the RobotShop orders ($140.69 + $168.74 incl. shipping, items
 $300.51) and the Blue Robotics order ($54.94 incl. shipping, items $48.44).
 Amazon rows are per-item prices with free shipping (per-order figures in git
@@ -304,18 +305,18 @@ Owned, found 2026-10-25, 2026-10-30 and 2026-11-01 (Roland). Not counted in the 
 
 | | Est $ | Paid $ |
 |---|---|---|
-| Ordered — ROV | ~1,283 | 1,871.76 + terminals |
+| Ordered — ROV | ~1,283 | 1,889.74 |
 | Ordered — acoustic bench | — | 142.60 |
 | Core pending | ~205–310 | |
 | Small parts pending | ~115 | |
 | Field gear pending | ~55 | |
-| **ROV build: paid + pending (6 thrusters, no options)** | **~$2,260–2,365** | |
+| **ROV build: paid + pending (6 thrusters, no options)** | **~$2,265–2,370** | |
 | **Everything incl. acoustic bench** | **~$2,405–2,510** | |
 | Shop tooling (excluded from above) | | 426.30 out of pocket (502.35 list) |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
-build (≈4×). The projection is ROV Paid ($1,871.76, a known number) plus
-pending estimates ($375–480) and the unpriced terminals; the estimated ordered items ran ~30% over
+build (≈4×). The projection is ROV Paid ($1,889.74, a known number) plus
+pending estimates ($375–480); the estimated ordered items ran ~30% over
 their estimates ($1,604 paid against ~$1,243 est), so pending items may
 too. (Corrected 2026-08-20 per design review M1 — the earlier
 "$1,550–1,700" summary mixed estimates for items whose real prices were
