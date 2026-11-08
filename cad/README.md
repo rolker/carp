@@ -258,7 +258,15 @@ these as variables):
 | XT90-S female + pigtail | body 11 × 21 × **31 long** (2026-11-07) | | | 10 AWG pigtails about 135 long, leaving 4.5 apart | Panel clip: a rectangular window 11 × 21 plus fit, with a lip behind the connector's shoulder so mating pushes against the panel, not the clip |
 | 10 AWG wire | OD **5.5** over the insulation (2026-11-07, Amass pigtail) | | | | Zip-tie slots: a 3 × 1.5 slot pair each side of a 6-wide saddle |
 
-**Layout question, Roland's to decide (two options, drawing on request):**
+**Layout question, Roland's to decide.** Drawing (private page on Roland's account):
+[CARP Distribution Placement](https://claude.ai/artifact/PvDtqKad3UXCLwQ8p5gkxa), side and end views to scale,
+2026-11-07. In both options the block stands as a **vertical panel** so it
+spends depth, not tray length: the 95 behind the packs goes 25 penetrator
+stubs (assumed) + 36.6 block + 33 to lift the cover, with nothing to spare
+either way. The difference is what crosses the sled gap: option 1 the six
+thruster cables (18 conductors, loops or 12 screws), option 2 the pack
+lead, the 7-pin signal harness and two fused spurs, all on connectors
+already planned.
 
 1. **On the sled, behind the packs.** Everything the pack feeds comes out
    with it; the XT90-S stays the one disconnect. The six thruster cables
