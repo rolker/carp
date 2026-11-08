@@ -255,8 +255,8 @@ these as variables):
 | Cap filter module | 24 long × 20 wide | 30.5 with the capacitor | none | XT60 male one end, female the other (2026-11-07); whether four plug into a chain still to try | **Not on the main path:** XT60s are banned there (`docs/bom.md`), so the four modules hang as a **dead-end stub off the star point** through one XT60 pigtail, carrying ripple only (proposed). Alternative: cut the capacitors out and solder them across the block studs. Holder: a row of four saddles, or none if the stub just lies zip-tied |
 | Power module | 26 × 28.4, plus a 7.5 capacitor standing off one end (35.9 overall) | about 15, heat-shrunk | none; clamp or zip-tie cradle | XT60 leads about 65 each end; 6-pin Pixhawk lead **180** (2026-11-07) | A shrink-wrapped brick with no holes: a saddle with two zip-tie slots, or a snap-in pocket sized 26 × 36 with the capacitor end relieved |
 | Pololu D36V50F5 | 25.5 × 25.5 | 7.9 from the board underside to the tallest top-side part (6.2 above the top face); bottom-side parts reach 1.7 below the underside (3.4 below the top face) | 3 holes Ø2.5 at three corners, 21.5 c-to-c (M2 or #2 screws; the fourth corner is clear of a hole) | Terminal pads and through-holes along one edge; with that edge at the bottom and the tall components facing you, the three mounting holes are **bottom left, bottom right and upper right**, upper left has none (2026-11-07). Leads leave along the terminal edge | board 1.7 thick (2026-11-07). Cradle needs standoffs ≥ 2 so the bottom-side parts float, or a pocket under them |
-| XT90-S female + pigtail | connector body | | | | for a panel clip |
-| 10 AWG wire | OD | | | | zip-tie slot size |
+| XT90-S female + pigtail | body cross-section 11 × 21 (2026-11-07), length not noted | | | 10 AWG pigtails about 135 long | Panel clip: a rectangular window 11 × 21 plus fit, with a lip behind the connector's shoulder so mating pushes against the panel, not the clip |
+| 10 AWG wire | OD **5.5** over the insulation (2026-11-07, Amass pigtail) | | | | Zip-tie slots: a 3 × 1.5 slot pair each side of a 6-wide saddle |
 
 **Layout question, Roland's to decide (two options, drawing on request):**
 
