@@ -281,6 +281,8 @@ already planned.
 Either way the tray top is at Z −55 (proposed) and the bore at that height
 is about 108 wide; the pack pair takes 100 of it over 155 of length.
 
+**Roland's `Pressure Vessel Assembly.stl` (re-exported 2026-11-07 23:33, read from Downloads):** tube X −400..0 modelled at **Ø166 OD / Ø150 bore** (sched-40 is 168.3 / 154.1: check which the model intends); stereo bracket and both cameras at the front lid at the 95 baseline; the printed sled part (97.5 × 55 × 53) behind it with the Pi 5 on its plate at Z −17; a box 82 × 51.7 × 16.4 (Pixhawk?) overhead at Z 36–52 above the Pi; **one pack** on the floor, X −175..−25, bottom at Z −65.85 (consistent with one pack per dive, ADR-013, but not with the two-pack bay stack in `housing-layout.md`); the MIDI holder upright on the floor just aft of the pack's lead end, X −216..−187, lying across the tube; the **fuse block overhead and inverted**, base against the top of the bore at Z 56.3, studs pointing down, X −235..−146. Nothing aft of X −235: 165 mm of tube empty. A packing study, not a decision; questions in the chat of 2026-11-07.
+
 **Holder rules, proposed:** each holder is a flat cradle that screws to the
 tray or tube wall, uses the part's own mounting holes where it has them
 (M3 or M4 heat-set inserts), and has zip-tie slots on the wire exits for
