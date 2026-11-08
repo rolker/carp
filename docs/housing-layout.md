@@ -269,7 +269,7 @@ Build the sketch on these, not on typed-in numbers. Assumed values are flagged
 | `thruster_diameter` | 70 | **Measured 2026-10-02** — matches the assumption, nothing moves |
 | `thruster_length` | 96 | **Measured 2026-10-02** (was 130 assumed) |
 | `esc_length/width/height` | 75/30/15 | **ASSUMED — measure.** The U2 cable carries a sealed Ø20 × 72 cylinder 150 mm from the thruster, then > 1 m to a blue waterproof circular plug (2026-10-02 photo; full cable about Roland's arm span, not measured, 2026-11-01). The plug has **3 male pins** (Ø1.5, ~5.0 centre to centre in an even triangle, so on a ~Ø5.8 circle, ≤ ~10 long) in a black segmented sleeve (OD 15.2, wall ~1.6, so ID ~12.0, 10.8 deep), with a blue coupling ring and a red seal; caliper 2026-11-01. The cable runs inside black corrugated conduit. One thruster cut 2026-11-01: three silicone-insulated stranded wires, **red, black and yellow, no shield**, under a black jacket with white filler; bundle ~1.3–1.5, insulation OD ~2.3, about 18 AWG (estimate) — no separate ESC came in the box, so the cylinder is most likely a potted ESC outside the hull, and the 3 pins are V+, GND and signal. **Not motor phases** (one thruster, EX430 Ω, 2026-10-31): 1–2 10.55 MΩ, 1–3 3.3 to ~30 MΩ between readings, 2–3 no reading, some values changing when the probes are swapped. Motor phases would read ~0.1–1 Ω on all pairs. Diode mode, same thruster (red–black): 1–2 0.707 V, 2–1 OL, 1–3 0.522 V, 3–1 changes then stops at OL, 2–3 OL, 3–2 OL. **Pinout: 1 = GND (black), 2 = signal (yellow), 3 = V+ (red)**; pin-to-colour traced by continuity on the cut tail, roles proven by a powered test on the bench supply, 2026-11-01. No published pinout found. Numbers are moulded in the plug; looking into it, pin 1 is probably upper left, 3 right, 2 bottom |
-| `pack_length/width/height` | 155/50/37 | `power-budget.md` |
+| `pack_length/width/height` | 155/50/37 | `power-budget.md` spec. **Roland's Onshape model (2026-11-07, `LiPo 6000mAh 14.8V.stl`): body 140 × 49.1 × 35 plus a 10 long tapered lead end (35 → 20 thick), 150 overall.** Keep 155 as the bay allowance until the 140 is confirmed as the measured body |
 | `rail_clearance` | 15 | chosen |
 | `vertical_thruster_spacing` | 489 | driven by the tail arrangement |
 | `cg_z` | −30 | ≈ BG below hull axis; **verify by float test** |
@@ -336,7 +336,7 @@ Four of these five are sitting in boxes waiting on the inventory pass.
 - [x] **Dome flange OD** — **71.9**, measured 2026-09-26. Over 70, so note 1
       stops holding and the baseline moves to 74 mm — see "Measured flange"
       above
-- [ ] **YOWOO pack**, confirm against 155 × 50 × 37 in `power-budget.md`
+- [x] **YOWOO pack** — modelled 2026-11-07 (Roland, Onshape): body **140 × 49.1 × 35**, 150 with the lead stub, against 155 × 50 × 37 in `power-budget.md`. A pair is 98.2 wide, not 100, and 35 tall on the tray
 - [ ] **Thruster mass, each** — for the buoyancy budget
 - [ ] **Actual CG height**, from the float test — `thruster_6_z` follows it
 
