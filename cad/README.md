@@ -238,7 +238,7 @@ because the bench rig mirrors the vehicle layout (decided,
 |---|---|---|
 | BOJACK MIDI holder | 80 A main fuse at the star point; M5 studs | received |
 | UCkasayfy 6-way ATC block | six thruster circuits; M5 studs, M4 screws, negative post | received, inspected |
-| Anyongora inline ATC holders ×2 | power module and Pololu spurs, 12 AWG leads | arriving 2026-11-08 |
+| Anyongora inline ATC holders ×2 | power module and Pololu spurs, 12 AWG leads | received (confirmed 2026-11-12) |
 | FEICHAO 1000 µF XT60 cap filters ×4 | bulk capacitance at the star point (rule 7) | received |
 | Radiolink power module | Pixhawk 5.3 V and voltage sense, XT60 in/out | received |
 | Pololu D36V50F5 | 5 V to the Pi | received |
