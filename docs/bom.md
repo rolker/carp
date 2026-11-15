@@ -38,7 +38,7 @@ bought; `later` = deliberate deferral.
 | FEICHAO 35 V 1000 µF XT60 cap filters ×4 | 1 | Amazon (FEICHAO) | 15 | 39.96 | received | **Arrives Sept 8–16** (China lead time). 4,000 µF total at the star point. Bench Phases 1–3 can run without them — short bench leads = low inductance — but install before sealed integration; Castle CapPack is the local fallback if the housing outpaces the mail |
 | LiPo safe pouches, 185×75×60 mm ×2 | 1 | Amazon (CNDHDOK) | 12 | 9.99 | received | One pouch per pack — isolation during storage and charging. Arrives with the batteries |
 | BX100 cell checkers w/ LV buzzer ×2 | 1 | Amazon (SpeedyFPV) | 8 | 9.49 | received | Arrives Saturday — Friday's first charge relies on the charger's own per-cell display. Plug-read-unplug; standby drain unbalances packs left connected |
-| BOJACK MIDI 80 A fuses ×3 + holders ×2 | 1 | Amazon (BOJACK) | 15 | 21.98 | received | **4 fuses arrived** (listing said ×3), 2 holders. Main fuse at the star point (review B1) + two spare elements and a spare holder — field-box spares covered |
+| BOJACK MIDI 80 A fuses ×3 + holders ×2 | 1 | Amazon (BOJACK) | 15 | 21.98 | received | **4 fuses arrived** (listing said ×3), 2 holders. Main fuse at the star point (review B1) + two spare elements and a spare holder — field-box spares covered. Holder studs measured 5 mm (2026-11-07): M5, yellow #10/M5 ring terminals |
 | IP68 RJ45 panel-mount coupler, F-F ×2 | 1 | Amazon | — | 15.99 | received | Topside dry box wall only — splash-rated, **never submerged** (prior-art: IP67/68 couplers are not pressure-rated). Second is the spare |
 | Tomotato transparent waterproof dry box | 1 | Amazon | 20 | 17.99 | received | **Too small** for the Opal + power bank — needs a bigger box (return or repurpose this one). Topside station: Opal + power bank; tether enters via PG9 gland or the panel coupler. Confirm it floats loaded; leash to kayak |
 | Hand vacuum pump / brake bleeder kit w/ gauge | 1 | Amazon (Pathfinder Auto) | 35 | 19.89 | received | The pre-dive leak-test tool: **15 inHg** via the Schrader stem (core out), watch for a steady needle. **Kit checked 2026-10-11: no Schrader adapter** — push-on vinyl hose and barbed adapters only (T, straight, tapered, bleeder-nipple, cup), plus a reservoir jar with two-port lids. The gauge is built into the pump body, so it reads the hull only while the pump stays connected. Still to do: verify the pump holds vacuum dead-headed, and measure the hose inside diameter (sets the barb size) |
@@ -50,14 +50,19 @@ bought; `later` = deliberate deferral.
 | SOMELINE Dupont crimping kit, 2030M ratchet crimper, 32–20 AWG, 2.54 mm terminals and housings | 1 | Amazon (SOMELINE) | — | 27.98 | received | 2026-10-31, received by 2026-11-01. For the Pololu → Pi GPIO lead: 2×5 housing on pins 1–10, wires on 2, 4 (5 V) and 6, 9 (GND); the connector choice is proposed. The housing is not keyed — mark pin 1 |
 | DEKIEVALE 22 AWG stranded silicone wire, tinned copper, 8 colours, 16.5 ft each | 1 | Amazon (DEKIEVALE) | — | 17.90 | received | 2026-10-31, received 2026-11-01, with a small yellow cable stripper / punch-down tool. Doubled per rail on the Pololu output. Check that the jacket fits the Dupont terminal's insulation grip; AWM 1007 22 AWG stranded from storage is the fallback. Do not land 22 AWG on the star point without a small inline fuse (proposed, ~5 A) |
 | DMLENGOIN SP13 3-pin IP68 screw-terminal connectors, 2 pairs | 1 | Amazon (MaiCheng US) | — | 15.59 | received | 2026-10-31, received 2026-11-01. **Does not fit the U2 blue plug: too small (Roland, 2026-11-01).** The U2 mate is still to be found. Listing says 5 A in the text and 13 A in the spec image: treat as 5 A against the U2's 9 A. Ø1.6 mm pins, 18–16 AWG, 4–6.5 mm cable, no depth given for IP68. Trace terminals by continuity from the thruster's pin numbers |
-| UCkasayfy 6-way ATC/ATO fuse block, plain "6 Way" style (FB005 family), with LED fuse indicators | 1 | Amazon (UCkasayfy) | — | 9.99 | ordered | 2026-11-01, arriving 2026-11-02. Listed 100 A per block, 30 A per circuit, 32 V, M5 main studs, M4 circuit screws for 16–12 AWG; fuses included, values not listed. Distribution option A: **proposed** (`docs/wiring.md` not yet changed). On arrival: count the negative screws, confirm stud polarity by markings and continuity, measure it, read the fuse values. A reviewer says the cover leaves the main studs exposed: insulate them |
+| UCkasayfy 6-way ATC/ATO fuse block, plain "6 Way" style (FB005 family), with LED fuse indicators | 1 | Amazon (UCkasayfy) | — | 9.99 | received | Arrived 2026-11-02. Six negative screws plus the negative post and nut. **No fuses included**, though the listing said they were: ATC/ATO blades still to buy. Listed 100 A per block, 30 A per circuit, 32 V, M5 main studs, M4 circuit screws for 16–12 AWG. Distribution option A: **proposed** (`docs/wiring.md` not yet changed). **Main studs measured 5 mm (Roland, 2026-11-07): M5 confirmed, so #10 or M5 ring terminals.** **Circuit screws measured 4 mm (2026-11-07): M4 confirmed, #8 or M4 ring terminals.** Positive and negative posts are marked on the block and continuity from each post to its contacts checks out (2026-11-07): **inspection complete, ready to wire.** A reviewer said the cover leaves the main studs exposed; on the part itself it covers them well, and a dropped tool is very unlikely to short anything |
+| Anyongora 12 AWG waterproof inline ATC/ATO fuse holders, 4 pack, with 40 assorted fuses 2–40 A | 1 | Amazon (Anyongora) | 15 | 7.99 | received | 2026-11-07, received; confirmed by Roland 2026-11-12 (arrival date not recorded). Was arriving 2026-11-08. Covers the inline-holder row (power module and Pololu spurs; two holders spare) and supplies the 10 A fuses. Leads are 12 AWG, heavier than the 16 AWG planned: fine for the block's M4 screws (listed 16–12 AWG), but check the ring terminal size on the Pololu end. On arrival: count the fuses by value, especially the 10 A (6+ wanted; buy a pack if short), and check the holder cap seals. Replaces the Littelfuse FHAC0001 proposal |
+| GOODSEN 15 A ATC/ATO blade fuses, 25 pcs | 1 | Amazon (GOODSEN) | 10 | 4.99 | received | 2026-11-07, received; confirmed by Roland 2026-11-12 (arrival date not recorded). Was arriving 2026-11-08. Wiring rule 0 value for the thruster circuits, but only after peak current is measured (proposed, `open-questions.md`): the U2 cable is about 18 AWG by estimate |
+| GOODSEN 5 A ATC/ATO blade fuses, 25 pcs | 1 | Amazon (GOODSEN) | — | 4.99 | received | 2026-11-07, received; confirmed by Roland 2026-11-12 (arrival date not recorded). Was arriving 2026-11-08. First-run value for every new thruster lead, and the power module and Pololu spurs |
+| haisstronica heat-shrink ring terminals, 12–10 AWG, #10, yellow, 50 pcs | 1 | Amazon (HAISSTRONICA) | 15 | 9.99 | received | 2026-11-07, received; confirmed by Roland 2026-11-12 (arrival date not recorded). Was arriving 2026-11-08. For the block and MIDI studs (both Ø4.8) and the 12 AWG inline holder leads. Adhesive-lined 3:1 heat shrink: needs a heat gun as well as the insulated-terminal crimper, both still to confirm in shop tooling |
+| QOOSIKICC insulated ring and disconnect terminal assortment, 102 pcs | 1 | Amazon (Shenzhen Mingrisheng) | — | 7.99 | received | 2026-11-07, received; confirmed by Roland 2026-11-12 (arrival date not recorded). Was arriving 2026-11-08. Mixed sizes: on arrival sort out the **red 22–16 AWG #8** rings for the thruster wires on the M4 circuit screws and count them (6 needed plus spares); the rest is a general stock. Check hole sizes with the caliper rather than trusting the labels |
 
-**ROV ordered subtotal: est ~$1,243 (+10 unestimated adds) · paid $1,853.79.**
-The 40 rows above sum to $1,838.37 in item prices; the other $15.42 is
+**ROV ordered subtotal: est ~$1,283 (+12 unestimated adds) · paid $1,889.74.**
+The 45 rows above sum to $1,874.32 in item prices; the other $15.42 is
 shipping on the RobotShop orders ($140.69 + $168.74 incl. shipping, items
 $300.51) and the Blue Robotics order ($54.94 incl. shipping, items $48.44).
 Amazon rows are per-item prices with free shipping (per-order figures in git
-history). Reconciled against the rows 2026-11-01.
+history). Reconciled against the rows 2026-11-07.
 
 ### Acoustic bench
 
@@ -116,6 +121,7 @@ Previously mentioned in notes but never costed as line items.
 | Spare XT90-S male connector | 1 | | 8 | | pending | Review 2 MA3: anti-spark resistor is a consumable (~30–50 matings); lives in the field box |
 | Spare XT60 pigtail pairs | 2–3 pr | | 8 | | pending | The two packs came as 3 pairs each — 6 pairs for 6 ESC drops, none spare. A melted or mis-soldered one otherwise stops a thruster |
 | Pi 5 camera cables, 22↔22-pin, 0.5 mm, **Type B**, vehicle length | 2+2 | | 12 | | pending | **Not blocking the bench test** — the Arducams have 22-pin connectors and shipped with 22↔22 Type B cables (~150 mm) that plug straight into the Pi 5. Needed for the vehicle only, **length from the CAD cable path once the sled and bay order are drawn** — with cameras and Pi both on the sled, Pi right behind the cameras (`sled.md`), the stock ~150 mm cables may reach and this row may not be needed at all; the 500 mm uxcell set (Ordered) covers bench work meanwhile. Match Type B — wrong type makes no contact; never flip one to make it fit. Shortest that reaches; route away from ESC leads |
+| P-clips and screws | 6 | | 6 | | later | Skipped 2026-11-07 (Roland): strain relief on the bench board can be zip ties through holes, or printed into the holders. Revisit if the crimps see strain |
 | ApisQueen ESC tuning tool | 1 | | 12–15 | | pending | **Hold — compatibility unconfirmed.** O'Hara card = boat ESC line; Feather USB board = 80–300 A standalone ESCs; unclear which (if either) programs the U2's integrated ESC. Check the manual on arrival or email help@underwaterthruster.com. Only needed if depth hold is jerky and ArduSub deadzone params can't fix it |
 
 **Small parts subtotal (est): ~$115**
@@ -180,9 +186,10 @@ tool serving other projects too, so it doesn't count against the vehicle cost.
 | ELEGOO PETG 1.75 mm, yellow & orange 2 kg | 1 | Amazon (ELEGOO Official US) | 26.58 | received | 2 spools. Wet-environment parts; high-vis colors are a feature underwater |
 | ELEGOO PLA+ 1.75 mm, white 1 kg | 1 | Amazon (ELEGOO Official US) | 13.24 | received | 1 spool. General purpose |
 | Spurtar vernier caliper, 150 mm, steel | 1 | Amazon (Wittyware) | 16.97 | received | The one to trust for dimensions that drive the CAD — flange OD, thruster OD, ESC brick |
+| Ratcheting crimper for insulated terminals, 22–10 AWG | 1 | | — | pending | **Not ordered.** Needed for the ring terminals; the Dupont crimper is the wrong tool. Also check for a heat gun and a stripper that takes 10 AWG: neither is listed here |
 | Ultrassist plastic vernier calipers, 150 mm ×2 | 1 | Amazon (Ultrassist) | 6.99 | received | One for Isabelle to learn on. The other kept for the shop: plastic is **non-conductive**, which is the right property for measuring around live LiPo terminals |
 | YISHU 6 ft surge-protected power strip, 8 outlets + 4 USB | 1 | Amazon (QINGLIANFENG TECH) | 11.99 | received | 2026-09-27, arriving 2026-09-28. Bench power |
-| EDGELEC 14 AWG UL3135 silicone test leads, 3.3 ft, 2 alligator-to-alligator + 2 stackable 4 mm banana-to-alligator | 2 pk | Amazon (EDGELEC) | 18.98 | ordered | 2026-11-01, arriving Tue 2026-11-03. 9.99 each, less a $1.00 promotion. Bench leads for the 382213; not for the LiPo |
+| EDGELEC 14 AWG UL3135 silicone test leads, 3.3 ft, 2 alligator-to-alligator + 2 stackable 4 mm banana-to-alligator | 2 pk | Amazon (EDGELEC) | 18.98 | received | 2026-11-01, received; confirmed by Roland 2026-11-12 (arrival date not recorded). Was arriving Tue 2026-11-03. 9.99 each, less a $1.00 promotion. Bench leads for the 382213; not for the LiPo |
 
 **Shop tooling subtotal: $502.35 · out of pocket $426.30** (rewards points −$76.05)
 
@@ -298,17 +305,17 @@ Owned, found 2026-10-25, 2026-10-30 and 2026-11-01 (Roland). Not counted in the 
 
 | | Est $ | Paid $ |
 |---|---|---|
-| Ordered — ROV | ~1,243 | 1,853.79 |
+| Ordered — ROV | ~1,283 | 1,889.74 |
 | Ordered — acoustic bench | — | 142.60 |
 | Core pending | ~205–310 | |
 | Small parts pending | ~115 | |
 | Field gear pending | ~55 | |
-| **ROV build: paid + pending (6 thrusters, no options)** | **~$2,230–2,335** | |
-| **Everything incl. acoustic bench** | **~$2,370–2,475** | |
+| **ROV build: paid + pending (6 thrusters, no options)** | **~$2,265–2,370** | |
+| **Everything incl. acoustic bench** | **~$2,405–2,510** | |
 | Shop tooling (excluded from above) | | 426.30 out of pocket (502.35 list) |
 
 Confirms `open-questions.md`: this is not a $500 build — it is a ~$2,000
-build (≈4×). The projection is ROV Paid ($1,853.79, a known number) plus
+build (≈4×). The projection is ROV Paid ($1,889.74, a known number) plus
 pending estimates ($375–480); the estimated ordered items ran ~30% over
 their estimates ($1,604 paid against ~$1,243 est), so pending items may
 too. (Corrected 2026-08-20 per design review M1 — the earlier

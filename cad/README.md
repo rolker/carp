@@ -213,6 +213,84 @@ around 0.1 mm each):
    stack it on the test mast. Check stiffness, then ping past it in
    acoustics_lab to see how visible it is.
 
+## Power distribution holders (started 2026-11-07, proposed)
+
+**Status: proposed layout, measurements pending.** Printed holders for the
+power distribution parts, designed as vehicle internals from the start
+because the bench rig mirrors the vehicle layout (decided,
+`docs/open-questions.md`). PLA+ for the bench print, PETG for the hull.
+
+**Two things the docs still get wrong, found while starting this:**
+
+- `docs/housing-layout.md` and `docs/sled.md` keep an **ESC bay** of 80 mm
+  at the rear with six ESC bricks ringing the wall. The U2's ESC is the
+  potted cylinder on the thruster cable, **outside the hull** (2026-11-01).
+  What the rear of the tube holds instead is six three-wire cables from
+  the penetrators and the distribution parts below. The bay stack and the
+  "stays in the tube" table need rewriting once the placement below is
+  decided; not changed yet.
+- `docs/wiring.md` still shows six XT60 drops from the star point. Option A
+  replaces them with the 6-way block (proposed, not yet in `wiring.md`).
+
+**Parts the holders carry:**
+
+| Part | Role | Status |
+|---|---|---|
+| BOJACK MIDI holder | 80 A main fuse at the star point; M5 studs | received |
+| UCkasayfy 6-way ATC block | six thruster circuits; M5 studs, M4 screws, negative post | received, inspected |
+| Anyongora inline ATC holders ×2 | power module and Pololu spurs, 12 AWG leads | received (confirmed 2026-11-12) |
+| FEICHAO 1000 µF XT60 cap filters ×4 | bulk capacitance at the star point (rule 7) | received |
+| Radiolink power module | Pixhawk 5.3 V and voltage sense, XT60 in/out | received |
+| Pololu D36V50F5 | 5 V to the Pi | received |
+| XT90-S input | service disconnect; one input for pack or bench supply (proposed) | received |
+
+**Measure first** (steel caliper; fill in, then the holders are drawn from
+these as variables):
+
+| Part | Footprint L × W | Height, cover closed | Mounting holes: count, spacing, Ø | Terminals and wire exits | Notes |
+|---|---|---|---|---|---|
+| MIDI holder | 53.3 × 27.2 | 26.0 | 2 × Ø5 on a diagonal, 6.26 from each end and 6.35 off the centreline → 40.8 × 12.7 | Studs Ø4.85 (M5), **centres 30.25 apart**, seat **9.7** above the base, tips at **24.0** (14.3 of thread); cover pulls straight off, 16.3 tall | **Values from Roland's Onshape model (2026-11-07, `Fuse Holder 80A.stl` checked), which corrected the first caliper readings** (22.2 width, 10.7 seat, 45.4 diagonal). Origin at one stud's centre on the base. Two **dovetail keys on one long side** (2.3 proud) and **matching slots on the other** (2.3 deep), 8 wide at the face narrowing to 7, 6.8 tall from the base, centres 36 apart: the ganging feature, and a locating feature a printed cradle can copy. Dimensioned drawing: [CARP MIDI Holder Dimensions](https://claude.ai/artifact/XYYRM7yRHsAwsVkhesiGP2). Design rule: slot the cradle's screw holes about 5 × 8 along the length; the dovetail tongue locates |
+| 6-way block | 85 × 88.4 | 36.6 | 4 corner holes Ø4.0, hole edges 6 from the block edges → centres 8 in, **pattern 69 × 72.4** (2026-11-07) | Main studs on the centreline of the 85 width, one at each end of the 88.4 length (as understood); spans **75.1 outer / 65.5 inner** (2026-11-07) → **centres 70.3 apart, Ø4.8 (M5)**, outer edges about 6.65 from the ends. Terminal seat **12.7 above the base, tips at 32.0** → 19.3 exposed, 4.6 under the closed cover. Circuit screws **12.5 c-to-c, centres 9 from the edge** (2026-11-07). **Layout from the photo (2026-11-07):** + stud at one end of the 88.4, − post at the other, both on the centreline; six fuses in **two rows of three** between them with the LEDs in the strip between the rows; each fuse's circuit screw sits above or below it, so **three wires leave each long edge**; the six negative screws are a **column beside the − post**, three each side, pitch 11. **Modelled in Onshape by Roland (2026-11-07, `Fuse Block.stl` checked):** origin at the + stud centre on the base, X toward the − post, Z up. Body 88.4 × 85; deck at Z 12.7; raised body X 5.95–64.35, Y ±29.05 at the fuses, top at **25.2**, so the cover is 11.4 tall and about 12 of headroom lifts it clear; studs Ø4.8 at X 0 and 70.3, Z 12.7–32; corner holes Ø4 at X −1.05 / 71.35, Y ±34.5; circuit screw heads Ø6.9 × 6 at X 13.45 / 26.09 / 38.73 (pitch 12.64; the model corrected the 12.5 caliper reading), Y ±33.5; negative screws at X 56.4, Y ±9.25 / ±20.25 / ±31.25, Z 25.2–31.2; fuse pockets 10.3 × 19.8, LED strip at Z 21.2. Dimensioned drawing: [CARP Fuse Block Dimensions](https://claude.ai/artifact/6oYon49akWefqSM6KW1QQF). LEDs sit **between the fuses on top**, visible through the cover. **Cover pulls straight off, no hinge** (2026-11-07): no swing clearance, but headroom above the block equal to the cover's own height to lift it off. Done | Stud diameter by spans matches the MIDI holder's 4.85, so #10 / M5 ring terminals throughout |
+| Inline holder | body L × Ø | | none, lead length | cap hinge side | |
+| Cap filter module | 24 long × 20 wide | 30.5 with the capacitor | none | **One XT60 on one end only** (2026-11-07), so a plug-in stub, not a pass-through: four modules need four sockets, not a chain | **Not on the main path:** XT60s are banned there (`docs/bom.md`), so the four modules hang as **stubs off the star point**, each on its own XT60 pigtail or on a short four-socket harness, carrying ripple only (proposed). Alternative: cut the capacitors out and solder them across the block studs. Holder: a row of four saddles, or none if the stub just lies zip-tied |
+| Power module | 26 × 28.4, plus a 7.5 capacitor standing off one end (35.9 overall) | about 15, heat-shrunk | none; clamp or zip-tie cradle | XT60 leads about 65 each end; 6-pin Pixhawk lead **180** (2026-11-07) | A shrink-wrapped brick with no holes: a saddle with two zip-tie slots, or a snap-in pocket sized 26 × 36 with the capacitor end relieved |
+| Pololu D36V50F5 | 25.5 × 25.5 | 7.9 from the board underside to the tallest top-side part (6.2 above the top face); bottom-side parts reach 1.7 below the underside (3.4 below the top face) | 3 holes Ø2.5 at three corners, 21.5 c-to-c (M2 or #2 screws; the fourth corner is clear of a hole) | Terminal pads and through-holes along one edge; with that edge at the bottom and the tall components facing you, the three mounting holes are **bottom left, bottom right and upper right**, upper left has none (2026-11-07). Leads leave along the terminal edge | board 1.7 thick (2026-11-07). Cradle needs standoffs ≥ 2 so the bottom-side parts float, or a pocket under them |
+| XT90-S female + pigtail | body 11 × 21 × **31 long** (2026-11-07) | | | 10 AWG pigtails about 135 long, leaving 4.5 apart | Panel clip: a rectangular window 11 × 21 plus fit, with a lip behind the connector's shoulder so mating pushes against the panel, not the clip |
+| 10 AWG wire | OD **5.5** over the insulation (2026-11-07, Amass pigtail) | | | | Zip-tie slots: a 3 × 1.5 slot pair each side of a 6-wide saddle |
+
+**Layout question, Roland's to decide.** Drawing (private page on Roland's account):
+[CARP Distribution Placement](https://claude.ai/artifact/PvDtqKad3UXCLwQ8p5gkxa), side and end views to scale,
+2026-11-07. In both options the block stands as a **vertical panel** so it
+spends depth, not tray length: the 95 behind the packs goes 25 penetrator
+stubs (assumed) + 36.6 block + 33 to lift the cover, with nothing to spare
+either way. The difference is what crosses the sled gap: option 1 the six
+thruster cables (18 conductors, loops or 12 screws), option 2 the pack
+lead, the 7-pin signal harness and two fused spurs, all on connectors
+already planned.
+
+1. **On the sled, behind the packs.** Everything the pack feeds comes out
+   with it; the XT90-S stays the one disconnect. The six thruster cables
+   from the rear penetrators then need a service loop or a disconnect at
+   the block, and the cables cross the sled gap live.
+2. **Fixed in the rear of the tube** where the ESC bay was. Thruster
+   cables land on the block short and permanent, as the ESC phase wires
+   were meant to. The pack-to-MIDI link then crosses the sled disconnect,
+   which the XT90-S already does, and the power module and Pololu spurs
+   run forward to the sled.
+
+Either way the tray top is at Z −55 (proposed) and the bore at that height
+is about 108 wide; the pack pair takes 100 of it over 155 of length.
+
+**Roland's `Pressure Vessel Assembly.stl` (re-exported 2026-11-07 23:33, read from Downloads):** tube X −400..0 modelled at **Ø166 OD / Ø150 bore** (sched-40 is 168.3 / 154.1: check which the model intends); stereo bracket and both cameras at the front lid at the 95 baseline; the printed sled part (97.5 × 55 × 53) behind it with the Pi 5 on its plate at Z −17; a box 82 × 51.7 × 16.4 (Pixhawk?) overhead at Z 36–52 above the Pi; **one pack** on the floor, X −175..−25, bottom at Z −65.85 (consistent with one pack per dive, ADR-013, but not with the two-pack bay stack in `housing-layout.md`); the MIDI holder upright on the floor just aft of the pack's lead end, X −216..−187, lying across the tube; the **fuse block overhead and inverted**, base against the top of the bore at Z 56.3, studs pointing down, X −235..−146. Nothing aft of X −235: 165 mm of tube empty. A packing study, not a decision; questions in the chat of 2026-11-07.
+
+**Holder rules, proposed:** each holder is a flat cradle that screws to the
+tray or tube wall, uses the part's own mounting holes where it has them
+(M3 or M4 heat-set inserts), and has zip-tie slots on the wire exits for
+strain relief, which is why the P-clips were dropped. One multi-part Part
+Studio `Power distribution` with a layout sketch, so moving the block
+moves its holder; part dimensions as local variables named per the
+conventions above (`fuse_block_length`, `midi_holder_stud_spacing`).
+
 ## First target: camera carrier + stand-in plate
 
 Not the sled yet. The first print is **stage 1 of the test plan in

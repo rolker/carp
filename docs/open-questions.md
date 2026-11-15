@@ -24,9 +24,17 @@ views, cables up/down).
 - The bench rig should mirror the vehicle layout.
 - The U2 blue plugs get cut off rather than matched with a connector
   (2026-11-01): the cables would be cut for the hull anyway.
+- Pixhawk power module and Pololu get inline fuses, not block positions
+  (2026-11-02): the six thrusters take all six circuits of the 6-way block.
 
 **Proposed, not approved:**
 
+- Bench board input (2026-11-02): one XT90 ahead of the 80 A fuse, taking
+  either the pack or an adapter to the 382213, so only one can be connected.
+- Thruster fuses start at 5 A, then 10 A; 15 A only after peak current is
+  measured, because the U2 cable is about 18 AWG (estimate).
+- Ring terminals crimped straight onto the cut thruster wires on the bench;
+  the SP13 lead on the CARP Power Distribution artifact is out of date.
 - Front lid vacuum-held on the pipe end with an O-ring, printed pilot ring,
   M6 tie rods on a 184 mm circle; 3/4" cast acrylic, 8" square.
 - Bay order cameras → electronics → packs → ESCs; packs ride on the sled;

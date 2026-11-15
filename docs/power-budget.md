@@ -32,7 +32,7 @@ Selected: 2× 4S 6000 mAh LiPo = 178 Wh total, ~1.2 kg, ~$85.
 |---|---|
 | Per pack | 6 Ah × 14.8 V = **89 Wh** |
 | Runtime, one pack | ~48 min to empty, ~39 min to 20% reserve (at ~110 W, no lights; was 35/28 min under the old 150 W with-lights model) |
-| Pack dimensions | 155 × 50 × 37 mm, 616 g |
+| Pack dimensions | 155 × 50 × 37 mm, 616 g (spec); modelled 140 × 49.1 × 35 body + 10 lead end, 2026-11-07 (`housing-layout.md`) |
 | Current available | ≥120 A even discounting the 100C claim by 80% |
 
 **Packing note:** 50 mm wide × 37 mm tall **stacks** inside a 4" tube.
