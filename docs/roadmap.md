@@ -25,7 +25,7 @@ how to record the moving-capture test is not decided.
 | Line | Check |
 |------|-------|
 | The power module holds 5 V under load | `file-contains docs/bringup-checklist.md [x] Power module holds 5 V` |
-| Battery voltage reads true in ArduSub | `file-contains docs/bringup-checklist.md [x] Calibrate` |
+| Battery voltage reads true in ArduSub | file-contains docs/bringup-checklist.md [x] Calibrate `BATT_VOLT_MULT` |
 | The Pi 5 boots with the NVMe mounted | `file-contains docs/bringup-checklist.md [x] Pi 5 boots` |
 | The cameras stream, encode and record to NVMe | `file-contains docs/bringup-checklist.md [x] Cameras stream, encode, and record to NVMe` |
 | Recorded video plays back and can be scrubbed | `file-contains docs/bringup-checklist.md [x] rosbag records` |
