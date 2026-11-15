@@ -40,3 +40,6 @@ cad/vendor/*
 
 # acoustics_lab hardware check results
 acoustics_lab/runs/
+
+# Agent workspace issue worktrees (one per issue, inside the clone)
+worktrees/
